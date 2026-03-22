@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wanderlust — Content Catalog</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f7f7f8; font-family: 'DM Sans', Arial, sans-serif; color: #333; }
+
+  /* ─── Header ─── */
+  .page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 48px 48px 40px; position: relative; overflow: hidden;
+  }
+  .page-header::after {
+    content: ''; position: absolute; top: -60%; right: -8%; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,141,107,0.12) 0%, transparent 70%); border-radius: 50%;
+  }
+  .page-header h1 { font-size: 2.2rem; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+  .page-header .accent { color: #ff8d6b; }
+  .page-header p { color: #8899aa; font-size: 0.92rem; margin-top: 6px; max-width: 780px; line-height: 1.6; position: relative; z-index: 1; }
+
+  /* ─── Stats Row ─── */
+  .stats-row {
+    display: flex; gap: 16px; flex-wrap: wrap; margin-top: 20px; position: relative; z-index: 1;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; padding: 14px 20px; min-width: 130px;
+  }
+  .stat-card .stat-val { font-size: 1.6rem; font-weight: 700; color: #fff; }
+  .stat-card .stat-lbl { font-size: 0.7rem; color: #778899; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+  /* ─── Nav Tabs ─── */
+  .nav-strip {
+    background: #ffffff; border-bottom: 1px solid #e5e5e5;
+    padding: 0 32px; display: flex; gap: 0; overflow-x: auto; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-tab {
+    padding: 14px 22px; font-size: 0.8rem; font-weight: 600; color: #999;
+    cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s;
+    white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none;
+    font-family: inherit;
+  }
+  .nav-tab:hover { color: #555; }
+  .nav-tab.active { color: #ff8d6b; border-bottom-color: #ff8d6b; }
+
+  /* ─── Content Area ─── */
+  .content { max-width: 1400px; margin: 0 auto; padding: 32px 32px 80px; }
+  .panel { display: none; animation: fadeIn 0.3s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ─── Section Title ─── */
+  .section-title {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: #999; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e5;
+  }
+  .section-title .count { color: #ff8d6b; }
+
+  /* ─── Filter Bar ─── */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+  .filter-bar input {
+    background: #ffffff; border: 1px solid #ddd; border-radius: 8px;
+    padding: 8px 14px; color: #333; font-size: 0.82rem; width: 260px;
+    font-family: inherit; outline: none; transition: border-color 0.2s;
+  }
+  .filter-bar input:focus { border-color: #ff8d6b; }
+  .filter-btn {
+    background: #ffffff; border: 1px solid #ddd; border-radius: 20px;
+    padding: 6px 14px; color: #888; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .filter-btn:hover { border-color: #aaa; color: #444; }
+  .filter-btn.active { background: #ff8d6b; border-color: #ff8d6b; color: #fff; }
+
+  /* ─── Main Table ─── */
+  .catalog-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: #ffffff; border-radius: 12px; overflow: hidden;
+    border: 1px solid #e5e5e5;
+  }
+  .catalog-table thead th {
+    background: #fafafa; padding: 12px 14px; text-align: left;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #888; border-bottom: 2px solid #e5e5e5;
+    position: sticky; top: 48px; z-index: 10; cursor: pointer; white-space: nowrap;
+    user-select: none;
+  }
+  .catalog-table thead th:hover { color: #ff8d6b; }
+  .catalog-table thead th .sort-arrow { margin-left: 4px; font-size: 0.6rem; color: #ccc; }
+  .catalog-table thead th.sorted .sort-arrow { color: #ff8d6b; }
+  .catalog-table tbody tr {
+    border-bottom: 1px solid #f0f0f0; transition: background 0.15s;
+  }
+  .catalog-table tbody tr:hover { background: #fafafa; }
+  .catalog-table tbody td { padding: 12px 14px; font-size: 0.82rem; vertical-align: top; }
+  .catalog-table tbody tr:last-child td { border-bottom: none; }
+
+  /* Row cell styling */
+  .dest-cell { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+  .dest-thumb {
+    width: 36px; height: 36px; border-radius: 6px; object-fit: cover;
+    border: 1px solid #e5e5e5; flex-shrink: 0;
+  }
+  .dest-name { font-weight: 600; color: #1c1c1c; font-size: 0.82rem; line-height: 1.3; }
+  .dest-country { font-size: 0.68rem; color: #999; }
+
+  .region-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.68rem; font-weight: 600; white-space: nowrap;
+  }
+  .region-southeast-asia { background: rgba(20,184,166,0.1); color: #0d9488; }
+  .region-europe { background: rgba(99,102,241,0.1); color: #6366f1; }
+  .region-east-asia { background: rgba(244,63,94,0.1); color: #e11d48; }
+  .region-south-asia { background: rgba(245,158,11,0.1); color: #d97706; }
+  .region-caribbean { background: rgba(6,182,212,0.1); color: #0891b2; }
+  .region-north-america { background: rgba(168,85,247,0.1); color: #9333ea; }
+  .region-south-america { background: rgba(16,185,129,0.1); color: #059669; }
+  .region-central-america { background: rgba(132,204,22,0.1); color: #65a30d; }
+  .region-africa { background: rgba(251,146,60,0.1); color: #ea580c; }
+  .region-middle-east { background: rgba(217,70,239,0.1); color: #c026d3; }
+
+  .price-cell { font-family: 'DM Mono', monospace; font-weight: 500; font-size: 0.8rem; }
+  .tier-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-left: 6px;
+  }
+  .tier-budget { background: rgba(16,185,129,0.15); color: #10b981; }
+  .tier-mid-range { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tier-luxury { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  .tag-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.65rem; font-weight: 500; margin: 2px 2px;
+    background: #f0f0f0; color: #666; border: 1px solid #e0e0e0;
+  }
+  .tag-pill.tag-highlight { background: rgba(255,141,107,0.1); color: #e0693e; border-color: rgba(255,141,107,0.25); }
+
+  .trip-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.65rem; font-weight: 600; margin: 2px 2px;
+  }
+  .trip-romantic { background: rgba(244,63,94,0.08); color: #e11d48; }
+  .trip-adventure { background: rgba(245,158,11,0.08); color: #d97706; }
+  .trip-solo { background: rgba(99,102,241,0.08); color: #6366f1; }
+  .trip-family { background: rgba(16,185,129,0.08); color: #059669; }
+  .trip-culture { background: rgba(168,85,247,0.08); color: #9333ea; }
+
+  /* ─── Taxonomy Section ─── */
+  .taxonomy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .tax-card {
+    background: #ffffff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 20px; overflow: hidden;
+  }
+  .tax-card-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .tax-card-title { font-size: 0.9rem; font-weight: 700; color: #1c1c1c; }
+  .tax-card-count { font-size: 0.68rem; color: #888; background: #f0f0f0; padding: 2px 8px; border-radius: 8px; }
+  .tax-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+  }
+  .tax-item:last-child { border-bottom: none; }
+  .tax-item-label { font-size: 0.8rem; color: #444; }
+  .tax-item-id { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #999; }
+  .tax-item-bar { display: flex; align-items: center; gap: 8px; }
+  .mini-bar { width: 80px; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 3px; }
+  .tax-item-val { font-size: 0.68rem; color: #999; min-width: 20px; text-align: right; }
+
+  .kw-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .kw {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    background: #f5f5f5; color: #888; padding: 2px 6px; border-radius: 4px;
+    border: 1px solid #e0e0e0;
+  }
+
+  /* ─── Cross-Reference Matrix ─── */
+  .matrix-container { overflow-x: auto; }
+  .matrix-table {
+    border-collapse: separate; border-spacing: 0;
+    background: #ffffff; border-radius: 10px; border: 1px solid #e5e5e5;
+    min-width: 700px;
+  }
+  .matrix-table th, .matrix-table td {
+    padding: 8px 10px; font-size: 0.7rem; text-align: center;
+    border-bottom: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0;
+  }
+  .matrix-table th:last-child, .matrix-table td:last-child { border-right: none; }
+  .matrix-table tr:last-child td { border-bottom: none; }
+  .matrix-table thead th {
+    background: #fafafa; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: #888; position: sticky; top: 48px; z-index: 10;
+  }
+  .matrix-table thead th:first-child { text-align: left; min-width: 120px; }
+  .matrix-table tbody th { text-align: left; font-weight: 600; color: #444; background: #fafafa; }
+  .matrix-cell {
+    width: 32px; height: 32px; border-radius: 6px; display: inline-flex;
+    align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;
+  }
+  .heat-0 { background: transparent; color: #ddd; }
+  .heat-1 { background: rgba(255,141,107,0.1); color: #ff8d6b; }
+  .heat-2 { background: rgba(255,141,107,0.2); color: #ff8d6b; }
+  .heat-3 { background: rgba(255,141,107,0.3); color: #ff8d6b; }
+  .heat-4 { background: rgba(255,141,107,0.45); color: #fff; }
+  .heat-5 { background: rgba(255,141,107,0.6); color: #fff; }
+  .heat-6 { background: rgba(255,141,107,0.75); color: #fff; font-weight: 700; }
+  .heat-7 { background: #ff8d6b; color: #fff; font-weight: 700; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .page-header { padding: 28px 16px 24px; }
+    .page-header h1 { font-size: 1.5rem; }
+    .content { padding: 16px 12px 60px; }
+    .stats-row { gap: 8px; }
+    .stat-card { min-width: 100px; padding: 10px 14px; }
+    .stat-card .stat-val { font-size: 1.2rem; }
+    .catalog-table { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="page-header">
+  <h1>Content <span class="accent">Catalog</span></h1>
+  <p>Complete destination inventory showing every category, tag, and metadata field that drives the intent-tracking pipeline. This is the data layer the Event Collector, Intent Summarizer, and Recommendation Engine all read from.</p>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val">24</div><div class="stat-lbl">Destinations</div></div>
+    <div class="stat-card"><div class="stat-val">10</div><div class="stat-lbl">Regions</div></div>
+    <div class="stat-card"><div class="stat-val">5</div><div class="stat-lbl">Trip Types</div></div>
+    <div class="stat-card"><div class="stat-val">3</div><div class="stat-lbl">Price Tiers</div></div>
+    <div class="stat-card"><div class="stat-val">17</div><div class="stat-lbl">Unique Tags</div></div>
+    <div class="stat-card"><div class="stat-val">4</div><div class="stat-lbl">Activity Types</div></div>
+  </div>
+</div>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<div class="nav-strip">
+  <button class="nav-tab active" data-panel="destinations">Destination Table</button>
+  <button class="nav-tab" data-panel="taxonomy">Tag Taxonomy</button>
+  <button class="nav-tab" data-panel="region-matrix">Region × Trip Type</button>
+  <button class="nav-tab" data-panel="tag-matrix">Tag × Destination</button>
+</div>
+
+<!-- ═══════════════ CONTENT ═══════════════ -->
+<div class="content">
+
+<!-- ━━━━━━━━━━━━━━━ TAB 1: DESTINATION TABLE ━━━━━━━━━━━━━━━ -->
+<div class="panel active" id="panel-destinations">
+
+  <div class="filter-bar">
+    <input type="text" id="search-input" placeholder="Filter destinations, tags, regions...">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="budget">Budget</button>
+    <button class="filter-btn" data-filter="mid-range">Mid-range</button>
+    <button class="filter-btn" data-filter="luxury">Luxury</button>
+  </div>
+
+  <div style="overflow-x:auto;">
+  <table class="catalog-table" id="main-table">
+    <thead>
+      <tr>
+        <th data-sort="name">Destination <span class="sort-arrow">▲</span></th>
+        <th data-sort="region">Region <span class="sort-arrow">▲</span></th>
+        <th data-sort="price">Price <span class="sort-arrow">▲</span></th>
+        <th>Trip Types</th>
+        <th>Tags</th>
+        <th data-sort="tags">Tag Count <span class="sort-arrow">▲</span></th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━ TAB 2: TAG TAXONOMY ━━━━━━━━━━━━━━━ -->
+<div class="panel" id="panel-taxonomy">
+  <div class="section-title">Complete Tag Taxonomy — <span class="count">4 category groups · used by IntentSummarizer + matchQueryToTags()</span></div>
+  <div class="taxonomy-grid" id="taxonomy-grid"></div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━ TAB 3: REGION × TRIP TYPE MATRIX ━━━━━━━━━━━━━━━ -->
+<div class="panel" id="panel-region-matrix">
+  <div class="section-title">Region × Trip Type Cross-Reference — <span class="count">How many destinations match each combination</span></div>
+  <div class="matrix-container" id="region-matrix-container"></div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━ TAB 4: TAG × DESTINATION HEATMAP ━━━━━━━━━━━━━━━ -->
+<div class="panel" id="panel-tag-matrix">
+  <div class="section-title">Tag Distribution Heatmap — <span class="count">Which tags appear on which destinations</span></div>
+  <div class="matrix-container" id="tag-matrix-container"></div>
+</div>
+
+</div>
+
+<script>
+// ═══════════════ DATA ═══════════════
+const destinations = [
+  { id:"bali", name:"Bali, Indonesia", region:"southeast-asia", country:"Indonesia", price:850, priceTier:"budget", tags:["beach","southeast-asia","budget","culture","romantic","surfing"], tripTypes:["romantic","adventure","solo"], image:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=80&h=80&fit=crop" },
+  { id:"phuket", name:"Phuket, Thailand", region:"southeast-asia", country:"Thailand", price:720, priceTier:"budget", tags:["beach","southeast-asia","budget","nightlife","family"], tripTypes:["family","adventure","solo"], image:"https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=80&h=80&fit=crop" },
+  { id:"danang", name:"Da Nang, Vietnam", region:"southeast-asia", country:"Vietnam", price:550, priceTier:"budget", tags:["beach","southeast-asia","budget","culture","food"], tripTypes:["solo","adventure","family"], image:"https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=80&h=80&fit=crop" },
+  { id:"paris", name:"Paris, France", region:"europe", country:"France", price:1800, priceTier:"luxury", tags:["city","europe","luxury","culture","romantic","food"], tripTypes:["romantic","solo","culture"], image:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=80&h=80&fit=crop" },
+  { id:"barcelona", name:"Barcelona, Spain", region:"europe", country:"Spain", price:1200, priceTier:"mid-range", tags:["city","europe","mid-range","beach","culture","nightlife","food"], tripTypes:["solo","romantic","adventure"], image:"https://images.unsplash.com/photo-1583422409516-2895a77efded?w=80&h=80&fit=crop" },
+  { id:"prague", name:"Prague, Czech Republic", region:"europe", country:"Czech Republic", price:680, priceTier:"budget", tags:["city","europe","budget","culture","nightlife"], tripTypes:["solo","romantic","culture"], image:"https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=80&h=80&fit=crop" },
+  { id:"lisbon", name:"Lisbon, Portugal", region:"europe", country:"Portugal", price:900, priceTier:"mid-range", tags:["city","europe","mid-range","culture","food","beach"], tripTypes:["solo","romantic","culture"], image:"https://images.unsplash.com/photo-1585208798174-6cedd86e019a?w=80&h=80&fit=crop" },
+  { id:"tokyo", name:"Tokyo, Japan", region:"east-asia", country:"Japan", price:1500, priceTier:"mid-range", tags:["city","east-asia","mid-range","culture","food","technology"], tripTypes:["solo","culture","adventure"], image:"https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=80&h=80&fit=crop" },
+  { id:"kyoto", name:"Kyoto, Japan", region:"east-asia", country:"Japan", price:1400, priceTier:"mid-range", tags:["city","east-asia","mid-range","culture","nature"], tripTypes:["culture","romantic","solo"], image:"https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=80&h=80&fit=crop" },
+  { id:"maldives", name:"Maldives", region:"south-asia", country:"Maldives", price:3500, priceTier:"luxury", tags:["beach","south-asia","luxury","romantic","diving"], tripTypes:["romantic","adventure"], image:"https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=80&h=80&fit=crop" },
+  { id:"cancun", name:"Cancún, Mexico", region:"caribbean", country:"Mexico", price:950, priceTier:"mid-range", tags:["beach","caribbean","mid-range","nightlife","family","culture"], tripTypes:["family","adventure","solo"], image:"https://images.unsplash.com/photo-1510097467424-192d713fd8b2?w=80&h=80&fit=crop" },
+  { id:"santorini", name:"Santorini, Greece", region:"europe", country:"Greece", price:2200, priceTier:"luxury", tags:["beach","europe","luxury","romantic","culture"], tripTypes:["romantic","culture"], image:"https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=80&h=80&fit=crop" },
+  { id:"new-york", name:"New York City, USA", region:"north-america", country:"USA", price:2000, priceTier:"luxury", tags:["city","north-america","luxury","culture","food","nightlife"], tripTypes:["solo","culture","adventure"], image:"https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=80&h=80&fit=crop" },
+  { id:"dubai", name:"Dubai, UAE", region:"middle-east", country:"UAE", price:2500, priceTier:"luxury", tags:["city","middle-east","luxury","shopping","family"], tripTypes:["family","solo","adventure"], image:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=80&h=80&fit=crop" },
+  { id:"costa-rica", name:"Costa Rica", region:"central-america", country:"Costa Rica", price:1100, priceTier:"mid-range", tags:["nature","central-america","mid-range","adventure","family","wildlife"], tripTypes:["family","adventure"], image:"https://images.unsplash.com/photo-1518259102261-b40117eabbc0?w=80&h=80&fit=crop" },
+  { id:"morocco", name:"Marrakech, Morocco", region:"africa", country:"Morocco", price:750, priceTier:"budget", tags:["city","africa","budget","culture","food","adventure"], tripTypes:["solo","culture","adventure"], image:"https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=80&h=80&fit=crop" },
+  { id:"iceland", name:"Reykjavik, Iceland", region:"europe", country:"Iceland", price:2800, priceTier:"luxury", tags:["nature","europe","luxury","adventure"], tripTypes:["adventure","solo","romantic"], image:"https://images.unsplash.com/photo-1504829857797-ddff29c27927?w=80&h=80&fit=crop" },
+  { id:"cape-town", name:"Cape Town, South Africa", region:"africa", country:"South Africa", price:1000, priceTier:"mid-range", tags:["city","africa","mid-range","nature","adventure","food"], tripTypes:["adventure","solo","romantic"], image:"https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=80&h=80&fit=crop" },
+  { id:"machu-picchu", name:"Cusco & Machu Picchu, Peru", region:"south-america", country:"Peru", price:1300, priceTier:"mid-range", tags:["nature","south-america","mid-range","culture","adventure"], tripTypes:["adventure","solo","culture"], image:"https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=80&h=80&fit=crop" },
+  { id:"swiss-alps", name:"Swiss Alps, Switzerland", region:"europe", country:"Switzerland", price:3000, priceTier:"luxury", tags:["nature","europe","luxury","adventure","family"], tripTypes:["family","romantic","adventure"], image:"https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=80&h=80&fit=crop" },
+  { id:"hawaii", name:"Maui, Hawaii", region:"north-america", country:"USA", price:2200, priceTier:"luxury", tags:["beach","north-america","luxury","nature","family","romantic"], tripTypes:["romantic","family","adventure"], image:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=80&h=80&fit=crop" },
+  { id:"sri-lanka", name:"Sri Lanka", region:"south-asia", country:"Sri Lanka", price:600, priceTier:"budget", tags:["beach","south-asia","budget","culture","nature","wildlife","adventure"], tripTypes:["adventure","solo","culture"], image:"https://images.unsplash.com/photo-1586613835341-c55087e15648?w=80&h=80&fit=crop" },
+  { id:"amsterdam", name:"Amsterdam, Netherlands", region:"europe", country:"Netherlands", price:1400, priceTier:"mid-range", tags:["city","europe","mid-range","culture","nightlife"], tripTypes:["solo","culture","romantic"], image:"https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=80&h=80&fit=crop" },
+  { id:"patagonia", name:"Patagonia, Argentina", region:"south-america", country:"Argentina", price:2400, priceTier:"luxury", tags:["nature","south-america","luxury","adventure"], tripTypes:["adventure","solo"], image:"https://images.unsplash.com/photo-1531794352404-2d2b39cfe498?w=80&h=80&fit=crop" }
+];
+
+const regions = {
+  "southeast-asia":{ label:"Southeast Asia", keywords:["bali","thailand","vietnam","phuket","indonesia","cambodia","laos","myanmar"] },
+  "europe":{ label:"Europe", keywords:["paris","france","spain","barcelona","prague","czech","lisbon","portugal","greece","santorini","iceland","amsterdam","netherlands","switzerland","alps","italy","germany"] },
+  "east-asia":{ label:"East Asia", keywords:["tokyo","japan","kyoto","korea","china","taiwan"] },
+  "south-asia":{ label:"South Asia", keywords:["maldives","sri lanka","india","nepal"] },
+  "caribbean":{ label:"Caribbean", keywords:["cancun","mexico","jamaica","bahamas","cuba","caribbean"] },
+  "north-america":{ label:"North America", keywords:["new york","nyc","hawaii","maui","usa","canada"] },
+  "south-america":{ label:"South America", keywords:["peru","machu picchu","patagonia","argentina","brazil","colombia"] },
+  "central-america":{ label:"Central America", keywords:["costa rica","panama","belize","guatemala"] },
+  "africa":{ label:"Africa", keywords:["morocco","marrakech","cape town","south africa","kenya","tanzania","safari"] },
+  "middle-east":{ label:"Middle East", keywords:["dubai","uae","oman","jordan","israel"] }
+};
+
+const tripTypes = {
+  "romantic":{ label:"Romantic Getaway", keywords:["romantic","honeymoon","couples","anniversary","love","valentine"] },
+  "adventure":{ label:"Adventure", keywords:["adventure","hiking","trekking","surfing","diving","climbing","extreme","zip-line"] },
+  "family":{ label:"Family-Friendly", keywords:["family","kids","children","family-friendly","child","resort"] },
+  "solo":{ label:"Solo Travel", keywords:["solo","backpacking","backpacker","alone","independent"] },
+  "culture":{ label:"Cultural Experience", keywords:["culture","history","museum","temple","heritage","art","architecture"] }
+};
+
+const priceTiers = {
+  "budget":{ label:"Budget-Friendly", max:800 },
+  "mid-range":{ label:"Mid-Range", max:1500 },
+  "luxury":{ label:"Luxury", max:Infinity }
+};
+
+const activityTypes = {
+  "beach":{ label:"Beach & Coast", keywords:["beach","coast","ocean","sea","island","snorkeling","swimming","surf"] },
+  "city":{ label:"City Break", keywords:["city","urban","downtown","metropolitan","nightlife","shopping"] },
+  "nature":{ label:"Nature & Outdoors", keywords:["nature","mountain","forest","wildlife","national park","hiking","glacier"] },
+  "food":{ label:"Food & Culinary", keywords:["food","cuisine","culinary","restaurant","street food","wine","tasting"] }
+};
+
+// ═══════════════ RENDER MAIN TABLE ═══════════════
+const tbody = document.getElementById('table-body');
+let currentFilter = 'all';
+let currentSort = { key: 'name', asc: true };
+
+function renderTable() {
+  let data = [...destinations];
+
+  // Filter
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  if (q) {
+    data = data.filter(d =>
+      d.name.toLowerCase().includes(q) ||
+      d.region.includes(q) ||
+      d.country.toLowerCase().includes(q) ||
+      d.tags.some(t => t.includes(q)) ||
+      d.tripTypes.some(t => t.includes(q)) ||
+      d.priceTier.includes(q)
+    );
+  }
+  if (currentFilter !== 'all') {
+    data = data.filter(d => d.priceTier === currentFilter);
+  }
+
+  // Sort
+  data.sort((a, b) => {
+    let va, vb;
+    if (currentSort.key === 'name') { va = a.name; vb = b.name; }
+    else if (currentSort.key === 'region') { va = a.region; vb = b.region; }
+    else if (currentSort.key === 'price') { va = a.price; vb = b.price; }
+    else if (currentSort.key === 'tags') { va = a.tags.length; vb = b.tags.length; }
+    else { va = a.name; vb = b.name; }
+    if (typeof va === 'string') return currentSort.asc ? va.localeCompare(vb) : vb.localeCompare(va);
+    return currentSort.asc ? va - vb : vb - va;
+  });
+
+  const activityTags = new Set(Object.keys(activityTypes));
+  const regionKeys = new Set(Object.keys(regions));
+  const tierKeys = new Set(Object.keys(priceTiers));
+
+  tbody.innerHTML = data.map(d => {
+    const semanticTags = d.tags.filter(t => !regionKeys.has(t) && !tierKeys.has(t));
+    return `<tr>
+      <td><div class="dest-cell">
+        <img class="dest-thumb" src="${d.image}" alt="${d.name}" loading="lazy">
+        <div><div class="dest-name">${d.name}</div><div class="dest-country">${d.country}</div></div>
+      </div></td>
+      <td><span class="region-badge region-${d.region}">${regions[d.region]?.label || d.region}</span></td>
+      <td class="price-cell">$${d.price.toLocaleString()}<span class="tier-badge tier-${d.priceTier}">${d.priceTier}</span></td>
+      <td>${d.tripTypes.map(t => `<span class="trip-badge trip-${t}">${t}</span>`).join('')}</td>
+      <td>${semanticTags.map(t => `<span class="tag-pill${activityTags.has(t) ? ' tag-highlight' : ''}">${t}</span>`).join('')}</td>
+      <td style="text-align:center;color:#999;font-family:'DM Mono',monospace;">${d.tags.length}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTable();
+  });
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input', renderTable);
+
+// Sort
+document.querySelectorAll('[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (currentSort.key === key) currentSort.asc = !currentSort.asc;
+    else { currentSort.key = key; currentSort.asc = true; }
+    document.querySelectorAll('[data-sort]').forEach(h => h.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.sort-arrow').textContent = currentSort.asc ? '▲' : '▼';
+    renderTable();
+  });
+});
+
+renderTable();
+
+// ═══════════════ RENDER TAXONOMY ═══════════════
+function renderTaxonomy() {
+  const grid = document.getElementById('taxonomy-grid');
+  const groups = [
+    { title: 'Regions', color: '#ff8d6b', data: regions, type: 'region' },
+    { title: 'Trip Types', color: '#14b8a6', data: tripTypes, type: 'trip' },
+    { title: 'Price Tiers', color: '#f59e0b', data: priceTiers, type: 'price' },
+    { title: 'Activity Types', color: '#a78bfa', data: activityTypes, type: 'activity' }
+  ];
+
+  grid.innerHTML = groups.map(g => {
+    const entries = Object.entries(g.data);
+    const maxCount = Math.max(...entries.map(([k]) => destinations.filter(d => d.tags.includes(k) || d.region === k || d.tripTypes.includes(k)).length));
+
+    return `<div class="tax-card">
+      <div class="tax-card-header">
+        <div class="tax-card-title" style="color:${g.color}">${g.title}</div>
+        <div class="tax-card-count">${entries.length} entries</div>
+      </div>
+      ${entries.map(([key, val]) => {
+        const count = destinations.filter(d => d.tags.includes(key) || d.region === key || d.tripTypes.includes(key)).length;
+        const pct = maxCount > 0 ? (count / maxCount * 100) : 0;
+        return `<div class="tax-item">
+          <div>
+            <div class="tax-item-label">${val.label}</div>
+            <div class="tax-item-id">${key}</div>
+            ${val.keywords ? `<div class="kw-list">${val.keywords.slice(0, 6).map(k => `<span class="kw">${k}</span>`).join('')}${val.keywords.length > 6 ? `<span class="kw">+${val.keywords.length - 6}</span>` : ''}</div>` : ''}
+          </div>
+          <div class="tax-item-bar">
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:${g.color}"></div></div>
+            <div class="tax-item-val">${count}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+renderTaxonomy();
+
+// ═══════════════ REGION × TRIP TYPE MATRIX ═══════════════
+function renderRegionMatrix() {
+  const container = document.getElementById('region-matrix-container');
+  const regionKeys = Object.keys(regions);
+  const tripKeys = Object.keys(tripTypes);
+
+  let html = `<table class="matrix-table"><thead><tr><th>Region \\ Trip Type</th>`;
+  tripKeys.forEach(t => { html += `<th>${tripTypes[t].label}</th>`; });
+  html += `<th style="color:#ff8d6b">Total</th></tr></thead><tbody>`;
+
+  regionKeys.forEach(r => {
+    const regionDests = destinations.filter(d => d.region === r);
+    html += `<tr><th><span class="region-badge region-${r}">${regions[r].label}</span></th>`;
+    let rowTotal = 0;
+    tripKeys.forEach(t => {
+      const count = regionDests.filter(d => d.tripTypes.includes(t)).length;
+      rowTotal += count;
+      const heatClass = count === 0 ? 'heat-0' : count <= 1 ? 'heat-1' : count <= 2 ? 'heat-3' : count <= 3 ? 'heat-5' : 'heat-7';
+      html += `<td><span class="matrix-cell ${heatClass}">${count || '·'}</span></td>`;
+    });
+    html += `<td style="font-weight:700;color:#ff8d6b">${regionDests.length}</td></tr>`;
+  });
+
+  // Column totals
+  html += `<tr><th style="color:#ff8d6b;font-weight:700">Total</th>`;
+  tripKeys.forEach(t => {
+    const count = destinations.filter(d => d.tripTypes.includes(t)).length;
+    html += `<td style="font-weight:700;color:#ff8d6b">${count}</td>`;
+  });
+  html += `<td style="font-weight:700;color:#1c1c1c;background:rgba(255,141,107,0.15)">${destinations.length}</td></tr>`;
+
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+renderRegionMatrix();
+
+// ═══════════════ TAG × DESTINATION HEATMAP ═══════════════
+function renderTagMatrix() {
+  const container = document.getElementById('tag-matrix-container');
+  // Collect all unique semantic tags (exclude region/tier keys used in tags array)
+  const regionKeys = new Set(Object.keys(regions));
+  const tierKeys = new Set(Object.keys(priceTiers));
+  const allTags = [...new Set(destinations.flatMap(d => d.tags))].filter(t => !regionKeys.has(t) && !tierKeys.has(t)).sort();
+
+  let html = `<table class="matrix-table"><thead><tr><th>Destination</th>`;
+  allTags.forEach(t => { html += `<th style="writing-mode:vertical-rl;text-orientation:mixed;min-width:32px;padding:8px 4px;">${t}</th>`; });
+  html += `<th style="color:#ff8d6b">Count</th></tr></thead><tbody>`;
+
+  destinations.forEach(d => {
+    const semanticTags = d.tags.filter(t => !regionKeys.has(t) && !tierKeys.has(t));
+    html += `<tr><th style="white-space:nowrap;font-size:0.72rem;">${d.name}</th>`;
+    allTags.forEach(t => {
+      const has = semanticTags.includes(t);
+      html += `<td><span class="matrix-cell ${has ? 'heat-6' : 'heat-0'}">${has ? '●' : ''}</span></td>`;
+    });
+    html += `<td style="font-weight:700;color:#ff8d6b;text-align:center">${semanticTags.length}</td></tr>`;
+  });
+
+  // Column totals
+  html += `<tr><th style="color:#ff8d6b;font-weight:700">Total</th>`;
+  allTags.forEach(t => {
+    const count = destinations.filter(d => d.tags.includes(t)).length;
+    const heatClass = count <= 2 ? 'heat-1' : count <= 5 ? 'heat-3' : count <= 8 ? 'heat-5' : 'heat-7';
+    html += `<td><span class="matrix-cell ${heatClass}">${count}</span></td>`;
+  });
+  const totalSemanticTags = destinations.reduce((sum, d) => sum + d.tags.filter(t => !regionKeys.has(t) && !tierKeys.has(t)).length, 0);
+  html += `<td style="font-weight:700;color:#1c1c1c;background:rgba(255,141,107,0.15)">${totalSemanticTags}</td></tr>`;
+
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+renderTagMatrix();
+
+// ═══════════════ TAB NAVIGATION ═══════════════
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

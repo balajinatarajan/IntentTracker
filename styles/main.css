@@ -1,0 +1,183 @@
+/* === Marriott-inspired Design System === */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
+
+:root {
+  --color-primary: #1c1c1c;
+  --color-primary-dark: #000000;
+  --color-accent: #ff8d6b;
+  --color-bg: #f4f4f4;
+  --color-surface: #ffffff;
+  --color-text: #1c1c1c;
+  --color-text-muted: #707070;
+  --color-border: #e0e0e0;
+  --color-success: #10b981;
+  --color-warning: #ff8d6b;
+  --radius: 0px;
+  --radius-pill: 50px;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Hero Section === */
+.hero {
+  background: var(--color-primary);
+  padding: 3.5rem 2rem 3rem;
+  text-align: center;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255,141,107,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  position: relative;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  font-size: 1.05rem;
+  opacity: 0.7;
+  margin-bottom: 1.75rem;
+  position: relative;
+  font-weight: 400;
+}
+
+/* === Search Bar === */
+.search-container {
+  max-width: 640px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 1rem 1.2rem 1rem 3.2rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 1rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
+  box-shadow: none;
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+
+.search-container input:focus {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.search-container input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-accent);
+  pointer-events: none;
+  font-size: 1.1rem;
+}
+
+/* === Main Content === */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.section-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* === Price Badge === */
+.price-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.price-badge.budget {
+  background: rgba(16, 185, 129, 0.15);
+  color: #0d7a54;
+}
+
+.price-badge.mid-range {
+  background: rgba(255, 141, 107, 0.15);
+  color: #c45a2d;
+}
+
+.price-badge.luxury {
+  background: rgba(28, 28, 28, 0.1);
+  color: #1c1c1c;
+}
+
+/* === Region Tag === */
+.region-tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(255, 141, 107, 0.12);
+  color: #c45a2d;
+}
+
+/* === No Results === */
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+}
+
+/* === Scroll indicator on tracked cards === */
+.destination-card.in-view {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+  transition: outline 0.3s ease;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 1.75rem; }
+  .hero { padding: 2.5rem 1rem 2rem; }
+  .main-content { padding: 1.5rem 1rem 3rem; }
+}

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wanderlust — Use Case Flows</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f7f7f8; font-family: 'DM Sans', Arial, sans-serif; color: #333; overflow-x: hidden; }
+
+  /* ─── Header ─── */
+  .page-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 56px 60px 48px; position: relative; overflow: hidden;
+  }
+  .page-header::after {
+    content: ''; position: absolute; top: -50%; right: -10%; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,141,107,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .page-header h1 { font-size: 2.4rem; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+  .page-header .accent { color: #ff8d6b; }
+  .page-header p { color: #8899aa; font-size: 1rem; margin-top: 8px; max-width: 720px; line-height: 1.6; position: relative; z-index: 1; }
+  .page-header .badge-row { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; position: relative; z-index: 1; }
+  .header-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: #ccd6e0;
+  }
+  .header-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ─── Nav ─── */
+  .nav-strip {
+    background: #ffffff; border-bottom: 1px solid #e5e5e5;
+    padding: 0 40px; display: flex; gap: 0; overflow-x: auto; position: sticky; top: 0; z-index: 100;
+  }
+  .nav-tab {
+    padding: 14px 24px; font-size: 0.82rem; font-weight: 600; color: #999;
+    cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.25s;
+    white-space: nowrap; background: none; border-top: none; border-left: none; border-right: none;
+    font-family: inherit;
+  }
+  .nav-tab:hover { color: #555; }
+  .nav-tab.active { color: #ff8d6b; border-bottom-color: #ff8d6b; }
+  .nav-tab .tab-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%; font-size: 0.65rem;
+    background: #f0f0f0; color: #999; margin-right: 8px; transition: all 0.25s;
+  }
+  .nav-tab.active .tab-num { background: #ff8d6b; color: #fff; }
+
+  /* ─── Scenario Container ─── */
+  .scenarios { max-width: 1260px; margin: 0 auto; padding: 40px 40px 80px; }
+  .scenario-panel { display: none; animation: fadeSlide 0.4s ease-out; }
+  .scenario-panel.active { display: block; }
+  @keyframes fadeSlide { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── Scenario Header ─── */
+  .sc-head { margin-bottom: 32px; }
+  .sc-head .sc-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .sc-head h2 { font-size: 1.6rem; font-weight: 700; color: #1c1c1c; }
+  .sc-head .persona-line { color: #777; font-size: 0.85rem; margin-top: 4px; }
+
+  /* ─── Flow Pipeline ─── */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+
+  .stage {
+    position: relative; padding: 28px 32px; border-left: 3px solid #ddd;
+    margin-left: 24px; opacity: 0; transform: translateY(12px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .stage.visible { opacity: 1; transform: translateY(0); }
+  .stage::before {
+    content: ''; position: absolute; left: -9px; top: 32px;
+    width: 15px; height: 15px; border-radius: 50%; background: #ffffff;
+    border: 3px solid #ff8d6b; z-index: 2;
+  }
+  .stage.stage-event::before { border-color: #14b8a6; }
+  .stage.stage-intent::before { border-color: #a78bfa; }
+  .stage.stage-profile::before { border-color: #f59e0b; }
+  .stage.stage-rec::before { border-color: #10b981; }
+
+  .stage-label {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .stage-event .stage-label { color: #14b8a6; }
+  .stage-intent .stage-label { color: #a78bfa; }
+  .stage-profile .stage-label { color: #f59e0b; }
+  .stage-rec .stage-label { color: #10b981; }
+
+  .stage-card {
+    background: #ffffff; border-radius: 8px; padding: 20px 24px;
+    border: 1px solid #e5e5e5;
+  }
+
+  /* ─── Event badges ─── */
+  .ev { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin: 3px 3px; }
+  .ev-hover { background: rgba(20,184,166,0.15); color: #14b8a6; border: 1px solid rgba(20,184,166,0.3); }
+  .ev-click { background: rgba(255,141,107,0.15); color: #ff8d6b; border: 1px solid rgba(255,141,107,0.3); }
+  .ev-search { background: rgba(167,139,250,0.15); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); }
+  .ev-time { font-size: 0.65rem; color: #999; }
+
+  /* ─── Intent pills ─── */
+  .ip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 16px; font-size: 0.72rem; font-weight: 600; margin: 3px; }
+  .ip-region { background: #ff8d6b; color: #fff; }
+  .ip-trip { background: #14b8a6; color: #fff; }
+  .ip-price { background: #e0693e; color: #fff; }
+  .ip-search { background: #a78bfa; color: #fff; }
+  .ip-compare { background: #fff; color: #1c1c1c; border: 1px solid #ddd; }
+  .ip-hover { background: rgba(20,184,166,0.3); color: #14b8a6; border: 1px solid #14b8a6; }
+  .ip .conf { font-size: 0.6rem; opacity: 0.7; }
+
+  /* ─── Profile bars ─── */
+  .profile-bar { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+  .profile-bar .lbl { width: 110px; font-size: 0.75rem; color: #666; text-align: right; flex-shrink: 0; }
+  .profile-bar .bar-track { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; max-width: 300px; }
+  .profile-bar .bar-fill { height: 100%; border-radius: 5px; transition: width 1s ease-out; width: 0; }
+  .profile-bar .bar-val { font-size: 0.7rem; color: #555; width: 36px; }
+
+  /* ─── Rec cards ─── */
+  .rec-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .rec-item {
+    background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 8px; padding: 10px 16px; min-width: 130px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .rec-item .rec-name { font-size: 0.82rem; font-weight: 700; color: #1c1c1c; }
+  .rec-item .rec-score { font-size: 0.7rem; color: #10b981; font-weight: 600; }
+  .rec-item .rec-reason { font-size: 0.65rem; color: #777; }
+
+  /* ─── Insight box ─── */
+  .insight-box {
+    margin-top: 24px; margin-left: 24px; padding: 20px 24px;
+    background: linear-gradient(135deg, rgba(255,141,107,0.08), rgba(167,139,250,0.08));
+    border-left: 4px solid #ff8d6b; border-radius: 0 8px 8px 0;
+  }
+  .insight-box .insight-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #ff8d6b; margin-bottom: 6px; }
+  .insight-box p { font-size: 0.85rem; color: #555; line-height: 1.6; }
+
+  /* ─── Session separator ─── */
+  .session-sep {
+    margin-left: 24px; padding: 12px 0 12px 32px; border-left: 3px solid #ddd;
+    position: relative;
+  }
+  .session-sep .sep-line {
+    display: flex; align-items: center; gap: 12px; color: #999; font-size: 0.72rem;
+  }
+  .session-sep .sep-line::before { content: ''; flex: 0 0 40px; height: 1px; background: #ddd; }
+  .session-sep .sep-line::after { content: ''; flex: 1; height: 1px; background: #ddd; }
+  .decay-badge { background: #f0f0f0; color: #f59e0b; padding: 2px 10px; border-radius: 10px; font-size: 0.68rem; font-weight: 600; }
+
+  /* ─── Arrow connector ─── */
+  .arrow-conn {
+    margin-left: 24px; padding: 2px 0; border-left: 3px solid #ddd;
+    text-align: center; color: #ccc; font-size: 0.8rem; line-height: 1;
+  }
+
+  /* ─── Utility ─── */
+  .flex-wrap { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .mt-8 { margin-top: 8px; }
+  .mt-4 { margin-top: 4px; }
+  .sub-label { font-size: 0.68rem; color: #777; margin-top: 6px; }
+  .highlight { color: #ff8d6b; font-weight: 600; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .page-header { padding: 32px 20px 28px; }
+    .page-header h1 { font-size: 1.6rem; }
+    .scenarios { padding: 20px 16px 60px; }
+    .stage { padding: 16px 16px; margin-left: 16px; }
+    .nav-strip { padding: 0 16px; }
+    .nav-tab { padding: 12px 14px; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<div class="page-header">
+  <h1>Use Case <span class="accent">Flows</span></h1>
+  <p>Five end-to-end scenarios showing how raw user interactions flow through the intent-tracking pipeline — from events → intents → profile → personalized recommendations — all running client-side at the edge.</p>
+  <div class="badge-row">
+    <span class="header-badge"><span class="dot" style="background:#14b8a6"></span> Hover Events</span>
+    <span class="header-badge"><span class="dot" style="background:#ff8d6b"></span> Click Events</span>
+    <span class="header-badge"><span class="dot" style="background:#a78bfa"></span> Search Events</span>
+    <span class="header-badge"><span class="dot" style="background:#f59e0b"></span> Profile Decay</span>
+    <span class="header-badge"><span class="dot" style="background:#10b981"></span> Recommendations</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ NAV ═══════════════════════════════════════ -->
+<div class="nav-strip">
+  <button class="nav-tab active" data-sc="1"><span class="tab-num">1</span>Solo Adventure Seeker</button>
+  <button class="nav-tab" data-sc="2"><span class="tab-num">2</span>Couple's Anniversary</button>
+  <button class="nav-tab" data-sc="3"><span class="tab-num">3</span>Digital Nomad</button>
+  <button class="nav-tab" data-sc="4"><span class="tab-num">4</span>Retiree Slow Traveler</button>
+  <button class="nav-tab" data-sc="5"><span class="tab-num">5</span>Group Trip Organizer</button>
+</div>
+
+<!-- ═══════════════════════════════════════ SCENARIOS ═══════════════════════════════════════ -->
+<div class="scenarios">
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║  SCENARIO 1 — Solo Adventure Seeker      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="scenario-panel active" id="sc-1">
+  <div class="sc-head">
+    <div class="sc-icon">🧗</div>
+    <h2>The Solo Adventure Seeker</h2>
+    <div class="persona-line">First-time visitor · High-energy browsing · Single session evolving to specific interest</div>
+  </div>
+
+  <div class="pipeline">
+    <!-- STAGE 1: Events -->
+    <div class="stage stage-event" data-delay="0">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Event Capture</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-search">🔍 "solo hiking"</span>
+          <span class="ev ev-hover">👁 Cusco <span class="ev-time">3.2s</span></span>
+          <span class="ev ev-hover">👁 Patagonia <span class="ev-time">4.1s</span></span>
+          <span class="ev ev-click">👆 Cusco</span>
+          <span class="ev ev-click">👆 Costa Rica</span>
+          <span class="ev ev-hover">👁 Swiss Alps <span class="ev-time">2.8s</span></span>
+          <span class="ev ev-click">👆 Cusco ×2</span>
+          <span class="ev ev-search">🔍 "altitude trekking"</span>
+        </div>
+        <div class="sub-label">8 events captured in buffer · Flush at 5s interval · Weights: clicks 3× · hovers 2× · search tagged · Cusco freq bonus log₂(2) = +1.0</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- STAGE 2: Intents -->
+    <div class="stage stage-intent" data-delay="200">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ip ip-trip">Adventure <span class="conf">92%</span></span>
+          <span class="ip ip-region">South America <span class="conf">75%</span></span>
+          <span class="ip ip-region">Central America <span class="conf">40%</span></span>
+          <span class="ip ip-price">Budget / Mid-range <span class="conf">65%</span></span>
+          <span class="ip ip-search">Search: "solo hiking"</span>
+          <span class="ip ip-search">Search: "altitude trekking"</span>
+          <span class="ip ip-compare">Comparing: Cusco vs Costa Rica</span>
+          <span class="ip ip-hover">Hover Interest: Patagonia <span class="conf">38%</span></span>
+        </div>
+        <div class="sub-label">IntentSummarizer groups events by destination metadata → tags, regions, trip types, price tiers. Recency weighting: latest Cusco click at 1.0×, earliest search at 0.5×.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- STAGE 3: Profile -->
+    <div class="stage stage-profile" data-delay="400">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile Construction</div>
+      <div class="stage-card">
+        <div class="profile-bar"><span class="lbl">adventure</span><span class="bar-track"><span class="bar-fill" style="background:#14b8a6" data-width="88%"></span></span><span class="bar-val">0.88</span></div>
+        <div class="profile-bar"><span class="lbl">south-america</span><span class="bar-track"><span class="bar-fill" style="background:#ff8d6b" data-width="72%"></span></span><span class="bar-val">0.72</span></div>
+        <div class="profile-bar"><span class="lbl">nature</span><span class="bar-track"><span class="bar-fill" style="background:#a78bfa" data-width="64%"></span></span><span class="bar-val">0.64</span></div>
+        <div class="profile-bar"><span class="lbl">budget</span><span class="bar-track"><span class="bar-fill" style="background:#f59e0b" data-width="55%"></span></span><span class="bar-val">0.55</span></div>
+        <div class="profile-bar"><span class="lbl">europe</span><span class="bar-track"><span class="bar-fill" style="background:#10b981" data-width="28%"></span></span><span class="bar-val">0.28</span></div>
+        <div class="sub-label">IntentStore persists weighted tags to localStorage. Tags merge additively; strongest signal: adventure (reinforced by both searches + all clicks).</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- STAGE 4: Recommendations -->
+    <div class="stage stage-rec" data-delay="600">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Recommendation Engine</div>
+      <div class="stage-card">
+        <div class="rec-row">
+          <div class="rec-item"><span class="rec-name">Cusco, Peru</span><span class="rec-score">Score: 5.4</span><span class="rec-reason">adventure + south-america + freq bonus</span></div>
+          <div class="rec-item"><span class="rec-name">Patagonia</span><span class="rec-score">Score: 4.6</span><span class="rec-reason">adventure + nature + hover signal</span></div>
+          <div class="rec-item"><span class="rec-name">Costa Rica</span><span class="rec-score">Score: 4.1</span><span class="rec-reason">adventure + nature + click match</span></div>
+          <div class="rec-item"><span class="rec-name">Swiss Alps</span><span class="rec-score">Score: 3.2</span><span class="rec-reason">adventure + hover interest</span></div>
+          <div class="rec-item"><span class="rec-name">Sri Lanka</span><span class="rec-score">Score: 2.8</span><span class="rec-reason">adventure + budget cross-match</span></div>
+        </div>
+        <div class="sub-label">RecommendationEngine scores every destination against the weighted profile tags. Excludes already-clicked items from "discover" slot, keeps them in "continue exploring."</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-title">Key Insight</div>
+    <p><span class="highlight">Repeat clicks amplify signal:</span> Cusco was clicked twice, earning a frequency bonus of log₂(2) = +1.0 on top of the base click weight (3×). Combined with the "altitude trekking" search that matched Cusco's tags, it dominated the ranking. Patagonia was never clicked but ranked #2 purely from a sustained 4.1-second hover — demonstrating how the 2× hover weight captures passive intent that clicks alone would miss.</p>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║  SCENARIO 2 — Couple's Anniversary       ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="scenario-panel" id="sc-2">
+  <div class="sc-head">
+    <div class="sc-icon">💍</div>
+    <h2>The Couple's Anniversary Trip</h2>
+    <div class="persona-line">Returning visitor · Two sessions · Narrowing from broad romance to specific luxury</div>
+  </div>
+
+  <div class="pipeline">
+    <!-- Session 1 Events -->
+    <div class="stage stage-event" data-delay="0">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 1 — Event Capture</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-search">🔍 "romantic getaway"</span>
+          <span class="ev ev-hover">👁 Santorini <span class="ev-time">5.2s</span></span>
+          <span class="ev ev-hover">👁 Maldives <span class="ev-time">4.8s</span></span>
+          <span class="ev ev-click">👆 Santorini</span>
+          <span class="ev ev-click">👆 Paris</span>
+          <span class="ev ev-hover">👁 Bali <span class="ev-time">2.1s</span></span>
+          <span class="ev ev-click">👆 Maldives</span>
+        </div>
+        <div class="sub-label">7 events · All three clicks on luxury/romantic destinations · Santorini hover (5.2s) is the strongest passive signal.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- Session 1 Intents -->
+    <div class="stage stage-intent" data-delay="200">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 — Intents</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ip ip-trip">Romantic <span class="conf">90%</span></span>
+          <span class="ip ip-price">Luxury <span class="conf">78%</span></span>
+          <span class="ip ip-region">Europe <span class="conf">55%</span></span>
+          <span class="ip ip-region">South Asia <span class="conf">45%</span></span>
+          <span class="ip ip-search">Search: "romantic getaway"</span>
+          <span class="ip ip-compare">Comparing: Santorini, Paris, Maldives</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session break -->
+    <div class="session-sep">
+      <div class="sep-line"><span class="decay-badge">0.8× decay applied to Session 1</span> 2 days pass</div>
+    </div>
+
+    <!-- Session 2 Events -->
+    <div class="stage stage-event" data-delay="300">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 2 — Event Capture</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-click">👆 Santorini</span>
+          <span class="ev ev-click">👆 Santorini ×2</span>
+          <span class="ev ev-search">🔍 "overwater villa"</span>
+          <span class="ev ev-click">👆 Maldives</span>
+          <span class="ev ev-hover">👁 Dubai <span class="ev-time">3.4s</span></span>
+        </div>
+        <div class="sub-label">5 events · Santorini clicked twice more (total 3× across sessions) · "overwater villa" search strongly signals luxury. Session 2 at 1.0× weight.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- Combined Profile -->
+    <div class="stage stage-profile" data-delay="500">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Merged Profile (Session 1×0.8 + Session 2×1.0)</div>
+      <div class="stage-card">
+        <div class="profile-bar"><span class="lbl">romantic</span><span class="bar-track"><span class="bar-fill" style="background:#ff8d6b" data-width="92%"></span></span><span class="bar-val">0.92</span></div>
+        <div class="profile-bar"><span class="lbl">luxury</span><span class="bar-track"><span class="bar-fill" style="background:#e0693e" data-width="86%"></span></span><span class="bar-val">0.86</span></div>
+        <div class="profile-bar"><span class="lbl">beach</span><span class="bar-track"><span class="bar-fill" style="background:#14b8a6" data-width="70%"></span></span><span class="bar-val">0.70</span></div>
+        <div class="profile-bar"><span class="lbl">europe</span><span class="bar-track"><span class="bar-fill" style="background:#a78bfa" data-width="62%"></span></span><span class="bar-val">0.62</span></div>
+        <div class="profile-bar"><span class="lbl">south-asia</span><span class="bar-track"><span class="bar-fill" style="background:#f59e0b" data-width="52%"></span></span><span class="bar-val">0.52</span></div>
+        <div class="profile-bar"><span class="lbl">middle-east</span><span class="bar-track"><span class="bar-fill" style="background:#10b981" data-width="22%"></span></span><span class="bar-val">0.22</span></div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- Recommendations -->
+    <div class="stage stage-rec" data-delay="700">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Personalized Recommendations</div>
+      <div class="stage-card">
+        <div class="rec-row">
+          <div class="rec-item"><span class="rec-name">Santorini</span><span class="rec-score">Score: 6.1</span><span class="rec-reason">romantic + luxury + freq(3) = +1.58</span></div>
+          <div class="rec-item"><span class="rec-name">Maldives</span><span class="rec-score">Score: 5.5</span><span class="rec-reason">romantic + luxury + beach</span></div>
+          <div class="rec-item"><span class="rec-name">Dubai</span><span class="rec-score">Score: 3.8</span><span class="rec-reason">luxury + hover signal</span></div>
+          <div class="rec-item"><span class="rec-name">Paris</span><span class="rec-score">Score: 3.4</span><span class="rec-reason">romantic + europe (S1 decayed)</span></div>
+        </div>
+        <div class="sub-label">Reason text shown to user: "Based on your interest in romantic getaways" · "Based on your interest in luxury destinations"</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-title">Key Insight</div>
+    <p><span class="highlight">Cross-session narrowing effect:</span> Session 1 was exploratory (3 regions, broad "romantic" search). Session 2 narrowed hard — repeat Santorini clicks + specific "overwater villa" search pushed luxury confidence from 78% → 86%. Paris dropped from contention because its Session 1 click decayed 0.8× while Santorini got fresh Session 2 reinforcement. The system naturally surfaced the user's evolving decision without any explicit preference input.</p>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║  SCENARIO 3 — Digital Nomad              ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="scenario-panel" id="sc-3">
+  <div class="sc-head">
+    <div class="sc-icon">💻</div>
+    <h2>The Digital Nomad</h2>
+    <div class="persona-line">Power user · Three sessions over a week · Interests pivot sharply between sessions</div>
+  </div>
+
+  <div class="pipeline">
+    <!-- Session 1 -->
+    <div class="stage stage-event" data-delay="0">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 1 (Mon) — Southeast Asia Focus</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-search">🔍 "coworking beach"</span>
+          <span class="ev ev-click">👆 Bali</span>
+          <span class="ev ev-click">👆 Da Nang</span>
+          <span class="ev ev-hover">👁 Phuket <span class="ev-time">3.5s</span></span>
+          <span class="ev ev-click">👆 Bali ×2</span>
+        </div>
+        <div class="sub-label">SE Asia · Budget · Solo lifestyle · Bali freq bonus +1.0</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-intent" data-delay="150">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 Intents</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ip ip-region">SE Asia <span class="conf">85%</span></span>
+          <span class="ip ip-trip">Solo <span class="conf">72%</span></span>
+          <span class="ip ip-price">Budget <span class="conf">70%</span></span>
+          <span class="ip ip-search">Search: "coworking beach"</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-sep">
+      <div class="sep-line"><span class="decay-badge">0.8× decay</span> 3 days pass</div>
+    </div>
+
+    <!-- Session 2 -->
+    <div class="stage stage-event" data-delay="250">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 2 (Thu) — Europe Pivot</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-search">🔍 "digital nomad europe"</span>
+          <span class="ev ev-click">👆 Lisbon</span>
+          <span class="ev ev-click">👆 Barcelona</span>
+          <span class="ev ev-hover">👁 Prague <span class="ev-time">4.2s</span></span>
+          <span class="ev ev-click">👆 Lisbon ×2</span>
+        </div>
+        <div class="sub-label">Hard pivot to Europe · Lisbon repeat click · Session 1 SE Asia decays to 0.8×</div>
+      </div>
+    </div>
+
+    <div class="session-sep">
+      <div class="sep-line"><span class="decay-badge">0.8× on S1 & S2</span> 3 more days</div>
+    </div>
+
+    <!-- Session 3 -->
+    <div class="stage stage-event" data-delay="350">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 3 (Sun) — Decision Phase</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-click">👆 Lisbon</span>
+          <span class="ev ev-click">👆 Lisbon ×2</span>
+          <span class="ev ev-click">👆 Lisbon ×3</span>
+          <span class="ev ev-search">🔍 "lisbon coliving"</span>
+        </div>
+        <div class="sub-label">Lisbon clicked 3 more times (total: 5 across all sessions) · freq bonus log₂(5) = +2.32 · S1 at 0.64× · S2 at 0.8× · S3 at 1.0×</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- Final Profile -->
+    <div class="stage stage-profile" data-delay="500">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Final Merged Profile</div>
+      <div class="stage-card">
+        <div class="profile-bar"><span class="lbl">europe</span><span class="bar-track"><span class="bar-fill" style="background:#ff8d6b" data-width="90%"></span></span><span class="bar-val">0.90</span></div>
+        <div class="profile-bar"><span class="lbl">city</span><span class="bar-track"><span class="bar-fill" style="background:#a78bfa" data-width="74%"></span></span><span class="bar-val">0.74</span></div>
+        <div class="profile-bar"><span class="lbl">solo</span><span class="bar-track"><span class="bar-fill" style="background:#14b8a6" data-width="68%"></span></span><span class="bar-val">0.68</span></div>
+        <div class="profile-bar"><span class="lbl">budget</span><span class="bar-track"><span class="bar-fill" style="background:#f59e0b" data-width="52%"></span></span><span class="bar-val">0.52</span></div>
+        <div class="profile-bar"><span class="lbl">southeast-asia</span><span class="bar-track"><span class="bar-fill" style="background:#10b981" data-width="24%"></span></span><span class="bar-val">0.24</span></div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <!-- Recommendations -->
+    <div class="stage stage-rec" data-delay="650">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Final Recommendations</div>
+      <div class="stage-card">
+        <div class="rec-row">
+          <div class="rec-item"><span class="rec-name">Lisbon</span><span class="rec-score">Score: 7.2</span><span class="rec-reason">europe + solo + freq(5) = +2.32</span></div>
+          <div class="rec-item"><span class="rec-name">Barcelona</span><span class="rec-score">Score: 4.8</span><span class="rec-reason">europe + city + budget</span></div>
+          <div class="rec-item"><span class="rec-name">Prague</span><span class="rec-score">Score: 4.3</span><span class="rec-reason">europe + budget + hover</span></div>
+          <div class="rec-item"><span class="rec-name">Bali</span><span class="rec-score">Score: 2.1</span><span class="rec-reason">solo + budget (heavily decayed)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-title">Key Insight</div>
+    <p><span class="highlight">Sharp interest pivot handled gracefully:</span> SE Asia dominated Session 1 but by Session 3, triple temporal decay (0.64×) reduced it to background noise. Lisbon's 5 total clicks across sessions earned a massive frequency bonus (+2.32), making it the runaway top pick. The system tracked the user's decision journey from "exploring SE Asia" → "considering Europe" → "committed to Lisbon" — a classic nomad research pattern — without any explicit preference toggles.</p>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║  SCENARIO 4 — Retiree Slow Traveler      ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="scenario-panel" id="sc-4">
+  <div class="sc-head">
+    <div class="sc-icon">🌿</div>
+    <h2>The Retiree Slow Traveler</h2>
+    <div class="persona-line">Cautious browser · Mostly hovers, rarely clicks · Hover-interest detection is critical</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage stage-event" data-delay="0">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Event Capture — Hover-Heavy Session</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-hover">👁 Kyoto <span class="ev-time">6.1s</span></span>
+          <span class="ev ev-hover">👁 Prague <span class="ev-time">5.3s</span></span>
+          <span class="ev ev-hover">👁 Lisbon <span class="ev-time">4.8s</span></span>
+          <span class="ev ev-hover">👁 Marrakech <span class="ev-time">4.2s</span></span>
+          <span class="ev ev-hover">👁 Santorini <span class="ev-time">3.5s</span></span>
+          <span class="ev ev-click">👆 Kyoto</span>
+          <span class="ev ev-search">🔍 "cultural slow travel"</span>
+        </div>
+        <div class="sub-label">7 events but only 1 click · 5 sustained hovers (all >3s) · This user reads card previews carefully without clicking through. Without hover tracking, 85% of their intent data would be lost.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-intent" data-delay="200">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ip ip-trip">Culture <span class="conf">88%</span></span>
+          <span class="ip ip-region">East Asia <span class="conf">45%</span></span>
+          <span class="ip ip-region">Europe <span class="conf">55%</span></span>
+          <span class="ip ip-price">Mid-range <span class="conf">60%</span></span>
+          <span class="ip ip-search">Search: "cultural slow travel"</span>
+          <span class="ip ip-hover">Hover Interest: Europe (3 dests) <span class="conf">52%</span></span>
+          <span class="ip ip-hover">Hover Interest: Africa <span class="conf">22%</span></span>
+        </div>
+        <div class="sub-label">Hover-interest detection fires: 3 European destinations hovered without clicking → grouped as "browsing with interest in Europe." Kyoto's hover (6.1s) + click makes it the strongest single signal.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-profile" data-delay="400">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Profile Construction</div>
+      <div class="stage-card">
+        <div class="profile-bar"><span class="lbl">culture</span><span class="bar-track"><span class="bar-fill" style="background:#a78bfa" data-width="85%"></span></span><span class="bar-val">0.85</span></div>
+        <div class="profile-bar"><span class="lbl">europe</span><span class="bar-track"><span class="bar-fill" style="background:#ff8d6b" data-width="62%"></span></span><span class="bar-val">0.62</span></div>
+        <div class="profile-bar"><span class="lbl">east-asia</span><span class="bar-track"><span class="bar-fill" style="background:#14b8a6" data-width="56%"></span></span><span class="bar-val">0.56</span></div>
+        <div class="profile-bar"><span class="lbl">city</span><span class="bar-track"><span class="bar-fill" style="background:#f59e0b" data-width="48%"></span></span><span class="bar-val">0.48</span></div>
+        <div class="profile-bar"><span class="lbl">mid-range</span><span class="bar-track"><span class="bar-fill" style="background:#10b981" data-width="40%"></span></span><span class="bar-val">0.40</span></div>
+        <div class="profile-bar"><span class="lbl">africa</span><span class="bar-track"><span class="bar-fill" style="background:#e0693e" data-width="18%"></span></span><span class="bar-val">0.18</span></div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-rec" data-delay="600">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Recommendations</div>
+      <div class="stage-card">
+        <div class="rec-row">
+          <div class="rec-item"><span class="rec-name">Kyoto</span><span class="rec-score">Score: 5.2</span><span class="rec-reason">culture + east-asia + hover + click</span></div>
+          <div class="rec-item"><span class="rec-name">Prague</span><span class="rec-score">Score: 4.4</span><span class="rec-reason">culture + europe + hover 5.3s</span></div>
+          <div class="rec-item"><span class="rec-name">Lisbon</span><span class="rec-score">Score: 4.1</span><span class="rec-reason">culture + europe + hover 4.8s</span></div>
+          <div class="rec-item"><span class="rec-name">Marrakech</span><span class="rec-score">Score: 3.6</span><span class="rec-reason">culture + hover interest</span></div>
+          <div class="rec-item"><span class="rec-name">Barcelona</span><span class="rec-score">Score: 3.0</span><span class="rec-reason">europe + culture cross-match</span></div>
+        </div>
+        <div class="sub-label">Reason text: "Based on your interest in cultural experiences" · Note: Barcelona was never interacted with but scored well via tag overlap with the profile.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-title">Key Insight</div>
+    <p><span class="highlight">Hover tracking saves the experience for passive browsers:</span> With only 1 click in the entire session, a click-only system would have almost nothing to work with. But 5 sustained hovers (totaling 24 seconds of dwell time) at 2× weight generated a rich, multi-regional profile. The hover-interest detection grouped Prague, Lisbon, and Santorini as a "European culture" browsing cluster — a signal that would be invisible without hover tracking. This scenario validates why hover events are weighted at 2× instead of being discarded.</p>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════╗ -->
+<!-- ║  SCENARIO 5 — Group Trip Organizer        ║ -->
+<!-- ╚══════════════════════════════════════════╝ -->
+<div class="scenario-panel" id="sc-5">
+  <div class="sc-head">
+    <div class="sc-icon">👥</div>
+    <h2>The Group Trip Organizer</h2>
+    <div class="persona-line">High-volume browser · Rapid clicks across many categories · Comparison-heavy + search-driven</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="stage stage-event" data-delay="0">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 1 — Broad Exploration</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-search">🔍 "group vacation"</span>
+          <span class="ev ev-click">👆 Cancun</span>
+          <span class="ev ev-click">👆 Bali</span>
+          <span class="ev ev-click">👆 Barcelona</span>
+          <span class="ev ev-click">👆 Dubai</span>
+          <span class="ev ev-click">👆 Phuket</span>
+          <span class="ev ev-hover">👁 Costa Rica <span class="ev-time">2.3s</span></span>
+          <span class="ev ev-search">🔍 "nightlife"</span>
+          <span class="ev ev-click">👆 Cancun ×2</span>
+          <span class="ev ev-click">👆 Barcelona ×2</span>
+        </div>
+        <div class="sub-label">10 events · 7 clicks across 5 destinations · 2 searches · Cancun & Barcelona repeat clicks (freq +1.0 each) · Very scattered — typical of someone gathering options for a group.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-intent" data-delay="200">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ip ip-trip">Adventure <span class="conf">55%</span></span>
+          <span class="ip ip-trip">Family <span class="conf">42%</span></span>
+          <span class="ip ip-region">Caribbean <span class="conf">40%</span></span>
+          <span class="ip ip-region">SE Asia <span class="conf">35%</span></span>
+          <span class="ip ip-region">Europe <span class="conf">30%</span></span>
+          <span class="ip ip-region">Middle East <span class="conf">20%</span></span>
+          <span class="ip ip-price">Mid-range <span class="conf">50%</span></span>
+          <span class="ip ip-search">Search: "group vacation"</span>
+          <span class="ip ip-search">Search: "nightlife"</span>
+          <span class="ip ip-compare">Comparing: 5 destinations</span>
+        </div>
+        <div class="sub-label">Low confidence across regions (no single region >50%) — signals broad comparison mode. Trip type is split between adventure and family. "nightlife" search adds a lifestyle dimension.</div>
+      </div>
+    </div>
+
+    <div class="session-sep">
+      <div class="sep-line"><span class="decay-badge">0.8× decay</span> 1 day passes</div>
+    </div>
+
+    <!-- Session 2 -->
+    <div class="stage stage-event" data-delay="350">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Session 2 — Narrowing Down</div>
+      <div class="stage-card">
+        <div class="flex-wrap">
+          <span class="ev ev-click">👆 Cancun</span>
+          <span class="ev ev-click">👆 Cancun ×2</span>
+          <span class="ev ev-click">👆 Cancun ×3</span>
+          <span class="ev ev-search">🔍 "all inclusive resort"</span>
+          <span class="ev ev-hover">👁 Maui <span class="ev-time">3.8s</span></span>
+          <span class="ev ev-click">👆 Phuket</span>
+        </div>
+        <div class="sub-label">Cancun clicked 3 more times (total: 5 across sessions, freq bonus +2.32). "all inclusive" confirms group/family trip type + mid-range price.</div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-profile" data-delay="500">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Merged Profile</div>
+      <div class="stage-card">
+        <div class="profile-bar"><span class="lbl">beach</span><span class="bar-track"><span class="bar-fill" style="background:#14b8a6" data-width="82%"></span></span><span class="bar-val">0.82</span></div>
+        <div class="profile-bar"><span class="lbl">caribbean</span><span class="bar-track"><span class="bar-fill" style="background:#ff8d6b" data-width="78%"></span></span><span class="bar-val">0.78</span></div>
+        <div class="profile-bar"><span class="lbl">nightlife</span><span class="bar-track"><span class="bar-fill" style="background:#a78bfa" data-width="60%"></span></span><span class="bar-val">0.60</span></div>
+        <div class="profile-bar"><span class="lbl">family</span><span class="bar-track"><span class="bar-fill" style="background:#f59e0b" data-width="55%"></span></span><span class="bar-val">0.55</span></div>
+        <div class="profile-bar"><span class="lbl">mid-range</span><span class="bar-track"><span class="bar-fill" style="background:#10b981" data-width="52%"></span></span><span class="bar-val">0.52</span></div>
+        <div class="profile-bar"><span class="lbl">southeast-asia</span><span class="bar-track"><span class="bar-fill" style="background:#e0693e" data-width="36%"></span></span><span class="bar-val">0.36</span></div>
+        <div class="profile-bar"><span class="lbl">europe</span><span class="bar-track"><span class="bar-fill" style="background:#888" data-width="20%"></span></span><span class="bar-val">0.20</span></div>
+      </div>
+    </div>
+
+    <div class="arrow-conn">│</div>
+
+    <div class="stage stage-rec" data-delay="650">
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Final Recommendations</div>
+      <div class="stage-card">
+        <div class="rec-row">
+          <div class="rec-item"><span class="rec-name">Cancun</span><span class="rec-score">Score: 7.8</span><span class="rec-reason">beach + caribbean + nightlife + freq(5)</span></div>
+          <div class="rec-item"><span class="rec-name">Phuket</span><span class="rec-score">Score: 4.5</span><span class="rec-reason">beach + nightlife + family</span></div>
+          <div class="rec-item"><span class="rec-name">Maui</span><span class="rec-score">Score: 3.9</span><span class="rec-reason">beach + family + hover signal</span></div>
+          <div class="rec-item"><span class="rec-name">Bali</span><span class="rec-score">Score: 3.2</span><span class="rec-reason">beach + budget (S1 decayed)</span></div>
+          <div class="rec-item"><span class="rec-name">Barcelona</span><span class="rec-score">Score: 2.4</span><span class="rec-reason">nightlife + city (decayed)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-box">
+    <div class="insight-title">Key Insight</div>
+    <p><span class="highlight">From scattered exploration to confident signal:</span> Session 1 had clicks across 4 regions with no single region over 50% — a classic group-planning scatter pattern. But Session 2's focused Cancun repeat (3 clicks) + "all inclusive resort" search collapsed the ambiguity. The frequency bonus alone (+2.32 from 5 total clicks) made Cancun's score nearly 2× the runner-up. Meanwhile, Dubai and Barcelona — both clicked once in Session 1 — decayed below threshold. The system correctly identified the decision funnel: broad comparison → shortlisting → commitment, all from behavioral signals alone.</p>
+  </div>
+</div>
+
+</div><!-- /scenarios -->
+
+<script>
+// ─── Tab Navigation ───
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.scenario-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById('sc-' + tab.dataset.sc);
+    panel.classList.add('active');
+    animatePanel(panel);
+  });
+});
+
+// ─── Staggered stage animation ───
+function animatePanel(panel) {
+  const stages = panel.querySelectorAll('.stage');
+  stages.forEach(s => s.classList.remove('visible'));
+  stages.forEach((s, i) => {
+    const delay = parseInt(s.dataset.delay || 0) + i * 120;
+    setTimeout(() => {
+      s.classList.add('visible');
+      // Animate bars inside this stage
+      s.querySelectorAll('.bar-fill').forEach(bar => {
+        setTimeout(() => { bar.style.width = bar.dataset.width; }, 200);
+      });
+    }, delay);
+  });
+}
+
+// ─── Initial animation ───
+animatePanel(document.getElementById('sc-1'));
+</script>
+</body>
+</html>

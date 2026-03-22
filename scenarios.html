@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Wanderlust — Intent Tracking Scenarios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f4f4f4; font-family: 'DM Sans', Arial, sans-serif; color: #1c1c1c; }
+
+  .page-header {
+    background: #1c1c1c; color: #fff; padding: 48px 60px 40px;
+  }
+  .page-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 4px; }
+  .page-header .accent { color: #ff8d6b; }
+  .page-header p { color: #aaa; font-size: 1rem; margin-top: 8px; max-width: 700px; line-height: 1.5; }
+
+  .scenarios { max-width: 1200px; margin: 0 auto; padding: 40px 40px 80px; }
+
+  .scenario {
+    background: #fff; margin-bottom: 48px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+  }
+
+  .scenario-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 24px 32px; border-bottom: 3px solid #ff8d6b;
+  }
+  .scenario-number {
+    width: 44px; height: 44px; border-radius: 50%; background: #ff8d6b; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; font-weight: 700; flex-shrink: 0;
+  }
+  .scenario-header h2 { font-size: 1.15rem; font-weight: 700; }
+  .scenario-header .persona { color: #707070; font-size: 0.85rem; font-weight: 400; }
+
+  .flow { display: flex; flex-direction: column; gap: 0; }
+
+  .flow-row {
+    display: grid; grid-template-columns: 220px 1fr 1fr 1fr;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .flow-row.header-row {
+    background: #1c1c1c; color: #fff; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1.2px;
+  }
+  .flow-row.header-row .flow-cell { padding: 10px 16px; color: #aaa; }
+  .flow-row.header-row .flow-cell:nth-child(1) { color: #14b8a6; }
+  .flow-row.header-row .flow-cell:nth-child(2) { color: #ff8d6b; }
+  .flow-row.header-row .flow-cell:nth-child(3) { color: #a78bfa; }
+  .flow-row.header-row .flow-cell:nth-child(4) { color: #10b981; }
+
+  .flow-cell { padding: 14px 16px; font-size: 0.82rem; line-height: 1.5; border-right: 1px solid #f0f0f0; }
+  .flow-cell:last-child { border-right: none; }
+
+  .event-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; margin-right: 4px;
+    vertical-align: middle;
+  }
+  .badge-hover { background: #e0f7f5; color: #0d9488; }
+  .badge-click { background: #fff0eb; color: #e0693e; }
+  .badge-search { background: #f3eeff; color: #7c3aed; }
+
+  .intent-pill {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.72rem; font-weight: 600; margin: 2px 2px;
+  }
+  .pill-region { background: #ff8d6b; color: #fff; }
+  .pill-price { background: #e0693e; color: #fff; }
+  .pill-trip { background: #0d9488; color: #fff; }
+  .pill-search { background: #a78bfa; color: #fff; }
+  .pill-compare { background: #1c1c1c; color: #fff; }
+  .pill-hover { background: #14b8a6; color: #fff; }
+
+  .conf { font-size: 0.7rem; color: #707070; font-style: italic; }
+
+  .rec-card {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #e8f5e9; padding: 4px 10px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 600; color: #1c1c1c; margin: 2px;
+  }
+  .rec-score { color: #10b981; font-weight: 700; font-size: 0.68rem; }
+
+  .profile-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #f4f4f4; padding: 3px 8px; border-radius: 3px;
+    font-size: 0.7rem; margin: 1px; color: #1c1c1c;
+  }
+  .profile-tag .bar {
+    display: inline-block; height: 6px; border-radius: 3px; background: #ff8d6b;
+  }
+
+  .session-label {
+    font-size: 0.68rem; font-weight: 700; color: #ff8d6b;
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; display: block;
+  }
+
+  .arrow-down {
+    text-align: center; padding: 4px 0; color: #ddd; font-size: 1.2rem;
+  }
+
+  .result-row {
+    background: #fafffe; border-top: 2px solid #10b981;
+    padding: 16px 20px;
+    display: grid; grid-template-columns: 220px 1fr;
+    gap: 12px;
+  }
+  .result-label {
+    font-size: 0.72rem; font-weight: 700; color: #10b981;
+    text-transform: uppercase; letter-spacing: 1px; padding-top: 4px;
+  }
+
+  .timeline-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle;
+  }
+  .dot-hover { background: #14b8a6; }
+  .dot-click { background: #ff8d6b; }
+  .dot-search { background: #a78bfa; }
+
+  .weight-note { font-size: 0.68rem; color: #999; margin-top: 4px; }
+
+  .save-hint { text-align: center; padding: 20px; color: #aaa; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Intent Tracking <span class="accent">Scenarios</span></h1>
+  <p>Five end-to-end walkthroughs showing how user interactions flow through the intent tracking pipeline — from raw events to summarized intents, persisted profiles, and personalized recommendations.</p>
+</div>
+
+<div class="scenarios">
+
+<!-- ============================================================ -->
+<!-- SCENARIO 1: Honeymoon Planner -->
+<!-- ============================================================ -->
+<div class="scenario">
+  <div class="scenario-header">
+    <div class="scenario-number">1</div>
+    <div>
+      <h2>The Honeymoon Planner</h2>
+      <div class="persona">First-time visitor · Focused browsing · Single session</div>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-row header-row">
+      <div class="flow-cell">User Actions</div>
+      <div class="flow-cell">Events Captured</div>
+      <div class="flow-cell">Intents Detected</div>
+      <div class="flow-cell">Profile & Recommendations</div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 1</span>
+        Searches "romantic beach" then hovers on Maldives (4s), Bali (3s), and Santorini (2s). Clicks Maldives to read details, then clicks Bali.
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-search">search</span> "romantic beach"<br>
+        <span class="event-badge badge-hover">hover</span> Maldives · 4.0s<br>
+        <span class="event-badge badge-hover">hover</span> Bali · 3.0s<br>
+        <span class="event-badge badge-hover">hover</span> Santorini · 2.0s<br>
+        <span class="event-badge badge-click">click</span> Maldives<br>
+        <span class="event-badge badge-click">click</span> Bali
+        <div class="weight-note">Clicks: 3× · Hovers: 2× · Recent events weighted higher</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-search">Search: "romantic beach"</span><br>
+        <span class="intent-pill pill-region">Region: South Asia</span> <span class="conf">70%</span><br>
+        <span class="intent-pill pill-trip">Trip: Romantic</span> <span class="conf">85%</span><br>
+        <span class="intent-pill pill-price">Price: Luxury</span> <span class="conf">62%</span><br>
+        <span class="intent-pill pill-compare">Comparing Maldives & Bali</span> <span class="conf">85%</span><br>
+        <span class="intent-pill pill-hover">Hover Interest: SE Asia</span> <span class="conf">50%</span>
+      </div>
+      <div class="flow-cell">
+        <strong>Tag weights built:</strong><br>
+        <span class="profile-tag">romantic <span class="bar" style="width:48px"></span></span>
+        <span class="profile-tag">beach <span class="bar" style="width:44px"></span></span>
+        <span class="profile-tag">south-asia <span class="bar" style="width:36px"></span></span>
+        <span class="profile-tag">luxury <span class="bar" style="width:30px"></span></span>
+        <span class="profile-tag">southeast-asia <span class="bar" style="width:24px"></span></span>
+        <div style="margin-top:10px"><strong>Top recommendations:</strong></div>
+        <span class="rec-card">Maldives <span class="rec-score">4.8</span></span>
+        <span class="rec-card">Bali <span class="rec-score">4.2</span></span>
+        <span class="rec-card">Phuket <span class="rec-score">3.1</span></span>
+        <span class="rec-card">Maui <span class="rec-score">2.7</span></span>
+      </div>
+    </div>
+
+    <div class="result-row">
+      <div class="result-label">Next Visit Result</div>
+      <div>
+        <strong>Returning visitor sees:</strong> "Recommended for You" section with Maldives, Bali, Phuket, and Maui — romantic beach destinations across multiple regions. The reason text reads: <em>"Based on your interest in romantic getaways"</em> and <em>"Based on your interest in beach destinations."</em>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCENARIO 2: Budget Backpacker -->
+<!-- ============================================================ -->
+<div class="scenario">
+  <div class="scenario-header">
+    <div class="scenario-number">2</div>
+    <div>
+      <h2>The Budget Backpacker</h2>
+      <div class="persona">Returning visitor · Price-conscious · Two sessions, interests evolve</div>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-row header-row">
+      <div class="flow-cell">User Actions</div>
+      <div class="flow-cell">Events Captured</div>
+      <div class="flow-cell">Intents Detected</div>
+      <div class="flow-cell">Profile & Recommendations</div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 1 — Day 1</span>
+        Searches "budget adventure". Clicks Da Nang, then clicks Bali, hovers Sri Lanka (2.5s). Clicks Da Nang again (repeat visit).
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-search">search</span> "budget adventure"<br>
+        <span class="event-badge badge-click">click</span> Da Nang<br>
+        <span class="event-badge badge-click">click</span> Bali<br>
+        <span class="event-badge badge-hover">hover</span> Sri Lanka · 2.5s<br>
+        <span class="event-badge badge-click">click</span> Da Nang (×2)
+        <div class="weight-note">Da Nang frequency bonus: log₂(2) = +1.0</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-search">Search: "budget adventure"</span><br>
+        <span class="intent-pill pill-region">Region: SE Asia</span> <span class="conf">80%</span><br>
+        <span class="intent-pill pill-trip">Trip: Adventure</span> <span class="conf">72%</span><br>
+        <span class="intent-pill pill-price">Price: Budget</span> <span class="conf">68%</span>
+      </div>
+      <div class="flow-cell">
+        <span class="profile-tag">southeast-asia <span class="bar" style="width:50px"></span></span>
+        <span class="profile-tag">adventure <span class="bar" style="width:40px"></span></span>
+        <span class="profile-tag">budget <span class="bar" style="width:36px"></span></span>
+        <span class="profile-tag">beach <span class="bar" style="width:28px"></span></span>
+        <div style="margin-top:8px"><strong>Recs:</strong></div>
+        <span class="rec-card">Da Nang <span class="rec-score">4.5</span></span>
+        <span class="rec-card">Bali <span class="rec-score">3.9</span></span>
+        <span class="rec-card">Sri Lanka <span class="rec-score">3.2</span></span>
+      </div>
+    </div>
+
+    <div class="arrow-down">↓ Session decay: 0.8× applied to Session 1</div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 2 — Day 3</span>
+        Returns. Sees recommendations. Now clicks Cusco and Costa Rica. Hovers Patagonia (3s). Searches "hiking".
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-click">click</span> Cusco<br>
+        <span class="event-badge badge-click">click</span> Costa Rica<br>
+        <span class="event-badge badge-hover">hover</span> Patagonia · 3.0s<br>
+        <span class="event-badge badge-search">search</span> "hiking"
+        <div class="weight-note">Session 1 weights decayed by 0.8×<br>Session 2 at full 1.0× weight</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-region">Region: S. America</span> <span class="conf">60%</span><br>
+        <span class="intent-pill pill-region">Region: C. America</span> <span class="conf">40%</span><br>
+        <span class="intent-pill pill-trip">Trip: Adventure</span> <span class="conf">90%</span><br>
+        <span class="intent-pill pill-search">Search: "hiking"</span><br>
+        <span class="intent-pill pill-hover">Hover: S. America</span> <span class="conf">27%</span>
+      </div>
+      <div class="flow-cell">
+        <strong>Profile evolution:</strong><br>
+        <span class="profile-tag">adventure <span class="bar" style="width:56px"></span></span>
+        <span class="profile-tag">nature <span class="bar" style="width:44px"></span></span>
+        <span class="profile-tag">southeast-asia <span class="bar" style="width:32px"></span> <span style="color:#999;font-size:0.6rem">↓ decayed</span></span>
+        <span class="profile-tag">south-america <span class="bar" style="width:38px"></span></span>
+        <span class="profile-tag">budget <span class="bar" style="width:34px"></span></span>
+        <div style="margin-top:8px"><strong>Updated recs:</strong></div>
+        <span class="rec-card">Cusco <span class="rec-score">4.6</span></span>
+        <span class="rec-card">Costa Rica <span class="rec-score">4.1</span></span>
+        <span class="rec-card">Da Nang <span class="rec-score">3.0</span></span>
+        <span class="rec-card">Patagonia <span class="rec-score">2.8</span></span>
+      </div>
+    </div>
+
+    <div class="result-row">
+      <div class="result-label">Key Insight</div>
+      <div>
+        <strong>Interest drift captured:</strong> SE Asia dominated in Session 1, but Session 2's Latin America + hiking focus shifted recommendations. Adventure tag grew strongest (reinforced across both sessions). Da Nang still appears but dropped from #1 to #3 due to 0.8× decay. The system adapted without any explicit preference reset.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCENARIO 3: Luxury Comparison Shopper -->
+<!-- ============================================================ -->
+<div class="scenario">
+  <div class="scenario-header">
+    <div class="scenario-number">3</div>
+    <div>
+      <h2>The Luxury Comparison Shopper</h2>
+      <div class="persona">Deliberate browser · High engagement · Comparison + frequency signals</div>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-row header-row">
+      <div class="flow-cell">User Actions</div>
+      <div class="flow-cell">Events Captured</div>
+      <div class="flow-cell">Intents Detected</div>
+      <div class="flow-cell">Profile & Recommendations</div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 1</span>
+        Clicks Dubai, then Swiss Alps, then back to Dubai (re-read). Hovers Maldives (5s), clicks Maldives. Clicks Dubai a third time. Searches "5-star resort".
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-click">click</span> Dubai<br>
+        <span class="event-badge badge-click">click</span> Swiss Alps<br>
+        <span class="event-badge badge-click">click</span> Dubai (×2)<br>
+        <span class="event-badge badge-hover">hover</span> Maldives · 5.0s<br>
+        <span class="event-badge badge-click">click</span> Maldives<br>
+        <span class="event-badge badge-click">click</span> Dubai (×3)<br>
+        <span class="event-badge badge-search">search</span> "5-star resort"
+        <div class="weight-note">Dubai: 3 clicks → freq bonus log₂(3) = +1.58<br>Maldives: hover + click = 2 → freq bonus +1.0<br>Latest Dubai click gets highest recency (1.0×)</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-region">Region: Middle East</span> <span class="conf">100%</span><br>
+        <span class="intent-pill pill-price">Price: Luxury</span> <span class="conf">88%</span><br>
+        <span class="intent-pill pill-trip">Trip: Romantic</span> <span class="conf">65%</span><br>
+        <span class="intent-pill pill-compare">Comparing Dubai, Swiss Alps & Maldives</span> <span class="conf">85%</span><br>
+        <span class="intent-pill pill-search">Search: "5-star resort"</span>
+      </div>
+      <div class="flow-cell">
+        <span class="profile-tag">luxury <span class="bar" style="width:56px"></span></span>
+        <span class="profile-tag">middle-east <span class="bar" style="width:52px"></span></span>
+        <span class="profile-tag">romantic <span class="bar" style="width:36px"></span></span>
+        <span class="profile-tag">south-asia <span class="bar" style="width:32px"></span></span>
+        <span class="profile-tag">europe <span class="bar" style="width:24px"></span></span>
+        <div style="margin-top:10px"><strong>Recs:</strong></div>
+        <span class="rec-card">Dubai <span class="rec-score">5.8</span></span>
+        <span class="rec-card">Maldives <span class="rec-score">4.9</span></span>
+        <span class="rec-card">Swiss Alps <span class="rec-score">3.4</span></span>
+        <span class="rec-card">Santorini <span class="rec-score">2.9</span></span>
+        <span class="rec-card">Paris <span class="rec-score">2.6</span></span>
+      </div>
+    </div>
+
+    <div class="result-row">
+      <div class="result-label">Key Insight</div>
+      <div>
+        <strong>Frequency + recency amplified Dubai's dominance:</strong> 3 clicks gave it a log₂(3)=1.58 frequency bonus, and the final click at 1.0× recency outweighed earlier clicks. Maldives benefited from hover (2×) + click (3×) + frequency bonus. Swiss Alps stayed relevant but ranked lower — single click, early in session (low recency). The comparison intent captured the user's decision-making phase.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCENARIO 4: Family Vacation Researcher -->
+<!-- ============================================================ -->
+<div class="scenario">
+  <div class="scenario-header">
+    <div class="scenario-number">4</div>
+    <div>
+      <h2>The Family Vacation Researcher</h2>
+      <div class="persona">Cautious browser · Hovers heavily, clicks selectively · Hover interest detection</div>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-row header-row">
+      <div class="flow-cell">User Actions</div>
+      <div class="flow-cell">Events Captured</div>
+      <div class="flow-cell">Intents Detected</div>
+      <div class="flow-cell">Profile & Recommendations</div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 1</span>
+        Slowly scrolls, hovering on many cards but rarely clicking. Hovers Cancun (4s), Costa Rica (3s), Maui (5s), Phuket (2s). Only clicks Maui. Searches "kid friendly".
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-hover">hover</span> Cancun · 4.0s<br>
+        <span class="event-badge badge-hover">hover</span> Costa Rica · 3.0s<br>
+        <span class="event-badge badge-hover">hover</span> Maui · 5.0s<br>
+        <span class="event-badge badge-hover">hover</span> Phuket · 2.0s<br>
+        <span class="event-badge badge-click">click</span> Maui<br>
+        <span class="event-badge badge-search">search</span> "kid friendly"
+        <div class="weight-note">4 hovers (no clicks) in multiple regions<br>Hover interest triggers for destinations<br>hovered but NOT clicked</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-hover">Hover: Caribbean</span> <span class="conf">40%</span><br>
+        <span class="intent-pill pill-hover">Hover: C. America</span> <span class="conf">30%</span><br>
+        <span class="intent-pill pill-region">Region: N. America</span> <span class="conf">50%</span><br>
+        <span class="intent-pill pill-trip">Trip: Family</span> <span class="conf">78%</span><br>
+        <span class="intent-pill pill-price">Price: Mid-range</span> <span class="conf">55%</span><br>
+        <span class="intent-pill pill-search">Search: "kid friendly"</span>
+        <div class="weight-note" style="margin-top:8px">Hover interest detected: Cancun + Costa Rica hovered without clicking → passive browsing signal</div>
+      </div>
+      <div class="flow-cell">
+        <span class="profile-tag">family <span class="bar" style="width:50px"></span></span>
+        <span class="profile-tag">beach <span class="bar" style="width:44px"></span></span>
+        <span class="profile-tag">north-america <span class="bar" style="width:36px"></span></span>
+        <span class="profile-tag">caribbean <span class="bar" style="width:28px"></span></span>
+        <span class="profile-tag">nature <span class="bar" style="width:26px"></span></span>
+        <span class="profile-tag">mid-range <span class="bar" style="width:24px"></span></span>
+        <div style="margin-top:10px"><strong>Recs:</strong></div>
+        <span class="rec-card">Maui <span class="rec-score">4.4</span></span>
+        <span class="rec-card">Cancun <span class="rec-score">3.8</span></span>
+        <span class="rec-card">Costa Rica <span class="rec-score">3.5</span></span>
+        <span class="rec-card">Bali <span class="rec-score">2.9</span></span>
+        <span class="rec-card">Phuket <span class="rec-score">2.6</span></span>
+      </div>
+    </div>
+
+    <div class="result-row">
+      <div class="result-label">Key Insight</div>
+      <div>
+        <strong>Hover-only browsing still builds meaningful profile:</strong> Even though the user only clicked once, four sustained hovers (each >1s) generated hover events at 2× weight. The hover interest detection caught the Caribbean/Central America browsing pattern — Cancun and Costa Rica were hovered but never clicked, signaling "browsing with interest." Without hover tracking, only Maui's single click would have registered, giving an incomplete picture. The search "kid friendly" matched the <em>family</em> trip type tag, reinforcing the family-friendly intent.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCENARIO 5: Culture Explorer — Three Sessions -->
+<!-- ============================================================ -->
+<div class="scenario">
+  <div class="scenario-header">
+    <div class="scenario-number">5</div>
+    <div>
+      <h2>The Culture Explorer</h2>
+      <div class="persona">Power user · Three sessions over a week · Full temporal decay in action</div>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="flow-row header-row">
+      <div class="flow-cell">User Actions</div>
+      <div class="flow-cell">Events Captured</div>
+      <div class="flow-cell">Intents Detected</div>
+      <div class="flow-cell">Profile & Recommendations</div>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 1 — Monday</span>
+        Clicks Tokyo, Kyoto. Searches "temples". Hovers Prague (2s).
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-click">click</span> Tokyo<br>
+        <span class="event-badge badge-click">click</span> Kyoto<br>
+        <span class="event-badge badge-search">search</span> "temples"<br>
+        <span class="event-badge badge-hover">hover</span> Prague · 2.0s
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-region">Region: East Asia</span> <span class="conf">60%</span><br>
+        <span class="intent-pill pill-trip">Trip: Culture</span> <span class="conf">80%</span><br>
+        <span class="intent-pill pill-compare">Comparing Tokyo & Kyoto</span><br>
+        <span class="intent-pill pill-search">Search: "temples"</span>
+      </div>
+      <div class="flow-cell">
+        <span class="profile-tag">east-asia <span class="bar" style="width:44px"></span></span>
+        <span class="profile-tag">culture <span class="bar" style="width:50px"></span></span>
+        <span class="profile-tag">city <span class="bar" style="width:28px"></span></span>
+        <div style="margin-top:6px;font-size:0.7rem;color:#999">Decay: 1.0× (current)</div>
+      </div>
+    </div>
+
+    <div class="arrow-down">↓ 0.8× decay on Session 1</div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 2 — Wednesday</span>
+        Clicks Marrakech, hovers Lisbon (3s), clicks Barcelona. Searches "food tour".
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-click">click</span> Marrakech<br>
+        <span class="event-badge badge-hover">hover</span> Lisbon · 3.0s<br>
+        <span class="event-badge badge-click">click</span> Barcelona<br>
+        <span class="event-badge badge-search">search</span> "food tour"
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-region">Region: Europe</span> <span class="conf">50%</span><br>
+        <span class="intent-pill pill-region">Region: Africa</span> <span class="conf">30%</span><br>
+        <span class="intent-pill pill-trip">Trip: Culture</span> <span class="conf">75%</span><br>
+        <span class="intent-pill pill-search">Search: "food tour"</span>
+      </div>
+      <div class="flow-cell">
+        <span class="profile-tag">culture <span class="bar" style="width:56px"></span> <span style="color:#10b981;font-size:0.6rem">↑ reinforced</span></span>
+        <span class="profile-tag">europe <span class="bar" style="width:40px"></span></span>
+        <span class="profile-tag">east-asia <span class="bar" style="width:32px"></span> <span style="color:#999;font-size:0.6rem">↓ 0.8×</span></span>
+        <span class="profile-tag">food <span class="bar" style="width:34px"></span></span>
+        <span class="profile-tag">africa <span class="bar" style="width:22px"></span></span>
+        <div style="margin-top:6px;font-size:0.7rem;color:#999">S1: 0.8× · S2: 1.0×</div>
+      </div>
+    </div>
+
+    <div class="arrow-down">↓ 0.8× decay on both S1 and S2</div>
+
+    <div class="flow-row">
+      <div class="flow-cell">
+        <span class="session-label">Session 3 — Saturday</span>
+        Returns, sees recs. Clicks Lisbon, then clicks Lisbon again. Hovers Amsterdam (4s). Searches "european architecture".
+      </div>
+      <div class="flow-cell">
+        <span class="event-badge badge-click">click</span> Lisbon<br>
+        <span class="event-badge badge-click">click</span> Lisbon (×2)<br>
+        <span class="event-badge badge-hover">hover</span> Amsterdam · 4.0s<br>
+        <span class="event-badge badge-search">search</span> "european architecture"
+        <div class="weight-note">Lisbon: freq bonus log₂(2) = +1.0<br>Session 3 at full weight<br>S2 at 0.8× · S1 at 0.64×</div>
+      </div>
+      <div class="flow-cell">
+        <span class="intent-pill pill-region">Region: Europe</span> <span class="conf">90%</span><br>
+        <span class="intent-pill pill-trip">Trip: Culture</span> <span class="conf">92%</span><br>
+        <span class="intent-pill pill-search">Search: "european architecture"</span><br>
+        <span class="intent-pill pill-hover">Hover: Europe</span> <span class="conf">36%</span>
+      </div>
+      <div class="flow-cell">
+        <strong>Final profile:</strong><br>
+        <span class="profile-tag">culture <span class="bar" style="width:64px"></span></span>
+        <span class="profile-tag">europe <span class="bar" style="width:58px"></span></span>
+        <span class="profile-tag">food <span class="bar" style="width:30px"></span></span>
+        <span class="profile-tag">city <span class="bar" style="width:28px"></span></span>
+        <span class="profile-tag">east-asia <span class="bar" style="width:18px"></span> <span style="color:#999;font-size:0.6rem">0.64×</span></span>
+        <div style="margin-top:10px"><strong>Final recs:</strong></div>
+        <span class="rec-card">Lisbon <span class="rec-score">5.2</span></span>
+        <span class="rec-card">Barcelona <span class="rec-score">4.5</span></span>
+        <span class="rec-card">Amsterdam <span class="rec-score">4.0</span></span>
+        <span class="rec-card">Prague <span class="rec-score">3.4</span></span>
+        <span class="rec-card">Marrakech <span class="rec-score">3.1</span></span>
+        <span class="rec-card">Kyoto <span class="rec-score">2.2</span></span>
+      </div>
+    </div>
+
+    <div class="result-row">
+      <div class="result-label">Key Insight</div>
+      <div>
+        <strong>Three-session temporal decay in action:</strong> Japan dominated Session 1 but decayed to 0.64× by Session 3. Europe steadily grew (Session 2 + Session 3 reinforcement). The <em>culture</em> tag became the strongest signal — it was reinforced in all three sessions and never decayed. Lisbon's repeat click in Session 3 earned frequency bonus + full recency weight, pushing it to #1. The system correctly evolved from "Japan cultural explorer" → "Mediterranean food & culture" → "European architecture & culture" without any manual intervention.
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<p class="save-hint">Print to PDF (Cmd+P → Save as PDF) for a clean export.</p>
+
+</body>
+</html>

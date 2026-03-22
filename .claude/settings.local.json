@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -1d /Users/bala/Context*)",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:www.marriott.com)",
+      "Bash(python3 \"/Users/bala/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/de744505-e856-43cf-987b-729975a75d2a/67450722-8d78-4666-a90d-64bea1dec683/skills/docx/scripts/office/validate.py\" \"/Users/bala/Context Tracking at Edge /Wanderlust-Solution-Brief.docx\")",
+      "Bash(python3 \"/Users/bala/Library/Application Support/Claude/local-agent-mode-sessions/skills-plugin/de744505-e856-43cf-987b-729975a75d2a/67450722-8d78-4666-a90d-64bea1dec683/skills/docx/scripts/office/soffice.py\" --headless --convert-to pdf \"/Users/bala/Context Tracking at Edge /Wanderlust-Solution-Brief.docx\" --outdir \"/Users/bala/Context Tracking at Edge /\")",
+      "Bash(lsof -ti:8080)",
+      "Bash(curl -s -o /dev/null -w \"%{size_download}\" http://localhost:8080/js/storage/intent-store.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:8080/js/storage/intent-store.js?v=2\")",
+      "Bash(xargs kill:*)"
+    ]
+  }
+}
