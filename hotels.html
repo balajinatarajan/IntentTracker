@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Stays — Wanderlust</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cards.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html" class="active">Hotels</a>
+      <a href="resorts.html">Resorts</a>
+      <a href="dining.html">Dining</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Hotel Stays</h1>
+    <p>City escapes and business travel</p>
+  </header>
+
+  <main class="main-content">
+    <h2 class="section-title">Top Hotels</h2>
+    <div id="destination-grid" class="destination-grid">
+
+      <div class="destination-card" data-ik-id="nyc-boutique" data-ik-tags="urban, boutique, luxury, nightlife" data-ik-group="hotels" data-ik-name="NYC Boutique Hotel" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?w=600&h=400&fit=crop" alt="NYC Hotel">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">NYC Boutique Hotel</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$350/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">SoHo boutique with rooftop bar, designer interiors, and Manhattan views.</div>
+          <div class="card-tags"><span class="card-tag">boutique</span><span class="card-tag">urban</span><span class="card-tag">nightlife</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="london-business" data-ik-tags="urban, business, downtown, classic" data-ik-group="hotels" data-ik-name="London Business Hotel" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop" alt="London Hotel">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">London Business Hotel</div>
+            <div class="card-overlay-region">Europe</div>
+          </div>
+          <div class="card-image-price">$220/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">Europe</span></div>
+          <div class="card-desc">Central London hotel with conference facilities and tube access.</div>
+          <div class="card-tags"><span class="card-tag">business</span><span class="card-tag">downtown</span><span class="card-tag">classic</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="tokyo-capsule" data-ik-tags="urban, budget, unique, solo" data-ik-group="hotels" data-ik-name="Tokyo Capsule Hotel" data-ik-price="budget">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&h=400&fit=crop" alt="Tokyo Capsule">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Tokyo Capsule Hotel</div>
+            <div class="card-overlay-region">East Asia</div>
+          </div>
+          <div class="card-image-price">$45/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge budget">Budget</span><span class="region-tag">East Asia</span></div>
+          <div class="card-desc">Futuristic capsule experience in Shinjuku with onsen access.</div>
+          <div class="card-tags"><span class="card-tag">budget</span><span class="card-tag">unique</span><span class="card-tag">solo</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="paris-luxury-suite" data-ik-tags="urban, luxury, romantic, boutique" data-ik-group="hotels" data-ik-name="Paris Luxury Suite" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&h=400&fit=crop" alt="Paris Suite">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Paris Luxury Suite</div>
+            <div class="card-overlay-region">Europe</div>
+          </div>
+          <div class="card-image-price">$580/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">Europe</span></div>
+          <div class="card-desc">Champs-Elysees suite with Eiffel Tower views and private concierge.</div>
+          <div class="card-tags"><span class="card-tag">luxury</span><span class="card-tag">romantic</span><span class="card-tag">boutique</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="chicago-airport" data-ik-tags="urban, budget, business, convenient" data-ik-group="hotels" data-ik-name="Chicago Airport Hotel" data-ik-price="budget">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1462539405390-d0bdb635c7d1?w=600&h=400&fit=crop" alt="Chicago Hotel">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Chicago Airport Hotel</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$95/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge budget">Budget</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">Convenient O'Hare shuttle, 24-hour fitness center, and quick check-in.</div>
+          <div class="card-tags"><span class="card-tag">budget</span><span class="card-tag">business</span><span class="card-tag">convenient</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="sf-downtown" data-ik-tags="urban, downtown, tech, modern" data-ik-group="hotels" data-ik-name="SF Downtown Hotel" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=600&h=400&fit=crop" alt="SF Hotel">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">SF Downtown Hotel</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$195/night</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">Union Square location with modern amenities and cable car access.</div>
+          <div class="card-tags"><span class="card-tag">downtown</span><span class="card-tag">modern</span><span class="card-tag">urban</span></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script>
+    const tracker = IntentTracker.create({
+      root: document.getElementById('destination-grid'),
+      debug: true,
+      pageMeta: { name: 'Hotels', category: 'hotels', url: '/hotels.html' },
+      emit: '/api/ingest',
+    });
+    window.__intentTracker = tracker;
+  </script>
+</body>
+</html>

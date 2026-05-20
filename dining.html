@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurants & Dining — Wanderlust</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cards.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html">Hotels</a>
+      <a href="resorts.html">Resorts</a>
+      <a href="dining.html" class="active">Dining</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Restaurants & Dining</h1>
+    <p>World-class cuisine and local flavors</p>
+  </header>
+
+  <main class="main-content">
+    <h2 class="section-title">Curated Dining Experiences</h2>
+    <div id="destination-grid" class="destination-grid">
+
+      <div class="destination-card" data-ik-id="oceanfront-seafood" data-ik-tags="fine-dining, seafood, waterfront, romantic" data-ik-group="dining" data-ik-name="Oceanfront Seafood" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop" alt="Seafood Restaurant">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Oceanfront Seafood</div>
+            <div class="card-overlay-region">Coastal</div>
+          </div>
+          <div class="card-image-price">$$$$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">Coastal</span></div>
+          <div class="card-desc">Fresh catch daily with panoramic ocean views and sunset dining.</div>
+          <div class="card-tags"><span class="card-tag">fine-dining</span><span class="card-tag">seafood</span><span class="card-tag">romantic</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="tuscany-italian" data-ik-tags="italian, fine-dining, wine, romantic, rustic" data-ik-group="dining" data-ik-name="Tuscany Italian" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop" alt="Italian Restaurant">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Tuscany Italian</div>
+            <div class="card-overlay-region">Europe</div>
+          </div>
+          <div class="card-image-price">$$$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">Europe</span></div>
+          <div class="card-desc">Handmade pasta, wood-fired pizzas, and curated Chianti wine pairings.</div>
+          <div class="card-tags"><span class="card-tag">italian</span><span class="card-tag">wine</span><span class="card-tag">rustic</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="tokyo-sushi" data-ik-tags="asian, sushi, fine-dining, omakase, japanese" data-ik-group="dining" data-ik-name="Tokyo Sushi Omakase" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&h=400&fit=crop" alt="Sushi Restaurant">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Tokyo Sushi Omakase</div>
+            <div class="card-overlay-region">East Asia</div>
+          </div>
+          <div class="card-image-price">$$$$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">East Asia</span></div>
+          <div class="card-desc">12-seat omakase counter with Tsukiji-sourced fish and sake pairings.</div>
+          <div class="card-tags"><span class="card-tag">sushi</span><span class="card-tag">omakase</span><span class="card-tag">fine-dining</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="nyc-steakhouse" data-ik-tags="steakhouse, fine-dining, american, classic" data-ik-group="dining" data-ik-name="NYC Steakhouse" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop" alt="Steakhouse">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">NYC Steakhouse</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$$$$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">Dry-aged prime cuts, craft cocktails, and a 500-label wine cellar.</div>
+          <div class="card-tags"><span class="card-tag">steakhouse</span><span class="card-tag">classic</span><span class="card-tag">fine-dining</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="paris-bistro" data-ik-tags="french, casual, wine, local-cuisine, charming" data-ik-group="dining" data-ik-name="Paris Bistro" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop" alt="Paris Bistro">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Paris Bistro</div>
+            <div class="card-overlay-region">Europe</div>
+          </div>
+          <div class="card-image-price">$$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">Europe</span></div>
+          <div class="card-desc">Classic Left Bank bistro with steak frites, crème brûlée, and natural wines.</div>
+          <div class="card-tags"><span class="card-tag">french</span><span class="card-tag">casual</span><span class="card-tag">local-cuisine</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="thai-street-food" data-ik-tags="asian, casual, local-cuisine, street-food, budget" data-ik-group="dining" data-ik-name="Thai Street Food" data-ik-price="budget">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop" alt="Thai Street Food">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Thai Street Food</div>
+            <div class="card-overlay-region">Southeast Asia</div>
+          </div>
+          <div class="card-image-price">$</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge budget">Budget</span><span class="region-tag">Southeast Asia</span></div>
+          <div class="card-desc">Bangkok night market tour with pad thai, mango sticky rice, and tom yum.</div>
+          <div class="card-tags"><span class="card-tag">street-food</span><span class="card-tag">casual</span><span class="card-tag">local-cuisine</span></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script>
+    const tracker = IntentTracker.create({
+      root: document.getElementById('destination-grid'),
+      debug: true,
+      pageMeta: { name: 'Dining', category: 'dining', url: '/dining.html' },
+      emit: '/api/ingest',
+    });
+    window.__intentTracker = tracker;
+  </script>
+</body>
+</html>

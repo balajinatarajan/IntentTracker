@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resorts — Wanderlust</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cards.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html">Hotels</a>
+      <a href="resorts.html" class="active">Resorts</a>
+      <a href="dining.html">Dining</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>Resorts</h1>
+    <p>Luxury retreats and wellness escapes</p>
+  </header>
+
+  <main class="main-content">
+    <h2 class="section-title">Featured Resorts</h2>
+    <div id="destination-grid" class="destination-grid">
+
+      <div class="destination-card" data-ik-id="maldives-water-villa" data-ik-tags="tropical, luxury, spa, romantic, overwater" data-ik-group="resorts" data-ik-name="Maldives Water Villa" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=600&h=400&fit=crop" alt="Maldives">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Maldives Water Villa</div>
+            <div class="card-overlay-region">South Asia</div>
+          </div>
+          <div class="card-image-price">$4,500</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">South Asia</span></div>
+          <div class="card-desc">Overwater bungalow with glass floor, private reef, and butler service.</div>
+          <div class="card-tags"><span class="card-tag">overwater</span><span class="card-tag">spa</span><span class="card-tag">romantic</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="aspen-ski-lodge" data-ik-tags="ski, adventure, mountain, winter, luxury" data-ik-group="resorts" data-ik-name="Aspen Ski Lodge" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1520208422220-d12a3c588e6c?w=600&h=400&fit=crop" alt="Aspen">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Aspen Ski Lodge</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$3,200</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">Ski-in/ski-out lodge with heated pools, après-ski bar, and mountain views.</div>
+          <div class="card-tags"><span class="card-tag">ski</span><span class="card-tag">adventure</span><span class="card-tag">mountain</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="bali-spa-resort" data-ik-tags="tropical, wellness, spa, culture, relaxation" data-ik-group="resorts" data-ik-name="Bali Spa Resort" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&h=400&fit=crop" alt="Bali Resort">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Bali Spa Resort</div>
+            <div class="card-overlay-region">Southeast Asia</div>
+          </div>
+          <div class="card-image-price">$1,400</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">Southeast Asia</span></div>
+          <div class="card-desc">Ubud jungle retreat with daily yoga, Balinese massage, and rice terrace views.</div>
+          <div class="card-tags"><span class="card-tag">wellness</span><span class="card-tag">spa</span><span class="card-tag">culture</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="hawaii-golf-resort" data-ik-tags="tropical, golf, luxury, beach, family" data-ik-group="resorts" data-ik-name="Hawaii Golf Resort" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1542259009477-d625272157b7?w=600&h=400&fit=crop" alt="Hawaii Resort">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Hawaii Golf Resort</div>
+            <div class="card-overlay-region">North America</div>
+          </div>
+          <div class="card-image-price">$2,800</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">North America</span></div>
+          <div class="card-desc">Championship golf courses with ocean views, luau nights, and snorkeling.</div>
+          <div class="card-tags"><span class="card-tag">golf</span><span class="card-tag">beach</span><span class="card-tag">family</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="swiss-alps-chalet" data-ik-tags="ski, mountain, wellness, luxury, scenic" data-ik-group="resorts" data-ik-name="Swiss Alps Chalet" data-ik-price="luxury">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1502786129293-79981df4e689?w=600&h=400&fit=crop" alt="Swiss Alps">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Swiss Alps Chalet</div>
+            <div class="card-overlay-region">Europe</div>
+          </div>
+          <div class="card-image-price">$3,600</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge luxury">Luxury</span><span class="region-tag">Europe</span></div>
+          <div class="card-desc">Private chalet with panoramic Alpine views, fondue dinners, and glacier hikes.</div>
+          <div class="card-tags"><span class="card-tag">ski</span><span class="card-tag">wellness</span><span class="card-tag">scenic</span></div>
+        </div>
+      </div>
+
+      <div class="destination-card" data-ik-id="costa-rica-eco" data-ik-tags="adventure, tropical, eco, wildlife, nature" data-ik-group="resorts" data-ik-name="Costa Rica Eco Lodge" data-ik-price="mid-range">
+        <div class="card-image-wrapper">
+          <img class="card-image" src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=600&h=400&fit=crop" alt="Costa Rica">
+          <div class="card-image-overlay">
+            <div class="card-overlay-name">Costa Rica Eco Lodge</div>
+            <div class="card-overlay-region">Central America</div>
+          </div>
+          <div class="card-image-price">$1,100</div>
+        </div>
+        <div class="card-body">
+          <div class="card-meta"><span class="price-badge mid-range">Mid-Range</span><span class="region-tag">Central America</span></div>
+          <div class="card-desc">Rainforest eco-lodge with ziplines, wildlife tours, and volcanic hot springs.</div>
+          <div class="card-tags"><span class="card-tag">adventure</span><span class="card-tag">eco</span><span class="card-tag">wildlife</span></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script>
+    const tracker = IntentTracker.create({
+      root: document.getElementById('destination-grid'),
+      debug: true,
+      pageMeta: { name: 'Resorts', category: 'resorts', url: '/resorts.html' },
+      emit: '/api/ingest',
+    });
+    window.__intentTracker = tracker;
+  </script>
+</body>
+</html>

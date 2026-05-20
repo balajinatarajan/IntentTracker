@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IntentTracker · Business Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #141b33;
+      --panel-2: #1c2547;
+      --ink: #e7ecff;
+      --muted: #8e9ac9;
+      --accent: #6c8cff;
+      --accent-2: #57d9a3;
+      --warn: #ffb454;
+      --danger: #ff7d7d;
+      --border: #283360;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, system-ui, sans-serif; }
+    header {
+      padding: 20px 28px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    header h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.2px; }
+    header h1 small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .meta b { color: var(--ink); font-weight: 600; }
+    main { padding: 24px 28px; display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .card {
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+    }
+    .card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.4px; text-transform: uppercase; }
+    .stat .value { font-size: 26px; font-weight: 600; }
+    .stat .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .chart-wrap { position: relative; height: 320px; }
+    .controls { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .controls select, .controls button {
+      background: var(--panel-2); color: var(--ink); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 8px; font-size: 12px;
+    }
+    .controls button { cursor: pointer; }
+    .controls button:hover { background: var(--border); }
+    .empty { color: var(--muted); text-align: center; padding: 40px 0; font-size: 13px; }
+    .pill { display:inline-block; padding: 1px 8px; border-radius: 999px; background: var(--panel-2); color: var(--accent-2); font-size: 11px; margin-left: 8px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; }
+    .persona-legend { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; font-size: 12px; }
+    .persona-legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: middle; }
+    .persona-legend .lbl { color: var(--ink); }
+    .persona-legend .cnt { color: var(--muted); margin-left: 6px; }
+    .rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+    .rec-card { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .rec-card .thumb { aspect-ratio: 16/10; background: #0a0f24 center/cover no-repeat; }
+    .rec-card .body { padding: 10px 12px 12px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .rec-card .title { font-weight: 600; font-size: 13px; line-height: 1.3; }
+    .rec-card .meta { color: var(--muted); font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+    .rec-card .tier { text-transform: capitalize; padding: 1px 7px; border-radius: 999px; font-size: 10px; }
+    .rec-card .tier.budget   { background: rgba(87,217,163,0.15); color: #57d9a3; }
+    .rec-card .tier.mid-range{ background: rgba(108,140,255,0.15); color: #6c8cff; }
+    .rec-card .tier.luxury   { background: rgba(255,180,84,0.15);  color: #ffb454; }
+    .rec-card .stats { display: flex; gap: 12px; color: var(--muted); font-size: 11px; }
+    .rec-card .stats b { color: var(--ink); font-weight: 600; }
+    /* User list + drill-down */
+    .user-grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; }
+    .user-list-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .user-search { width: 100%; background: var(--panel-2); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+    .user-list { max-height: 540px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+    .user-list::-webkit-scrollbar { width: 6px; }
+    .user-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .user-row { background: var(--panel-2); border: 1px solid transparent; border-radius: 8px; padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.1s; }
+    .user-row:hover { border-color: var(--border); }
+    .user-row.selected { border-color: var(--accent); background: rgba(108,140,255,0.10); }
+    .user-row .uid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--ink); }
+    .user-row .meta-line { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .user-row .persona-chip { font-size: 10px; padding: 1px 7px; border-radius: 999px; }
+    .detail-empty { color: var(--muted); padding: 60px 20px; text-align: center; }
+    .detail-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+    .detail-head .uid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; font-weight: 600; }
+    .detail-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .detail-stats .box { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
+    .detail-stats .box .v { font-size: 18px; font-weight: 600; }
+    .detail-stats .box .l { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .tag-bars { display: flex; flex-direction: column; gap: 6px; }
+    .tag-bar { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 10px; font-size: 12px; }
+    .tag-bar .name { color: var(--muted); }
+    .tag-bar .track { background: var(--panel-2); height: 8px; border-radius: 4px; overflow: hidden; }
+    .tag-bar .fill { height: 100%; background: var(--accent); border-radius: 4px; }
+    .tag-bar .val { color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+    .session-card { background: var(--panel-2); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .session-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+    .session-head .sid { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--muted); }
+    .session-head .when { font-size: 11px; color: var(--muted); }
+    .session-meta { display: flex; gap: 14px; color: var(--muted); font-size: 11px; margin-bottom: 10px; flex-wrap: wrap; }
+    .session-meta b { color: var(--ink); }
+    .timeline { display: flex; flex-direction: column; gap: 2px; max-height: 280px; overflow-y: auto; padding-right: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .timeline::-webkit-scrollbar { width: 6px; }
+    .timeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .tl-row { display: grid; grid-template-columns: 80px 70px 1fr; gap: 10px; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.04); }
+    .tl-row .t { color: var(--muted); }
+    .tl-row .type { font-weight: 600; }
+    .tl-row .type.view      { color: #6c8cff; }
+    .tl-row .type.hover     { color: #57d9a3; }
+    .tl-row .type.click     { color: #ffb454; }
+    .tl-row .type.search    { color: #ff7d7d; }
+    .tl-row .type.page_view { color: #b288ff; }
+    .tl-row .type.tab_view  { color: #8e9ac9; }
+    .tl-row .detail { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .detail-rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 6px; }
+    .mini-rec { background: var(--panel-2); border-radius: 8px; overflow: hidden; }
+    .mini-rec .thumb { aspect-ratio: 16/10; background: #0a0f24 center/cover no-repeat; }
+    .mini-rec .body { padding: 8px 10px; font-size: 11px; }
+    .mini-rec .body b { font-size: 12px; }
+    @media (max-width: 900px) { .user-grid { grid-template-columns: 1fr; } .detail-stats { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 760px) { .row { grid-template-columns: repeat(2, 1fr); } .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Business Analytics <small>aggregated across all tracked users</small></h1>
+    <div class="meta">
+      Last refresh: <b id="last-refresh">—</b>
+      <span class="pill" id="live-pill">live</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="row">
+      <div class="card stat">
+        <h2>Total signals</h2>
+        <div class="value" id="stat-signals">—</div>
+        <div class="sub">all time</div>
+      </div>
+      <div class="card stat">
+        <h2>Unique users</h2>
+        <div class="value" id="stat-users">—</div>
+        <div class="sub">distinct GUIDs</div>
+      </div>
+      <div class="card stat">
+        <h2>Profiles stored</h2>
+        <div class="value" id="stat-profiles">—</div>
+        <div class="sub">latest snapshot per user</div>
+      </div>
+      <div class="card stat">
+        <h2>Last signal</h2>
+        <div class="value" id="stat-last">—</div>
+        <div class="sub" id="stat-last-sub">awaiting events</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <h2 style="margin:0;">Signal volume by type</h2>
+        <div class="controls">
+          <label for="range">Range</label>
+          <select id="range">
+            <option value="1">Last hour</option>
+            <option value="6">Last 6 hours</option>
+            <option value="24" selected>Last 24 hours</option>
+            <option value="168">Last 7 days</option>
+          </select>
+          <button id="refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-volume"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>Top tags across all users</h2>
+      <div class="chart-wrap"><canvas id="chart-tags"></canvas></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2>User types</h2>
+        <div class="chart-wrap" style="height: 280px;"><canvas id="chart-personas"></canvas></div>
+        <div class="persona-legend" id="persona-legend"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h2 style="margin:0;">Most recommended content</h2>
+          <span class="meta">across <b id="rec-user-count">—</b> profiles</span>
+        </div>
+        <div class="rec-grid" id="rec-grid"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h2 style="margin:0;">Users <span style="color:var(--muted);font-weight:400;font-size:12px;margin-left:8px;">click a row to drill into a single user's full session activity</span></h2>
+        <span class="meta"><b id="user-list-count">—</b> shown</span>
+      </div>
+      <div class="user-grid">
+        <div class="user-list-wrap">
+          <input id="user-search" class="user-search" placeholder="Search by GUID (user-xxxxxxxx)…" autocomplete="off" />
+          <div class="user-list" id="user-list"></div>
+        </div>
+        <div class="card" style="background:var(--panel-2);border:0;padding:18px 20px;">
+          <div id="user-detail">
+            <div class="detail-empty">Select a user from the list to see their full session activity.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString());
+    const relTime = (ms) => {
+      if (!ms) return 'never';
+      const s = Math.round((Date.now() - ms) / 1000);
+      if (s < 60) return s + 's ago';
+      if (s < 3600) return Math.round(s / 60) + 'm ago';
+      if (s < 86400) return Math.round(s / 3600) + 'h ago';
+      return Math.round(s / 86400) + 'd ago';
+    };
+
+    const accent = '#6c8cff';
+    const palette = {
+      view:      '#6c8cff',
+      hover:     '#57d9a3',
+      click:     '#ffb454',
+      search:    '#ff7d7d',
+      page_view: '#b288ff',
+      tab_view:  '#8e9ac9',
+    };
+    const colorFor = (t) => palette[t] || '#8e9ac9';
+
+    Chart.defaults.color = '#8e9ac9';
+    Chart.defaults.borderColor = '#283360';
+    Chart.defaults.font.family = "-apple-system, system-ui, sans-serif";
+
+    const volumeChart = new Chart($('chart-volume'), {
+      type: 'bar',
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { stacked: true, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
+        },
+        plugins: { legend: { position: 'bottom' } },
+      },
+    });
+
+    // Persona palette (matches the five scenarios in scenarios.html + unclassified)
+    const personaColors = {
+      'honeymoon-planner':  '#ff7d7d',
+      'budget-backpacker':  '#57d9a3',
+      'luxury-shopper':     '#ffb454',
+      'family-researcher':  '#6c8cff',
+      'culture-explorer':   '#b288ff',
+      'unclassified':       '#3a4677',
+    };
+
+    const personaChart = new Chart($('chart-personas'), {
+      type: 'doughnut',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: '#0b1020', borderWidth: 2 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const tagsChart = new Chart($('chart-tags'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{
+        label: 'Total tag weight (sum across users)',
+        data: [], backgroundColor: accent, borderRadius: 4,
+      }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        scales: { x: { beginAtZero: true } },
+        plugins: { legend: { display: false } },
+      },
+    });
+
+    async function fetchJSON(url) {
+      const r = await fetch(url, { cache: 'no-store' });
+      if (!r.ok) throw new Error(url + ' -> ' + r.status);
+      return r.json();
+    }
+
+    async function refreshSummary() {
+      const s = await fetchJSON('/api/analytics/summary');
+      $('stat-signals').textContent  = fmt(s.total_signals);
+      $('stat-users').textContent    = fmt(s.unique_users);
+      $('stat-profiles').textContent = fmt(s.profiles_stored);
+      $('stat-last').textContent     = relTime(s.last_signal_at);
+      $('stat-last-sub').textContent = s.last_signal_at
+        ? new Date(s.last_signal_at).toLocaleString()
+        : 'awaiting events';
+    }
+
+    async function refreshTopTags() {
+      const { tags } = await fetchJSON('/api/analytics/top-tags?limit=15');
+      tagsChart.data.labels = tags.map(t => t.tag);
+      tagsChart.data.datasets[0].data = tags.map(t => Number(t.total_weight.toFixed(3)));
+      tagsChart.update();
+    }
+
+    async function refreshVolume() {
+      const hours = parseInt($('range').value, 10);
+      const bucketMs = hours <= 1 ? 60_000 : hours <= 6 ? 5 * 60_000 : hours <= 24 ? 60 * 60_000 : 6 * 60 * 60_000;
+      const { rows } = await fetchJSON(`/api/analytics/signal-volume?hours=${hours}&bucketMs=${bucketMs}`);
+
+      const buckets = Array.from(new Set(rows.map(r => r.bucket_ts))).sort((a, b) => a - b);
+      const types   = Array.from(new Set(rows.map(r => r.type))).sort();
+      const map = new Map(rows.map(r => [r.bucket_ts + '|' + r.type, r.count]));
+
+      const fmtBucket = (ts) => {
+        const d = new Date(ts);
+        return hours <= 24
+          ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit' });
+      };
+
+      volumeChart.data.labels = buckets.map(fmtBucket);
+      volumeChart.data.datasets = types.map(type => ({
+        label: type,
+        data: buckets.map(b => map.get(b + '|' + type) || 0),
+        backgroundColor: colorFor(type),
+        borderRadius: 2,
+      }));
+      volumeChart.update();
+    }
+
+    async function refreshPersonas() {
+      const d = await fetchJSON('/api/analytics/user-types');
+      // Filter out empty buckets from the chart but keep them in the legend
+      const shown = d.personas.filter(p => p.count > 0);
+      personaChart.data.labels = shown.map(p => p.label);
+      personaChart.data.datasets[0].data = shown.map(p => p.count);
+      personaChart.data.datasets[0].backgroundColor = shown.map(p => personaColors[p.id] || '#8e9ac9');
+      personaChart.update();
+
+      const legend = d.personas.map(p => `
+        <div>
+          <span class="swatch" style="background:${personaColors[p.id] || '#8e9ac9'}"></span>
+          <span class="lbl">${p.label}</span>
+          <span class="cnt">${p.count} · ${p.pct}%</span>
+        </div>
+      `).join('');
+      $('persona-legend').innerHTML = legend;
+    }
+
+    async function refreshRecommendations() {
+      const d = await fetchJSON('/api/analytics/top-recommendations?limit=8');
+      $('rec-user-count').textContent = fmt(d.users_considered);
+      if (!d.items.length) {
+        $('rec-grid').innerHTML = '<div class="empty">No recommendations yet — seed data or browse the demo.</div>';
+        return;
+      }
+      const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      $('rec-grid').innerHTML = d.items.map(it => `
+        <div class="rec-card">
+          <div class="thumb" style="background-image:url('${esc(it.image)}')"></div>
+          <div class="body">
+            <div class="title">${esc(it.name)}</div>
+            <div class="meta">
+              <span>${esc(it.region || '')}</span>
+              <span class="tier ${esc(it.priceTier || '')}">${esc(it.priceTier || '')}</span>
+            </div>
+            <div class="stats">
+              <span><b>${it.times_recommended}</b> recs</span>
+              <span><b>${it.pct_of_users}%</b> of users</span>
+              <span>avg <b>${it.avg_score}</b></span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ----- User list + drill-down -----
+    let selectedUserId = null;
+    let userSearchDebounce = null;
+
+    function fmtDuration(ms) {
+      if (!ms || ms < 1000) return '<1s';
+      const s = Math.round(ms / 1000);
+      if (s < 60) return s + 's';
+      const m = Math.floor(s / 60), r = s % 60;
+      return r ? `${m}m ${r}s` : `${m}m`;
+    }
+    function fmtTime(ms) {
+      return ms ? new Date(ms).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    }
+    function fmtClock(ms) {
+      return ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—';
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+
+    async function refreshUserList() {
+      const q = $('user-search').value.trim();
+      const url = '/api/users?limit=100' + (q ? '&search=' + encodeURIComponent(q) : '');
+      const { users } = await fetchJSON(url);
+      $('user-list-count').textContent = fmt(users.length);
+
+      if (!users.length) {
+        $('user-list').innerHTML = '<div class="detail-empty" style="padding:20px 0;">No users match.</div>';
+        return;
+      }
+
+      $('user-list').innerHTML = users.map(u => {
+        const color = personaColors[u.persona_id] || '#8e9ac9';
+        const top = u.top_tag ? `${esc(u.top_tag.tag)} · ${u.top_tag.weight}` : '—';
+        return `
+          <div class="user-row ${u.user_id === selectedUserId ? 'selected' : ''}" data-uid="${esc(u.user_id)}">
+            <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+              <span class="uid">${esc(u.user_id)}</span>
+              <span class="persona-chip" style="background:${color}22;color:${color}">${esc(u.persona_label)}</span>
+            </div>
+            <div class="meta-line">
+              <span>${u.signal_count} signals · ${u.session_count} sessions</span>
+              <span>${relTime(u.last_signal_at)}</span>
+            </div>
+            <div class="meta-line"><span>top: ${top}</span></div>
+          </div>
+        `;
+      }).join('');
+
+      // Wire row clicks
+      $('user-list').querySelectorAll('.user-row').forEach(el => {
+        el.addEventListener('click', () => {
+          selectUser(el.dataset.uid);
+        });
+      });
+    }
+
+    async function selectUser(userId) {
+      selectedUserId = userId;
+      $('user-list').querySelectorAll('.user-row').forEach(el => {
+        el.classList.toggle('selected', el.dataset.uid === userId);
+      });
+      await renderUserDetail(userId);
+    }
+
+    async function renderUserDetail(userId) {
+      $('user-detail').innerHTML = '<div class="detail-empty">Loading…</div>';
+      let d;
+      try { d = await fetchJSON('/api/users/' + encodeURIComponent(userId)); }
+      catch (err) {
+        $('user-detail').innerHTML = `<div class="detail-empty">Failed to load: ${esc(err.message)}</div>`;
+        return;
+      }
+
+      const personaColor = personaColors[d.persona.id] || '#8e9ac9';
+      const tagEntries = Object.entries(d.tag_weights).sort((a, b) => b[1] - a[1]);
+      const maxW = tagEntries.length ? tagEntries[0][1] : 1;
+      const tagBars = tagEntries.slice(0, 12).map(([t, w]) => `
+        <div class="tag-bar">
+          <span class="name">${esc(t)}</span>
+          <span class="track"><span class="fill" style="width:${Math.max(2, (w / maxW) * 100).toFixed(1)}%"></span></span>
+          <span class="val">${w.toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      const typeBadges = Object.entries(d.type_counts).sort((a, b) => b[1] - a[1])
+        .map(([t, n]) => `<span class="pill" style="color:${({view:'#6c8cff',hover:'#57d9a3',click:'#ffb454',search:'#ff7d7d',page_view:'#b288ff',tab_view:'#8e9ac9'})[t] || '#8e9ac9'}">${esc(t)} · ${n}</span>`)
+        .join(' ');
+
+      const firstTs = d.sessions.length ? d.sessions[0].started_at : null;
+      const lastTs = d.sessions.length ? d.sessions[d.sessions.length - 1].ended_at : null;
+
+      const sessionsHtml = d.sessions.length ? d.sessions.map(s => {
+        const rows = s.signals.map(sig => {
+          let detail;
+          if (sig.type === 'search')   detail = `“${esc(sig.query || '')}”`;
+          else if (sig.type === 'tab_view') detail = esc(sig.item_id || '');
+          else if (sig.item_id)        detail = `${esc(sig.item_id)}${sig.dwell_ms ? ` · ${sig.dwell_ms}ms` : ''}`;
+          else                          detail = esc(sig.page_url || '');
+          return `
+            <div class="tl-row">
+              <span class="t">${fmtClock(sig.ts)}</span>
+              <span class="type ${esc(sig.type)}">${esc(sig.type)}</span>
+              <span class="detail" title="${esc(sig.page_url || '')}">${detail}</span>
+            </div>
+          `;
+        }).join('');
+        return `
+          <div class="session-card">
+            <div class="session-head">
+              <span class="sid">${esc(s.session_id)}</span>
+              <span class="when">${fmtTime(s.started_at)} → ${fmtTime(s.ended_at)}</span>
+            </div>
+            <div class="session-meta">
+              <span><b>${s.signal_count}</b> signals</span>
+              <span>duration <b>${fmtDuration(s.duration_ms)}</b></span>
+              <span>pages: ${s.pages.map(p => `<b>${esc(p)}</b>`).join(', ') || '—'}</span>
+              <span>${Object.entries(s.types).map(([t, n]) => `${esc(t)}·${n}`).join(' / ')}</span>
+            </div>
+            <div class="timeline">${rows || '<div class="t">(no signals)</div>'}</div>
+          </div>
+        `;
+      }).join('') : '<div class="detail-empty">No sessions recorded.</div>';
+
+      const recsHtml = d.recommendations.length ? d.recommendations.map(r => `
+        <div class="mini-rec">
+          <div class="thumb" style="background-image:url('${esc(r.image)}')"></div>
+          <div class="body">
+            <div><b>${esc(r.name)}</b></div>
+            <div style="color:var(--muted);margin-top:2px;">score ${r.score} · ${esc(r.priceTier || '')}</div>
+          </div>
+        </div>
+      `).join('') : '<div class="detail-empty" style="padding:14px;">No recommendations — not enough profile signal yet.</div>';
+
+      $('user-detail').innerHTML = `
+        <div class="detail-head">
+          <span class="uid">${esc(d.user_id)}</span>
+          <span class="persona-chip" style="background:${personaColor}22;color:${personaColor};padding:2px 10px;border-radius:999px;font-size:11px;">${esc(d.persona.label)}${d.persona.score != null ? ` · score ${d.persona.score}` : ''}</span>
+          <span class="meta" style="margin-left:auto;">${fmtTime(firstTs)} → ${fmtTime(lastTs)}</span>
+        </div>
+
+        <div class="detail-stats">
+          <div class="box"><div class="v">${fmt(d.total_signals)}</div><div class="l">Total signals</div></div>
+          <div class="box"><div class="v">${fmt(d.sessions.length)}</div><div class="l">Sessions</div></div>
+          <div class="box"><div class="v">${fmt(Object.keys(d.tag_weights).length)}</div><div class="l">Tags learned</div></div>
+          <div class="box"><div class="v">${fmt(d.recommendations.length)}</div><div class="l">Recs available</div></div>
+        </div>
+
+        <div style="margin-bottom:6px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.4px;">Signal mix</div>
+        <div style="margin-bottom:18px;">${typeBadges || '<span class="meta">no signals</span>'}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+          <div>
+            <div style="margin-bottom:8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.4px;">Tag weights</div>
+            <div class="tag-bars">${tagBars || '<div class="meta">No tag weights yet.</div>'}</div>
+          </div>
+          <div>
+            <div style="margin-bottom:8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.4px;">Top recommendations for this user</div>
+            <div class="detail-rec-grid">${recsHtml}</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.4px;">Session activity</div>
+        ${sessionsHtml}
+      `;
+    }
+
+    $('user-search').addEventListener('input', () => {
+      clearTimeout(userSearchDebounce);
+      userSearchDebounce = setTimeout(refreshUserList, 200);
+    });
+
+    async function refreshAll() {
+      try {
+        await Promise.all([
+          refreshSummary(), refreshTopTags(), refreshVolume(),
+          refreshPersonas(), refreshRecommendations(),
+          refreshUserList(),
+        ]);
+        if (selectedUserId) await renderUserDetail(selectedUserId);
+        $('last-refresh').textContent = new Date().toLocaleTimeString();
+      } catch (err) {
+        console.error('[dashboard] refresh failed:', err);
+        $('last-refresh').textContent = 'error — see console';
+      }
+    }
+
+    $('refresh').addEventListener('click', refreshAll);
+    $('range').addEventListener('change', refreshVolume);
+
+    refreshAll();
+    setInterval(refreshAll, 10_000); // poll every 10s
+  })();
+  </script>
+</body>
+</html>
