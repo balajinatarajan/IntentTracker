@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For You — Wanderlust</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cards.css">
+  <link rel="stylesheet" href="styles/modal.css">
+  <link rel="stylesheet" href="styles/tabs.css">
+  <link rel="stylesheet" href="styles/for-you.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html">Hotels</a>
+      <a href="resorts.html">Resorts</a>
+      <a href="dining.html">Dining</a>
+      <a href="for-you.html" class="active for-you-nav-link">For You ✦</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <h1>For You</h1>
+    <p>Personalized picks based on where you've been and what you've explored.</p>
+  </header>
+
+  <main class="main-content">
+    <div id="intent-strip" class="intent-strip"></div>
+
+    <section id="fy-empty" class="fy-empty" hidden>
+      <h2>Nothing here yet</h2>
+      <p>Browse a few destinations and we'll surface a personalized feed for you.</p>
+      <a href="index.html" class="fy-cta">Start exploring</a>
+    </section>
+
+    <section id="fy-content" hidden>
+      <div id="fy-tab-bar" class="tab-bar"></div>
+      <div id="destination-grid" class="destination-grid"></div>
+    </section>
+  </main>
+
+  <!-- Detail Modal -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal-content"></div>
+  </div>
+
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script src="js/utils/profile-state.js"></script>
+  <script type="module" src="js/for-you-page.js"></script>
+</body>
+</html>

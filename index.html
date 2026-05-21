@@ -12,6 +12,8 @@
   <link rel="stylesheet" href="styles/modal.css">
   <link rel="stylesheet" href="styles/recommendations.css">
   <link rel="stylesheet" href="styles/tabs.css">
+  <link rel="stylesheet" href="styles/navbar.css">
+  <link rel="stylesheet" href="styles/for-you.css">
 </head>
 <body>
 
@@ -25,6 +27,7 @@
       <a href="resorts.html">Resorts</a>
       <a href="dining.html">Dining</a>
     </div>
+    <div id="signin-mount" class="nav-signin-slot"></div>
   </nav>
 
   <!-- Hero Section with Search -->
@@ -55,5 +58,14 @@
   <script src="lib/dist/intent-tracker.js?v=9"></script>
 
   <script type="module" src="js/app2.js?v=5"></script>
+  <script type="module">
+    import { mountSigninControl } from './js/ui/signin-control.js';
+    const mountEl = document.getElementById('signin-mount');
+    if (mountEl) mountSigninControl(mountEl);
+  </script>
+  <script type="module">
+    import { mountJourneyPill } from './js/ui/journey-pill.js';
+    mountJourneyPill();
+  </script>
 </body>
 </html>

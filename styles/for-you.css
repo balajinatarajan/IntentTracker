@@ -1,0 +1,80 @@
+.for-you-nav-link {
+  color: var(--color-accent, #ff8d6b);
+}
+
+.intent-strip {
+  max-width: 1200px;
+  margin: 1rem auto;
+  padding: 0 2rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: #444;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.intent-strip-label {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.intent-pill {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 141, 107, 0.12);
+  color: #b04a2a;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.fy-empty {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.fy-empty h2 {
+  margin: 0 0 0.5rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.5rem;
+  color: #222;
+}
+
+.fy-empty p {
+  margin: 0 0 1.5rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.fy-cta {
+  display: inline-block;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8d6b, #ff6b9a);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(255, 141, 107, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fy-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 141, 107, 0.4);
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #777;
+  font-family: 'DM Sans', sans-serif;
+}

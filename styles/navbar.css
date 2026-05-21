@@ -1,0 +1,179 @@
+/* Nav structure (.site-nav, .nav-brand, .nav-links) is owned by styles/main.css.
+   This file scopes to the sign-in slot + sign-in control only. */
+
+.nav-signin-slot {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+/* === Sign-In Control === */
+.signin-root {
+  position: relative;
+  display: inline-block;
+}
+
+.signin-trigger {
+  background: var(--color-accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 0.55rem 1.4rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.signin-trigger:hover {
+  filter: brightness(0.92);
+}
+
+.signin-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  transition: filter 0.15s ease;
+}
+
+.signin-avatar:hover {
+  filter: brightness(0.92);
+}
+
+/* === Dropdown === */
+.signin-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  min-width: 280px;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  z-index: 200;
+}
+
+.signin-dropdown-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  padding: 0.25rem 0.5rem 0.5rem;
+}
+
+/* === User picker row === */
+.signin-user-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.signin-user-row:hover {
+  background: var(--color-bg);
+}
+
+.signin-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+  font-weight: 700;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.signin-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.signin-user-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.signin-user-tier {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* === Signed-in card === */
+.signin-card {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.5rem;
+}
+
+.signin-card-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+  margin-bottom: 0.15rem;
+}
+
+.signin-card-email {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.signin-card-tier {
+  font-size: 0.8rem;
+  color: var(--color-accent);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* === Sign-out button === */
+.signin-signout {
+  width: 100%;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.signin-signout:hover {
+  background: rgba(196, 90, 45, 0.08);
+  color: #c45a2d;
+  border-color: #c45a2d;
+}

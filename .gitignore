@@ -12,3 +12,7 @@ server/data/
 # Logs
 *.log
 npm-debug.log*
+
+# Agent working docs (per-branch scratch)
+working/
+
