@@ -33,6 +33,66 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* === Navigation Bar === */
+.site-nav {
+  background: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  height: 52px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.site-nav .nav-brand {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-accent);
+  text-decoration: none;
+  margin-right: 2rem;
+  white-space: nowrap;
+}
+
+.site-nav .nav-links {
+  display: flex;
+  gap: 0.25rem;
+  list-style: none;
+}
+
+.site-nav .nav-links a {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 2px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.site-nav .nav-links a:hover {
+  color: white;
+  background: rgba(255,255,255,0.06);
+}
+
+.site-nav .nav-links a.active {
+  color: var(--color-accent);
+  background: rgba(255,141,107,0.1);
+}
+
+@media (max-width: 768px) {
+  .site-nav {
+    padding: 0 1rem;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .site-nav .nav-brand { margin-right: 1rem; }
+  .site-nav .nav-links { flex-wrap: wrap; }
+}
+
 /* === Hero Section === */
 .hero {
   background: var(--color-primary);

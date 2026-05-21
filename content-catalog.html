@@ -227,7 +227,7 @@
 <!-- ═══════════════ HEADER ═══════════════ -->
 <div class="page-header">
   <h1>Content <span class="accent">Catalog</span></h1>
-  <p>Complete destination inventory showing every category, tag, and metadata field that drives the intent-tracking pipeline. This is the data layer the Event Collector, Intent Summarizer, and Recommendation Engine all read from.</p>
+  <p>Complete destination inventory showing every category, tag, and metadata field that drives the signal-tracking pipeline. This is the data layer the Event Collector, Signal Summarizer, and Recommendation Engine all read from.</p>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-val">24</div><div class="stat-lbl">Destinations</div></div>
     <div class="stat-card"><div class="stat-val">10</div><div class="stat-lbl">Regions</div></div>
@@ -279,7 +279,7 @@
 
 <!-- ━━━━━━━━━━━━━━━ TAB 2: TAG TAXONOMY ━━━━━━━━━━━━━━━ -->
 <div class="panel" id="panel-taxonomy">
-  <div class="section-title">Complete Tag Taxonomy — <span class="count">4 category groups · used by IntentSummarizer + matchQueryToTags()</span></div>
+  <div class="section-title">Complete Tag Taxonomy — <span class="count">4 category groups · used by SignalSummarizer + matchQueryToTags()</span></div>
   <div class="taxonomy-grid" id="taxonomy-grid"></div>
 </div>
 
@@ -314,7 +314,7 @@ const destinations = [
   { id:"santorini", name:"Santorini, Greece", region:"europe", country:"Greece", price:2200, priceTier:"luxury", tags:["beach","europe","luxury","romantic","culture"], tripTypes:["romantic","culture"], image:"https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=80&h=80&fit=crop" },
   { id:"new-york", name:"New York City, USA", region:"north-america", country:"USA", price:2000, priceTier:"luxury", tags:["city","north-america","luxury","culture","food","nightlife"], tripTypes:["solo","culture","adventure"], image:"https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=80&h=80&fit=crop" },
   { id:"dubai", name:"Dubai, UAE", region:"middle-east", country:"UAE", price:2500, priceTier:"luxury", tags:["city","middle-east","luxury","shopping","family"], tripTypes:["family","solo","adventure"], image:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=80&h=80&fit=crop" },
-  { id:"costa-rica", name:"Costa Rica", region:"central-america", country:"Costa Rica", price:1100, priceTier:"mid-range", tags:["nature","central-america","mid-range","adventure","family","wildlife"], tripTypes:["family","adventure"], image:"https://images.unsplash.com/photo-1518259102261-b40117eabbc0?w=80&h=80&fit=crop" },
+  { id:"costa-rica", name:"Costa Rica", region:"central-america", country:"Costa Rica", price:1100, priceTier:"mid-range", tags:["nature","central-america","mid-range","adventure","family","wildlife"], tripTypes:["family","adventure"], image:"https://images.unsplash.com/photo-1552083375-1447ce886485?w=80&h=80&fit=crop" },
   { id:"morocco", name:"Marrakech, Morocco", region:"africa", country:"Morocco", price:750, priceTier:"budget", tags:["city","africa","budget","culture","food","adventure"], tripTypes:["solo","culture","adventure"], image:"https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=80&h=80&fit=crop" },
   { id:"iceland", name:"Reykjavik, Iceland", region:"europe", country:"Iceland", price:2800, priceTier:"luxury", tags:["nature","europe","luxury","adventure"], tripTypes:["adventure","solo","romantic"], image:"https://images.unsplash.com/photo-1504829857797-ddff29c27927?w=80&h=80&fit=crop" },
   { id:"cape-town", name:"Cape Town, South Africa", region:"africa", country:"South Africa", price:1000, priceTier:"mid-range", tags:["city","africa","mid-range","nature","adventure","food"], tripTypes:["adventure","solo","romantic"], image:"https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=80&h=80&fit=crop" },
@@ -323,7 +323,7 @@ const destinations = [
   { id:"hawaii", name:"Maui, Hawaii", region:"north-america", country:"USA", price:2200, priceTier:"luxury", tags:["beach","north-america","luxury","nature","family","romantic"], tripTypes:["romantic","family","adventure"], image:"https://images.unsplash.com/photo-1542259009477-d625272157b7?w=80&h=80&fit=crop" },
   { id:"sri-lanka", name:"Sri Lanka", region:"south-asia", country:"Sri Lanka", price:600, priceTier:"budget", tags:["beach","south-asia","budget","culture","nature","wildlife","adventure"], tripTypes:["adventure","solo","culture"], image:"https://images.unsplash.com/photo-1586613835341-c55087e15648?w=80&h=80&fit=crop" },
   { id:"amsterdam", name:"Amsterdam, Netherlands", region:"europe", country:"Netherlands", price:1400, priceTier:"mid-range", tags:["city","europe","mid-range","culture","nightlife"], tripTypes:["solo","culture","romantic"], image:"https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=80&h=80&fit=crop" },
-  { id:"patagonia", name:"Patagonia, Argentina", region:"south-america", country:"Argentina", price:2400, priceTier:"luxury", tags:["nature","south-america","luxury","adventure"], tripTypes:["adventure","solo"], image:"https://images.unsplash.com/photo-1531794352404-2d2b39cfe498?w=80&h=80&fit=crop" }
+  { id:"patagonia", name:"Patagonia, Argentina", region:"south-america", country:"Argentina", price:2400, priceTier:"luxury", tags:["nature","south-america","luxury","adventure"], tripTypes:["adventure","solo"], image:"https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=80&h=80&fit=crop" }
 ];
 
 const regions = {

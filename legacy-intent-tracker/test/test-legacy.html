@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legacy Intent Tracker — Test Page</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1c1c1c;
+      line-height: 1.6;
+    }
+    header {
+      background: #1c1c1c;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 1.8rem; margin-bottom: 0.25rem; }
+    header p { opacity: 0.6; font-size: 0.95rem; }
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    .card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .card-body h3 { font-size: 1.05rem; margin-bottom: 0.25rem; }
+    .card-body .price { color: #e06030; font-weight: 600; font-size: 0.95rem; }
+    .card-body .desc { color: #666; font-size: 0.85rem; margin-top: 0.5rem; }
+    .card-body .tags { margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .card-body .tag {
+      background: #f0f0f0;
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+      font-size: 0.72rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>StayFinder</h1>
+    <p>Legacy hotel booking site — no data-ik-* attributes</p>
+  </header>
+
+  <div class="container">
+
+    <!-- Section 1: Main listings (ID selectors) -->
+    <h2>Top Picks</h2>
+    <div class="card-grid">
+      <div class="card" id="card-sunset-resort">
+        <img class="card-img" src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=200&fit=crop" alt="Sunset Resort">
+        <div class="card-body">
+          <h3>Sunset Resort</h3>
+          <span class="price">$320/night</span>
+          <p class="desc">Beachfront luxury with world-class spa and infinity pools.</p>
+          <div class="tags"><span class="tag">beach</span><span class="tag">luxury</span><span class="tag">spa</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="card-mountain-lodge">
+        <img class="card-img" src="https://images.unsplash.com/photo-1518790899-b16c1d4e0d79?w=400&h=200&fit=crop" alt="Mountain Lodge">
+        <div class="card-body">
+          <h3>Mountain Lodge</h3>
+          <span class="price">$175/night</span>
+          <p class="desc">Rustic charm surrounded by alpine trails and fresh mountain air.</p>
+          <div class="tags"><span class="tag">mountain</span><span class="tag">adventure</span></div>
+        </div>
+      </div>
+
+      <div class="card" id="card-city-hotel">
+        <img class="card-img" src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=200&fit=crop" alt="City Hotel">
+        <div class="card-body">
+          <h3>City Hotel</h3>
+          <span class="price">$89/night</span>
+          <p class="desc">Central downtown location perfect for business travelers.</p>
+          <div class="tags"><span class="tag">urban</span><span class="tag">business</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Featured (nth-child selector) -->
+    <h2>Featured</h2>
+    <div class="card-grid featured">
+      <div class="card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=400&h=200&fit=crop" alt="Tropical Villa">
+        <div class="card-body">
+          <h3>Tropical Villa</h3>
+          <span class="price">$450/night</span>
+          <p class="desc">Private villa with ocean views, plunge pool, and romantic sunset dinners.</p>
+          <div class="tags"><span class="tag">beach</span><span class="tag">romantic</span><span class="tag">pool</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Attribute selector -->
+    <h2>Mountain Escapes</h2>
+    <div class="card-grid">
+      <div class="card" data-property="alpine">
+        <img class="card-img" src="https://images.unsplash.com/photo-1502786129293-79981df4e689?w=400&h=200&fit=crop" alt="Alpine Chalet">
+        <div class="card-body">
+          <h3>Alpine Chalet</h3>
+          <span class="price">$210/night</span>
+          <p class="desc">Cozy ski-in/ski-out chalet with fireplace and mountain panoramas.</p>
+          <div class="tags"><span class="tag">mountain</span><span class="tag">ski</span><span class="tag">cozy</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Descendant combinator selector -->
+    <h2>Deals</h2>
+    <div class="card-grid deals-section">
+      <div class="card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=400&h=200&fit=crop" alt="Budget Inn">
+        <div class="card-body">
+          <h3>Budget Inn</h3>
+          <span class="price">$55/night</span>
+          <p class="desc">Clean, comfortable rooms at unbeatable prices. Great for families.</p>
+          <div class="tags"><span class="tag">budget</span><span class="tag">family</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reference data (inlined to avoid ES module issues with file:// protocol) -->
+  <script>
+    var REFERENCE = {
+      items: {
+        "#card-sunset-resort":            { id: "sunset-resort",   name: "Sunset Resort",   tags: "beach, luxury, spa",     group: "resorts", price: "luxury" },
+        "#card-mountain-lodge":           { id: "mountain-lodge",  name: "Mountain Lodge",  tags: "mountain, adventure",    group: "lodges",  price: "mid-range" },
+        "#card-city-hotel":               { id: "city-hotel",      name: "City Hotel",      tags: "urban, business",        group: "hotels",  price: "budget" },
+        ".featured > .card:nth-child(1)": { id: "tropical-villa",  name: "Tropical Villa",  tags: "beach, romantic, pool",  group: "villas",  price: "luxury" },
+        "[data-property='alpine']":       { id: "alpine-chalet",   name: "Alpine Chalet",   tags: "mountain, ski, cozy",    group: "chalets", price: "mid-range" },
+        ".deals-section .card":           { id: "budget-inn",      name: "Budget Inn",      tags: "budget, family",         group: "hotels",  price: "budget" },
+      }
+    };
+  </script>
+
+  <!-- Legacy Intent Tracker bundle -->
+  <script src="../dist/legacy-intent-tracker.js"></script>
+
+  <script>
+    // Initialize the legacy tracker with the reference file
+    var tracker = LegacyIntentTracker.create({
+      reference: REFERENCE,
+      root: document.querySelector('.container'),
+      debug: true,
+      trackViews: true,
+      pageMeta: { name: 'StayFinder Home', category: 'home', url: '/test-legacy.html' },
+      onRecommendations: function(recs) {
+        console.log('Recommendations:', recs);
+      },
+      onIntentsChanged: function(intents, profile) {
+        console.log('Intents:', intents);
+        console.log('Profile:', profile);
+      },
+    });
+
+    window.__intentTracker = tracker;
+  </script>
+
+</body>
+</html>

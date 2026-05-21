@@ -45,6 +45,12 @@ function createCard(dest) {
   const card = document.createElement('article');
   card.className = 'destination-card';
   card.dataset.destinationId = dest.id;
+  // IntentTracker data attributes
+  card.dataset.ikId = dest.id;
+  card.dataset.ikTags = dest.tags.join(', ');
+  card.dataset.ikGroup = dest.region;
+  card.dataset.ikName = dest.name;
+  card.dataset.ikPrice = dest.priceTier;
 
   const regionLabel = regions[dest.region]?.label || dest.region;
 

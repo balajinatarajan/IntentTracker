@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalTracker — Performance Harness</title>
+  <style>
+    :root {
+      --bg: #111; --surface: #1c1c1c; --text: #e0e0e0; --muted: #888; --accent: #ff8d6b;
+      --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; background: var(--bg); color: var(--text); padding: 1.5rem; font-size: 0.85rem; line-height: 1.6; }
+    h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 0.25rem; font-family: system-ui, sans-serif; }
+    .subtitle { color: var(--muted); font-size: 0.8rem; margin-bottom: 1.5rem; }
+
+    /* Config panel */
+    .config-panel { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 1rem; background: var(--surface); border-radius: 4px; }
+    .config-group { display: flex; flex-direction: column; gap: 0.25rem; min-width: 180px; }
+    .config-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .config-value { font-size: 1.1rem; color: var(--accent); font-weight: 700; }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+    /* Buttons */
+    .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .controls button { padding: 0.4rem 1rem; border: 1px solid #333; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.78rem; font-weight: 600; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #111; border-color: var(--accent) !important; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary { background: transparent; color: var(--text); }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* Progress */
+    .progress { margin-bottom: 1rem; padding: 0.5rem 1rem; background: var(--surface); border-radius: 4px; border-left: 3px solid var(--accent); display: none; }
+    .progress.visible { display: block; }
+    .progress-text { color: var(--accent); font-size: 0.8rem; }
+
+    /* Results table */
+    table { width: 100%; border-collapse: collapse; }
+    thead th { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid #333; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    tbody td { padding: 0.45rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.82rem; }
+    .status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; vertical-align: middle; }
+    .status-dot.green { background: var(--green); }
+    .status-dot.yellow { background: var(--yellow); }
+    .status-dot.red { background: var(--red); }
+    .status-dot.na { background: var(--muted); }
+    .status-label { vertical-align: middle; font-size: 0.75rem; }
+    .status-label.green { color: var(--green); }
+    .status-label.yellow { color: var(--yellow); }
+    .status-label.red { color: var(--red); }
+    .status-label.na { color: var(--muted); }
+    .test-name-cell { font-weight: 600; color: var(--accent); }
+    .value-cell { font-weight: 600; }
+    .empty-state { text-align: center; padding: 2rem; color: var(--muted); }
+
+    #perf-mock-items { display: none; }
+  </style>
+</head>
+<body>
+
+  <h1>SignalTracker Performance Harness</h1>
+  <p class="subtitle">Measures event overhead, flush cost, storage, memory, time-to-personalization, and FPS impact</p>
+
+  <!-- Config Panel -->
+  <div class="config-panel">
+    <div class="config-group">
+      <span class="config-label">Element Count</span>
+      <span class="config-value" id="val-elements">100</span>
+      <input type="range" id="slider-elements" min="10" max="1000" step="10" value="100">
+    </div>
+    <div class="config-group">
+      <span class="config-label">Event Count</span>
+      <span class="config-value" id="val-events">50</span>
+      <input type="range" id="slider-events" min="10" max="500" step="10" value="50">
+    </div>
+    <div class="config-group">
+      <span class="config-label">Session Count</span>
+      <span class="config-value" id="val-sessions">5</span>
+      <input type="range" id="slider-sessions" min="1" max="50" step="1" value="5">
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn-primary" id="btn-run-all" onclick="runAll()">▶ Run All</button>
+    <button class="btn-secondary" onclick="runSingle('eventOverhead')">Event Overhead</button>
+    <button class="btn-secondary" onclick="runSingle('flushCycle')">Flush Cycle</button>
+    <button class="btn-secondary" onclick="runSingle('localStorage')">localStorage</button>
+    <button class="btn-secondary" onclick="runSingle('memory')">Memory</button>
+    <button class="btn-secondary" onclick="runSingle('personalization')">Personalization</button>
+    <button class="btn-secondary" onclick="runSingle('domImpact')">DOM Impact</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress" id="progress">
+    <span class="progress-text" id="progress-text">Running...</span>
+  </div>
+
+  <!-- Results -->
+  <table>
+    <thead>
+      <tr><th>Test</th><th>Metric</th><th>Value</th><th>Status</th></tr>
+    </thead>
+    <tbody id="results-body">
+      <tr><td colspan="4" class="empty-state">Click "Run All" or an individual test to start</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Hidden mock container -->
+  <div id="perf-mock-items"></div>
+
+  <!-- IntentTracker IIFE bundle -->
+  <script src="lib/dist/intent-tracker.js"></script>
+
+  <script>
+    // --- Slider wiring ---
+    ['elements', 'events', 'sessions'].forEach(name => {
+      const slider = document.getElementById('slider-' + name);
+      const display = document.getElementById('val-' + name);
+      slider.addEventListener('input', () => display.textContent = slider.value);
+    });
+
+    // --- Utilities ---
+    const TAG_POOL = ['beach','city','culture','food','adventure','romantic','budget','luxury','family','nightlife','nature','surfing','technology','historic','wellness'];
+    const GROUP_POOL = ['tropical','european','asian','american','african'];
+    const PRICE_POOL = ['budget','mid-range','luxury'];
+    const SEARCH_POOL = ['beach vacation','luxury resort','family trip','romantic getaway','adventure hiking'];
+    const mockContainer = document.getElementById('perf-mock-items');
+
+    function getConfig() {
+      return {
+        elements: parseInt(document.getElementById('slider-elements').value),
+        events: parseInt(document.getElementById('slider-events').value),
+        sessions: parseInt(document.getElementById('slider-sessions').value),
+      };
+    }
+
+    function generateMockElements(count) {
+      mockContainer.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        const numTags = 3 + (i % 3); // 3-5 tags, deterministic
+        const tags = [];
+        for (let t = 0; t < numTags; t++) {
+          tags.push(TAG_POOL[(i * 7 + t * 3) % TAG_POOL.length]);
+        }
+        div.setAttribute('data-ik-id', 'perf-' + i);
+        div.setAttribute('data-ik-tags', [...new Set(tags)].join(', '));
+        div.setAttribute('data-ik-group', GROUP_POOL[i % GROUP_POOL.length]);
+        div.setAttribute('data-ik-name', 'PerfItem ' + i);
+        div.setAttribute('data-ik-price', PRICE_POOL[i % PRICE_POOL.length]);
+        mockContainer.appendChild(div);
+      }
+    }
+
+    function clearAllStorage() {
+      ['ik_profile', 'ik_journey', '__ik_debug_events', '__ik_debug_intents', '__ik_debug_recs'].forEach(k => localStorage.removeItem(k));
+    }
+
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function formatMs(ms) { return ms < 1 ? ms.toFixed(3) : ms < 100 ? ms.toFixed(1) : Math.round(ms).toString(); }
+    function formatKB(bytes) { return (bytes / 1024).toFixed(1); }
+    function formatMB(bytes) { return (bytes / (1024 * 1024)).toFixed(2); }
+    function getStatus(value, greenMax, yellowMax) {
+      if (value <= greenMax) return 'green';
+      if (value <= yellowMax) return 'yellow';
+      return 'red';
+    }
+    function statusLabel(s) { return s === 'green' ? 'Good' : s === 'yellow' ? 'Warning' : s === 'red' ? 'Slow' : 'N/A'; }
+
+    const resultsBody = document.getElementById('results-body');
+    let firstResult = true;
+
+    function addResult(testName, metric, value, unit, status) {
+      if (firstResult) { resultsBody.innerHTML = ''; firstResult = false; }
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="test-name-cell">${testName}</td>
+        <td>${metric}</td>
+        <td class="value-cell">${value} ${unit}</td>
+        <td><span class="status-dot ${status}"></span><span class="status-label ${status}">${statusLabel(status)}</span></td>
+      `;
+      resultsBody.appendChild(tr);
+    }
+
+    function showProgress(text) {
+      const el = document.getElementById('progress');
+      const textEl = document.getElementById('progress-text');
+      el.classList.add('visible');
+      textEl.textContent = text;
+    }
+    function hideProgress() {
+      document.getElementById('progress').classList.remove('visible');
+    }
+
+    function setButtonsDisabled(disabled) {
+      document.querySelectorAll('.controls button').forEach(b => b.disabled = disabled);
+    }
+
+    function fireEvents(tracker, count, elementCount) {
+      for (let i = 0; i < count; i++) {
+        const r = i % 10;
+        if (r < 7) {
+          // 70% clicks
+          tracker.trackClick('perf-' + (i % elementCount));
+        } else if (r < 9) {
+          // 20% tab_views
+          const tag = TAG_POOL[i % TAG_POOL.length];
+          tracker.trackTabView(tag, [tag]);
+        } else {
+          // 10% searches
+          tracker.trackSearch(SEARCH_POOL[i % SEARCH_POOL.length]);
+        }
+      }
+    }
+
+    // --- Benchmark 1: Event Listener Overhead ---
+    async function benchEventOverhead() {
+      const { elements } = getConfig();
+      clearAllStorage();
+      generateMockElements(elements);
+
+      const tracker = IntentTracker.create({
+        root: mockContainer,
+        debug: false,
+        flushInterval: 999999,
+        pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+      });
+
+      // Warm up
+      tracker.trackClick('perf-0');
+
+      const t0 = performance.now();
+      for (let i = 0; i < elements; i++) {
+        tracker.trackClick('perf-' + i);
+      }
+      const elapsed = performance.now() - t0;
+      const perEvent = elapsed / elements;
+
+      tracker.destroy();
+      mockContainer.innerHTML = '';
+
+      addResult('Event Overhead', 'Per-event cost', formatMs(perEvent), 'ms', getStatus(perEvent, 1, 5));
+      addResult('Event Overhead', 'Total (' + elements + ' events)', formatMs(elapsed), 'ms', getStatus(elapsed, elements * 1, elements * 5));
+    }
+
+    // --- Benchmark 2: Flush Cycle Cost ---
+    async function benchFlushCycle() {
+      const { events, elements } = getConfig();
+      clearAllStorage();
+      generateMockElements(Math.min(elements, 50)); // keep catalog small to isolate flush cost
+
+      return new Promise((resolve) => {
+        let eventsEnd;
+        let resolved = false;
+
+        const tracker = IntentTracker.create({
+          root: mockContainer,
+          debug: false,
+          flushInterval: 150,
+          pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+          onRecommendations(recs) {
+            if (resolved) return;
+            resolved = true;
+            const flushEnd = performance.now();
+            const totalTime = flushEnd - eventsEnd;
+            const estimatedFlush = Math.max(totalTime - 150, 0.1);
+
+            // Also time a standalone recommend() call
+            const rt0 = performance.now();
+            tracker.recommend();
+            const recTime = performance.now() - rt0;
+
+            tracker.destroy();
+            mockContainer.innerHTML = '';
+
+            addResult('Flush Cycle', 'Estimated flush time', formatMs(estimatedFlush), 'ms', getStatus(estimatedFlush, 50, 200));
+            addResult('Flush Cycle', 'recommend() standalone', formatMs(recTime), 'ms', getStatus(recTime, 10, 50));
+            addResult('Flush Cycle', 'Total (incl. wait)', formatMs(totalTime), 'ms', 'na');
+            resolve();
+          },
+        });
+
+        fireEvents(tracker, events, Math.min(elements, 50));
+        eventsEnd = performance.now();
+
+        // Fallback if onRecommendations never fires (not enough signal)
+        setTimeout(() => {
+          if (resolved) return;
+          resolved = true;
+
+          const rt0 = performance.now();
+          tracker.recommend();
+          const recTime = performance.now() - rt0;
+
+          const pt0 = performance.now();
+          tracker.getProfile();
+          const profileTime = performance.now() - pt0;
+
+          tracker.destroy();
+          mockContainer.innerHTML = '';
+
+          addResult('Flush Cycle', 'recommend() standalone', formatMs(recTime), 'ms', getStatus(recTime, 10, 50));
+          addResult('Flush Cycle', 'getProfile() standalone', formatMs(profileTime), 'ms', getStatus(profileTime, 5, 20));
+          addResult('Flush Cycle', 'Note', 'No recs generated', '', 'yellow');
+          resolve();
+        }, 3000);
+      });
+    }
+
+    // --- Benchmark 3: localStorage I/O ---
+    async function benchLocalStorage() {
+      const { sessions, events, elements } = getConfig();
+      clearAllStorage();
+      generateMockElements(Math.min(elements, 30));
+
+      for (let s = 0; s < sessions; s++) {
+        const tracker = IntentTracker.create({
+          root: mockContainer,
+          debug: false,
+          flushInterval: 150,
+          pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+        });
+
+        fireEvents(tracker, events, Math.min(elements, 30));
+        await wait(400); // wait for flush
+        tracker.destroy();
+      }
+
+      // Measure sizes
+      const profileStr = localStorage.getItem('ik_profile') || '';
+      const journeyStr = localStorage.getItem('ik_journey') || '';
+      const profileBytes = new Blob([profileStr]).size;
+      const journeyBytes = new Blob([journeyStr]).size;
+      const totalBytes = profileBytes + journeyBytes;
+
+      // Measure parse/stringify times
+      let parseTime = 0, stringifyTime = 0;
+      if (profileStr) {
+        const pt0 = performance.now();
+        const parsed = JSON.parse(profileStr);
+        parseTime = performance.now() - pt0;
+
+        const st0 = performance.now();
+        JSON.stringify(parsed);
+        stringifyTime = performance.now() - st0;
+      }
+
+      mockContainer.innerHTML = '';
+
+      addResult('localStorage', 'Profile size', formatKB(profileBytes), 'KB', getStatus(profileBytes / 1024, 50, 250));
+      addResult('localStorage', 'Journey size', formatKB(journeyBytes), 'KB', getStatus(journeyBytes / 1024, 20, 100));
+      addResult('localStorage', 'Total storage', formatKB(totalBytes), 'KB', getStatus(totalBytes / 1024, 100, 500));
+      addResult('localStorage', 'JSON.parse time', formatMs(parseTime), 'ms', getStatus(parseTime, 5, 20));
+      addResult('localStorage', 'JSON.stringify time', formatMs(stringifyTime), 'ms', getStatus(stringifyTime, 5, 20));
+    }
+
+    // --- Benchmark 4: Memory Usage ---
+    async function benchMemory() {
+      const { elements, events } = getConfig();
+
+      if (!performance.memory) {
+        addResult('Memory', 'Heap delta', 'N/A', '', 'na');
+        addResult('Memory', 'Note', 'Chrome with --enable-precise-memory-info required', '', 'na');
+        return;
+      }
+
+      clearAllStorage();
+      generateMockElements(elements);
+
+      // Try to get stable baseline
+      await wait(100);
+      const baseline = performance.memory.usedJSHeapSize;
+
+      const tracker = IntentTracker.create({
+        root: mockContainer,
+        debug: true,
+        flushInterval: 200,
+        pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+      });
+
+      fireEvents(tracker, events, elements);
+      await wait(500); // wait for flush
+
+      const post = performance.memory.usedJSHeapSize;
+      const deltaMB = (post - baseline) / (1024 * 1024);
+
+      tracker.destroy();
+      mockContainer.innerHTML = '';
+
+      addResult('Memory', 'Baseline', formatMB(baseline), 'MB', 'na');
+      addResult('Memory', 'After tracking', formatMB(post), 'MB', 'na');
+      addResult('Memory', 'Heap delta', deltaMB.toFixed(2), 'MB', getStatus(Math.abs(deltaMB), 5, 20));
+    }
+
+    // --- Benchmark 5: Time to Personalization ---
+    async function benchPersonalization() {
+      clearAllStorage();
+      generateMockElements(20);
+
+      return new Promise((resolve) => {
+        let resolved = false;
+        const t0 = performance.now();
+
+        const tracker = IntentTracker.create({
+          root: mockContainer,
+          debug: false,
+          flushInterval: 5000, // production default
+          pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+          onRecommendations(recs) {
+            if (resolved) return;
+            resolved = true;
+            const elapsed = performance.now() - t0;
+
+            tracker.destroy();
+            mockContainer.innerHTML = '';
+
+            addResult('Personalization', 'Time to first rec (5s flush)', formatMs(elapsed), 'ms', getStatus(elapsed, 6000, 15000));
+            addResult('Personalization', 'Recommendations returned', recs.length, 'items', 'na');
+            resolve();
+          },
+        });
+
+        // Fire strong signal: repeated clicks on same-group items to build intent
+        for (let i = 0; i < 10; i++) {
+          tracker.trackClick('perf-' + (i % 5)); // repeat clicks on first 5 items
+        }
+        // Tab views for tag affinity
+        tracker.trackTabView('beach', ['beach']);
+        tracker.trackTabView('beach', ['beach']);
+        tracker.trackTabView('adventure', ['adventure']);
+        tracker.trackTabView('adventure', ['adventure']);
+        // Search for good measure
+        tracker.trackSearch('beach vacation');
+
+        // Timeout fallback
+        setTimeout(() => {
+          if (resolved) return;
+          resolved = true;
+          const elapsed = performance.now() - t0;
+
+          tracker.destroy();
+          mockContainer.innerHTML = '';
+
+          addResult('Personalization', 'Time to first rec', 'Timeout', '', 'red');
+          addResult('Personalization', 'Note', 'No recommendations generated in 20s', '', 'red');
+          resolve();
+        }, 20000);
+      });
+    }
+
+    // --- Benchmark 6: DOM Impact (FPS) ---
+    async function benchDOMImpact() {
+      const { elements } = getConfig();
+      clearAllStorage();
+
+      // Measure baseline FPS
+      const baselineFPS = await measureFPS(2000);
+
+      // Now with tracker + debug panel active
+      generateMockElements(elements);
+      const tracker = IntentTracker.create({
+        root: mockContainer,
+        debug: true,
+        flushInterval: 500,
+        pageMeta: { name: 'PerfTest', category: 'test', url: '/perf-test.html' },
+      });
+
+      // Fire events during FPS measurement
+      let eventIdx = 0;
+      const trackerFPS = await measureFPS(2000, () => {
+        tracker.trackClick('perf-' + (eventIdx % elements));
+        eventIdx++;
+      });
+
+      tracker.destroy();
+      mockContainer.innerHTML = '';
+
+      const dropPercent = ((baselineFPS - trackerFPS) / baselineFPS * 100);
+
+      addResult('DOM Impact', 'Baseline FPS', Math.round(baselineFPS), 'fps', 'na');
+      addResult('DOM Impact', 'Tracker FPS', Math.round(trackerFPS), 'fps', 'na');
+      addResult('DOM Impact', 'FPS drop', dropPercent.toFixed(1), '%', getStatus(Math.max(dropPercent, 0), 5, 15));
+    }
+
+    function measureFPS(durationMs, perFrameWork) {
+      return new Promise((resolve) => {
+        let frames = 0;
+        const start = performance.now();
+        function tick() {
+          frames++;
+          if (perFrameWork) perFrameWork();
+          if (performance.now() - start < durationMs) {
+            requestAnimationFrame(tick);
+          } else {
+            resolve(frames / (durationMs / 1000));
+          }
+        }
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // --- Runners ---
+    const benchmarks = {
+      eventOverhead: { fn: benchEventOverhead, label: 'Event Listener Overhead' },
+      flushCycle: { fn: benchFlushCycle, label: 'Flush Cycle Cost' },
+      localStorage: { fn: benchLocalStorage, label: 'localStorage I/O' },
+      memory: { fn: benchMemory, label: 'Memory Usage' },
+      personalization: { fn: benchPersonalization, label: 'Time to Personalization' },
+      domImpact: { fn: benchDOMImpact, label: 'DOM Impact (FPS)' },
+    };
+
+    async function runAll() {
+      firstResult = true;
+      resultsBody.innerHTML = '';
+      setButtonsDisabled(true);
+
+      const keys = Object.keys(benchmarks);
+      for (let i = 0; i < keys.length; i++) {
+        const b = benchmarks[keys[i]];
+        showProgress(`Running ${b.label}... (${i + 1}/${keys.length})`);
+        try {
+          await b.fn();
+        } catch (err) {
+          addResult(b.label, 'Error', err.message, '', 'red');
+        }
+      }
+
+      hideProgress();
+      setButtonsDisabled(false);
+    }
+
+    async function runSingle(key) {
+      const b = benchmarks[key];
+      if (!b) return;
+      setButtonsDisabled(true);
+      showProgress(`Running ${b.label}...`);
+      try {
+        await b.fn();
+      } catch (err) {
+        addResult(b.label, 'Error', err.message, '', 'red');
+      }
+      hideProgress();
+      setButtonsDisabled(false);
+    }
+  </script>
+</body>
+</html>

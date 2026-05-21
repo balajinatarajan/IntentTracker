@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalTracker — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/tracker.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="tk-header">
+    <h1>SignalTracker Dashboard</h1>
+    <div class="tk-status">
+      <span class="tk-status-dot" id="status-dot"></span>
+      <span id="status-text">polling</span>
+    </div>
+  </header>
+
+  <!-- Dashboard Grid -->
+  <div class="tk-grid">
+
+    <!-- Events Panel -->
+    <div class="tk-panel" id="panel-events">
+      <div class="tk-panel-header">
+        Events <span class="tk-panel-count" id="event-count">0</span>
+      </div>
+      <div class="tk-panel-body" id="events-body">
+        <div class="tk-empty">No events yet — browse the site in another tab</div>
+      </div>
+    </div>
+
+    <!-- Signals Panel -->
+    <div class="tk-panel" id="panel-intents">
+      <div class="tk-panel-header">
+        Signals <span class="tk-panel-count" id="intent-count">0</span>
+      </div>
+      <div class="tk-panel-body" id="intents-body">
+        <div class="tk-empty">No signals detected yet</div>
+      </div>
+    </div>
+
+    <!-- Right Column: Profile + Journey stacked -->
+    <div class="tk-panel-right">
+      <div class="tk-panel" id="panel-profile">
+        <div class="tk-panel-header">Profile</div>
+        <div class="tk-panel-body" id="profile-body">
+          <div class="tk-empty">No profile data</div>
+        </div>
+      </div>
+
+      <div class="tk-panel" id="panel-journey">
+        <div class="tk-panel-header">Journey</div>
+        <div class="tk-panel-body" id="journey-body">
+          <div class="tk-empty">No journey data</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations — full width bottom row -->
+    <div class="tk-panel tk-panel-recs" id="panel-recs">
+      <div class="tk-panel-header">
+        Recommendations <span class="tk-panel-count" id="recs-count">0</span>
+      </div>
+      <div class="tk-panel-body" id="recs-body">
+        <div class="tk-empty">No recommendations yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="js/tracker-dashboard.js"></script>
+</body>
+</html>

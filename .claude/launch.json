@@ -4,8 +4,15 @@
     {
       "name": "dev",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8080"],
-      "port": 8080
+      "runtimeArgs": ["-m", "http.server", "8081", "--directory", "/Users/bala/IntentTracker"],
+      "port": 8081
+    },
+    {
+      "name": "scanner",
+      "runtimeExecutable": "/Users/bala/.nvm/versions/node/v20.20.2/bin/node",
+      "runtimeArgs": ["server.js"],
+      "port": 8082,
+      "cwd": "/Users/bala/IntentTracker/scanner"
     }
   ]
 }

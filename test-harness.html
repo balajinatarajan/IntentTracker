@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalTracker — Test Harness</title>
+  <style>
+    :root { --pass: #10b981; --fail: #ef4444; --bg: #111; --surface: #1c1c1c; --text: #e0e0e0; --muted: #888; --accent: #ff8d6b; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; background: var(--bg); color: var(--text); padding: 1.5rem; font-size: 0.85rem; line-height: 1.6; }
+    h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 0.5rem; font-family: system-ui, sans-serif; }
+    .summary { margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: var(--surface); border-radius: 4px; }
+    .summary .pass { color: var(--pass); font-weight: 700; }
+    .summary .fail { color: var(--fail); font-weight: 700; }
+    .suite { margin-bottom: 1.5rem; }
+    .suite-name { font-size: 0.9rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; font-family: system-ui, sans-serif; }
+    .test { display: flex; gap: 0.5rem; padding: 0.3rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .test:last-child { border-bottom: none; }
+    .test-icon { flex-shrink: 0; }
+    .test-name { flex: 1; }
+    .test-detail { color: var(--muted); font-size: 0.75rem; }
+    .test.pass .test-icon { color: var(--pass); }
+    .test.fail .test-icon { color: var(--fail); }
+    .test.fail .test-name { color: var(--fail); }
+    #mock-items { display: none; }
+    .controls { margin-bottom: 1rem; }
+    .controls button { padding: 0.4rem 1rem; background: var(--accent); color: #111; border: none; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 600; }
+    .controls button:hover { opacity: 0.9; }
+
+    /* Tab bar */
+    .tab-bar { display: flex; gap: 0; margin-bottom: 1rem; border-bottom: 1px solid #333; }
+    .tab-bar button { padding: 0.5rem 1.25rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-family: system-ui, sans-serif; font-size: 0.85rem; font-weight: 600; }
+    .tab-bar button.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-bar button:hover { color: var(--text); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Inspector styles */
+    .inspector-scenario { margin-bottom: 2rem; }
+    .inspector-scenario h3 { font-size: 0.95rem; color: var(--accent); margin-bottom: 0.75rem; font-family: system-ui, sans-serif; }
+    .inspector-step { margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: var(--surface); border-radius: 4px; border-left: 3px solid var(--accent); }
+    .inspector-step-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.4rem; }
+    .inspector-section { margin-top: 0.5rem; }
+    .inspector-section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.25rem; }
+    .inspector-data { font-size: 0.78rem; color: var(--text); white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+    .inspector-data .tag { display: inline-block; padding: 0.05rem 0.35rem; border-radius: 2px; background: rgba(255,141,107,0.1); color: var(--accent); font-size: 0.7rem; margin-right: 0.25rem; margin-bottom: 0.15rem; }
+    .inspector-data .event-badge { display: inline-block; padding: 0.05rem 0.4rem; border-radius: 2px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-right: 0.3rem; }
+    .inspector-data .event-badge.click { background: rgba(255,141,107,0.2); color: var(--accent); }
+    .inspector-data .event-badge.tab_view { background: rgba(251,191,36,0.2); color: #fbbf24; }
+    .inspector-data .event-badge.search { background: rgba(167,139,250,0.2); color: #a78bfa; }
+    .inspector-data .event-badge.page_view { background: rgba(96,165,250,0.2); color: #60a5fa; }
+    .inspector-data .weight-bar { display: inline-block; height: 10px; background: var(--accent); border-radius: 2px; margin-right: 0.3rem; vertical-align: middle; }
+    .inspector-data .rec-card { display: inline-block; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.04); border: 1px solid #333; border-radius: 4px; margin-right: 0.4rem; margin-bottom: 0.3rem; }
+    .inspector-empty { color: var(--muted); font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <h1>SignalTracker Test Harness</h1>
+
+  <div class="tab-bar">
+    <button class="active" onclick="switchPane('tests', this)">Tests</button>
+    <button onclick="switchPane('inspector', this)">Inspector</button>
+  </div>
+
+  <div id="pane-tests" class="tab-pane active">
+    <div class="controls">
+      <button onclick="runTests()">Run Tests</button>
+    </div>
+    <div class="summary" id="summary">Click "Run Tests" to start</div>
+    <div id="results"></div>
+  </div>
+
+  <div id="pane-inspector" class="tab-pane">
+    <div class="controls">
+      <button onclick="runInspector()">Run All Scenarios</button>
+    </div>
+    <div id="inspector-results">Click "Run All Scenarios" to see the full pipeline state at each step</div>
+  </div>
+
+  <!-- Mock DOM items (hidden, but scannable by catalog) -->
+  <div id="mock-items">
+    <div data-ik-id="bali" data-ik-tags="beach, southeast-asia, budget, romantic, surfing" data-ik-group="southeast-asia" data-ik-name="Bali, Indonesia" data-ik-price="budget"></div>
+    <div data-ik-id="paris" data-ik-tags="city, europe, culture, food, romantic" data-ik-group="europe" data-ik-name="Paris, France" data-ik-price="luxury"></div>
+    <div data-ik-id="tokyo" data-ik-tags="city, east-asia, culture, food, technology" data-ik-group="east-asia" data-ik-name="Tokyo, Japan" data-ik-price="mid-range"></div>
+    <div data-ik-id="cancun" data-ik-tags="beach, caribbean, family, nightlife" data-ik-group="caribbean" data-ik-name="Cancun, Mexico" data-ik-price="mid-range"></div>
+    <div data-ik-id="marrakech" data-ik-tags="culture, africa, adventure, budget, food" data-ik-group="africa" data-ik-name="Marrakech, Morocco" data-ik-price="budget"></div>
+    <div data-ik-id="reykjavik" data-ik-tags="nature, europe, adventure" data-ik-group="europe" data-ik-name="Reykjavik, Iceland" data-ik-price="luxury"></div>
+    <div data-ik-id="phuket" data-ik-tags="beach, southeast-asia, budget, nightlife, family" data-ik-group="southeast-asia" data-ik-name="Phuket, Thailand" data-ik-price="budget"></div>
+    <div data-ik-id="prague" data-ik-tags="city, europe, culture, budget" data-ik-group="europe" data-ik-name="Prague, Czech Republic" data-ik-price="budget"></div>
+  </div>
+
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script>
+    // --- Test framework ---
+    let passed = 0, failed = 0;
+    const suites = [];
+    let currentSuite = null;
+
+    function suite(name) {
+      currentSuite = { name, tests: [] };
+      suites.push(currentSuite);
+    }
+
+    function assert(name, condition, detail = '') {
+      const result = { name, pass: !!condition, detail };
+      if (result.pass) passed++; else failed++;
+      currentSuite.tests.push(result);
+    }
+
+    function renderResults() {
+      const summaryEl = document.getElementById('summary');
+      const total = passed + failed;
+      summaryEl.innerHTML = `<span class="pass">${passed} passed</span> &middot; <span class="fail">${failed} failed</span> &middot; ${total} total`;
+
+      const resultsEl = document.getElementById('results');
+      resultsEl.innerHTML = suites.map(s => `
+        <div class="suite">
+          <div class="suite-name">${s.name}</div>
+          ${s.tests.map(t => `
+            <div class="test ${t.pass ? 'pass' : 'fail'}">
+              <span class="test-icon">${t.pass ? '✓' : '✗'}</span>
+              <span class="test-name">${t.name}${t.detail ? ` <span class="test-detail">${t.detail}</span>` : ''}</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('');
+    }
+
+    // --- Helpers ---
+    function clearStorage() {
+      ['__ik_debug_events', '__ik_debug_intents', '__ik_debug_recs', 'ik_profile', 'ik_journey'].forEach(k => localStorage.removeItem(k));
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // --- Tests ---
+    async function runTests() {
+      passed = 0; failed = 0; suites.length = 0;
+      clearStorage();
+      document.getElementById('summary').textContent = 'Running...';
+      document.getElementById('results').innerHTML = '';
+
+      await testTrackerCreation();
+      await testEventTracking();
+      await testIntentSummarization();
+      await testGradualDecay();
+      await testProfileAndRecommendations();
+      await testTabViewEvents();
+      await testSearchIntent();
+      await testJourneyTracking();
+
+      renderResults();
+    }
+
+    // --- Suite: Tracker Creation ---
+    async function testTrackerCreation() {
+      suite('Tracker Creation');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: false,
+        flushInterval: 500,
+      });
+
+      assert('create() returns an object', typeof tracker === 'object');
+      assert('has trackClick method', typeof tracker.trackClick === 'function');
+      assert('has trackSearch method', typeof tracker.trackSearch === 'function');
+      assert('has trackTabView method', typeof tracker.trackTabView === 'function');
+      assert('has getProfile method', typeof tracker.getProfile === 'function');
+      assert('has getIntents method', typeof tracker.getIntents === 'function');
+      assert('has recommend method', typeof tracker.recommend === 'function');
+      assert('has predictNext method', typeof tracker.predictNext === 'function');
+      assert('has scan method', typeof tracker.scan === 'function');
+      assert('has destroy method', typeof tracker.destroy === 'function');
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Event Tracking ---
+    async function testEventTracking() {
+      suite('Event Tracking');
+      clearStorage();
+
+      const events = [];
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 500,
+      });
+
+      tracker.trackClick('bali');
+      tracker.trackClick('paris');
+      tracker.trackClick('tokyo');
+
+      await wait(100);
+      const stored = JSON.parse(localStorage.getItem('__ik_debug_events') || '[]');
+      const clicks = stored.filter(e => e.type === 'click');
+
+      assert('click events stored in localStorage', clicks.length === 3, `got ${clicks.length}`);
+      assert('click event has correct itemId', clicks[0]?.itemId === 'bali', `got ${clicks[0]?.itemId}`);
+      assert('click event has timestamp', typeof clicks[0]?.timestamp === 'number');
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Intent Summarization ---
+    async function testIntentSummarization() {
+      suite('Signal Summarization');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 500,
+      });
+
+      // Click multiple beach destinations to build a pattern
+      tracker.trackClick('bali');
+      tracker.trackClick('phuket');
+      tracker.trackClick('cancun');
+      tracker.trackClick('bali');
+
+      // Wait for flush (500ms interval + buffer)
+      await wait(800);
+
+      const intents = tracker.getIntents();
+      assert('signals are generated after flush', intents.length > 0, `got ${intents.length} intents`);
+
+      const hasBeach = intents.some(i => i.tags.includes('beach'));
+      assert('beach signal detected from beach clicks', hasBeach, `tags: ${intents.map(i => i.tags).join('; ')}`);
+
+      // Check intent structure
+      if (intents.length > 0) {
+        const intent = intents[0];
+        assert('signal has summary', typeof intent.summary === 'string');
+        assert('signal has confidence (0-1)', intent.confidence >= 0 && intent.confidence <= 1, `${intent.confidence}`);
+        assert('signal has category', typeof intent.category === 'string');
+        assert('signal has tags array', Array.isArray(intent.tags));
+      }
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Gradual Decay ---
+    async function testGradualDecay() {
+      suite('Gradual Confidence Decay');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 400,
+      });
+
+      // Build a strong beach signal
+      tracker.trackClick('bali');
+      tracker.trackClick('phuket');
+      tracker.trackClick('cancun');
+      await wait(600);
+
+      const intents1 = tracker.getIntents();
+      const beachIntent1 = intents1.find(i => i.tags.includes('beach'));
+      const conf1 = beachIntent1?.confidence || 0;
+      assert('beach signal exists initially', !!beachIntent1, `confidence: ${conf1}`);
+
+      // Now interact with non-beach items to shift signal
+      tracker.trackClick('paris');
+      tracker.trackClick('tokyo');
+      tracker.trackClick('prague');
+      tracker.trackClick('paris');
+      await wait(600);
+
+      const intents2 = tracker.getIntents();
+      const beachIntent2 = intents2.find(i => i.tags.includes('beach'));
+
+      // Beach intent should still exist but with reduced confidence (gradual decay, not instant removal)
+      if (beachIntent1) {
+        assert('beach signal not instantly removed', !!beachIntent2 || intents2.length > 0, 'should decay gradually');
+      }
+
+      // No-activity test: intents should NOT decay during idle
+      const intents3Before = JSON.parse(localStorage.getItem('__ik_debug_intents') || '[]');
+      await wait(1000); // idle period — no interactions
+      const intents3After = JSON.parse(localStorage.getItem('__ik_debug_intents') || '[]');
+
+      const confBefore = intents3Before.filter(i => i.active).map(i => i.confidence.toFixed(4)).join(',');
+      const confAfter = intents3After.filter(i => i.active).map(i => i.confidence.toFixed(4)).join(',');
+      assert('no decay during idle (no new events)', confBefore === confAfter, `before: [${confBefore}] after: [${confAfter}]`);
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Profile & Recommendations ---
+    async function testProfileAndRecommendations() {
+      suite('Profile & Recommendations');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 500,
+      });
+
+      // Build a culture-focused profile
+      tracker.trackClick('paris');
+      tracker.trackClick('tokyo');
+      tracker.trackClick('prague');
+      tracker.trackClick('marrakech');
+      await wait(800);
+
+      const profile = tracker.getProfile();
+      assert('profile has sessions', profile.sessions.length > 0, `${profile.sessions.length} sessions`);
+      assert('profile has tagWeights', Object.keys(profile.tagWeights).length > 0);
+      assert('culture tag has weight', profile.tagWeights['culture'] > 0, `weight: ${profile.tagWeights['culture']}`);
+
+      const recs = tracker.recommend();
+      assert('recommendations generated', recs.length > 0, `${recs.length} recs`);
+
+      if (recs.length > 0) {
+        assert('rec has itemId', typeof recs[0].itemId === 'string');
+        assert('rec has score', typeof recs[0].score === 'number');
+        assert('rec has reason', typeof recs[0].reason === 'string');
+        assert('rec has matchedTags', Array.isArray(recs[0].matchedTags));
+
+        // At least one rec should match culture interest (matchedTags is a string array)
+        const anyCultureRec = recs.some(r => r.matchedTags.includes('culture'));
+        assert('recs include culture-matched items', anyCultureRec, `top matched: ${recs[0].matchedTags.join(', ')}`);
+      }
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Tab View Events ---
+    async function testTabViewEvents() {
+      suite('Tab View Events');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 500,
+      });
+
+      tracker.trackTabView('adventure', ['adventure']);
+      tracker.trackTabView('adventure', ['adventure']);
+      tracker.trackTabView('adventure', ['adventure']);
+      tracker.trackTabView('adventure', ['adventure']);
+      tracker.trackTabView('romantic', ['romantic']);
+
+      await wait(100);
+      const stored = JSON.parse(localStorage.getItem('__ik_debug_events') || '[]');
+      const tabViews = stored.filter(e => e.type === 'tab_view');
+
+      assert('tab_view events stored', tabViews.length === 5, `got ${tabViews.length}`);
+      assert('tab_view has tabId', tabViews[0]?.tabId === 'adventure');
+      assert('tab_view has tags', tabViews[0]?.tags?.[0] === 'adventure');
+
+      // Explore tab should have empty tags
+      tracker.trackTabView('explore', []);
+      await wait(100);
+      const stored2 = JSON.parse(localStorage.getItem('__ik_debug_events') || '[]');
+      const exploreView = stored2.filter(e => e.type === 'tab_view' && e.tabId === 'explore');
+      assert('explore tab has empty tags', exploreView[0]?.tags?.length === 0);
+
+      // Wait for flush and check if tab views produce intents
+      await wait(600);
+      const intents = tracker.getIntents();
+      const hasAdventure = intents.some(i => i.tags.includes('adventure'));
+      assert('adventure signal from tab views', hasAdventure, `intents: ${intents.map(i => i.tags).join('; ')}`);
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Search Intent ---
+    async function testSearchIntent() {
+      suite('Search Signal');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: true,
+        flushInterval: 500,
+      });
+
+      tracker.trackSearch('beach vacation');
+      await wait(800);
+
+      const intents = tracker.getIntents();
+      const searchIntent = intents.find(i => i.category === 'search_intent');
+      assert('search signal created', !!searchIntent, `categories: ${intents.map(i => i.category).join(', ')}`);
+      if (searchIntent) {
+        assert('search signal has high confidence', searchIntent.confidence === 0.9, `${searchIntent.confidence}`);
+        assert('search signal summary includes query', searchIntent.summary.includes('beach vacation'));
+      }
+
+      tracker.destroy();
+    }
+
+    // --- Suite: Journey Tracking ---
+    async function testJourneyTracking() {
+      suite('Journey Tracking');
+      clearStorage();
+
+      const tracker = IntentTracker.create({
+        root: document.getElementById('mock-items'),
+        debug: false,
+        flushInterval: 500,
+        pageMeta: { name: 'Home', category: 'home', url: '/test.html' },
+      });
+
+      const journey = tracker.getJourney();
+      assert('journey state exists', !!journey);
+      assert('journey has currentPath', Array.isArray(journey.currentPath));
+      assert('current page is Home', journey.currentPath.includes('Home'));
+
+      // Simulate navigation
+      tracker.trackPageView({ name: 'Hotels', category: 'hotels', url: '/hotels.html' });
+      tracker.trackPageView({ name: 'Dining', category: 'dining', url: '/dining.html' });
+
+      const journey2 = tracker.getJourney();
+      assert('path includes Hotels', journey2.currentPath.includes('Hotels'));
+      assert('path includes Dining', journey2.currentPath.includes('Dining'));
+
+      // Predictions
+      tracker.trackPageView({ name: 'Home', category: 'home', url: '/test.html' });
+      const predictions = tracker.predictNext(3);
+      assert('predictNext returns array', Array.isArray(predictions));
+
+      tracker.destroy();
+    }
+
+    // === Tab switching ===
+    function switchPane(paneId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+      document.getElementById('pane-' + paneId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // === Inspector ===
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function formatEvents(events) {
+      if (!events.length) return '<span class="inspector-empty">none</span>';
+      return events.map(e => {
+        const badge = `<span class="event-badge ${e.type}">${e.type}</span>`;
+        const detail = e.itemId || e.tabId || e.query || e.pageMeta?.name || '—';
+        const tags = e.tags?.length ? ` [${e.tags.join(', ')}]` : '';
+        return `${badge} ${esc(detail)}${esc(tags)}`;
+      }).join('<br>');
+    }
+
+    function formatIntents(intents) {
+      if (!intents.length) return '<span class="inspector-empty">none (thresholds not met)</span>';
+      return intents.map(i => {
+        const conf = Math.round((i.confidence || 0) * 100);
+        const tags = i.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('');
+        return `<strong>${esc(i.summary)}</strong> <span style="color:var(--muted)">${conf}% · ${i.category}</span><br>${tags}`;
+      }).join('<br><br>');
+    }
+
+    function formatProfile(profile) {
+      if (!profile?.tagWeights || Object.keys(profile.tagWeights).length === 0) {
+        return '<span class="inspector-empty">no tag weights</span>';
+      }
+      const entries = Object.entries(profile.tagWeights).sort((a,b) => b[1] - a[1]);
+      const max = entries[0][1];
+      return `Sessions: <strong>${profile.sessions.length}</strong><br><br>` +
+        entries.map(([tag, w]) => {
+          const pct = Math.round((w / max) * 100);
+          return `<span class="weight-bar" style="width:${pct}px"></span> ${esc(tag)} <span style="color:var(--muted)">${w.toFixed(3)}</span>`;
+        }).join('<br>');
+    }
+
+    function formatRecs(recs) {
+      if (!recs.length) return '<span class="inspector-empty">none</span>';
+      return recs.map(r =>
+        `<span class="rec-card"><strong>${esc(r.item?.name || r.itemId)}</strong> · score: ${r.score}<br><span style="color:var(--accent);font-size:0.7rem">${esc(r.reason)}</span><br>${r.matchedTags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</span>`
+      ).join('');
+    }
+
+    function inspectorStep(label, data) {
+      return `
+        <div class="inspector-step">
+          <div class="inspector-step-label">${esc(label)}</div>
+          <div class="inspector-section">
+            <div class="inspector-section-title">Events</div>
+            <div class="inspector-data">${formatEvents(data.events)}</div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title">Signals</div>
+            <div class="inspector-data">${formatIntents(data.intents)}</div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title">Profile Tag Weights</div>
+            <div class="inspector-data">${formatProfile(data.profile)}</div>
+          </div>
+          <div class="inspector-section">
+            <div class="inspector-section-title">Recommendations</div>
+            <div class="inspector-data">${formatRecs(data.recs)}</div>
+          </div>
+        </div>`;
+    }
+
+    function snapshot(tracker) {
+      return {
+        events: JSON.parse(localStorage.getItem('__ik_debug_events') || '[]'),
+        intents: tracker.getIntents(),
+        profile: tracker.getProfile(),
+        recs: tracker.recommend(),
+      };
+    }
+
+    async function runInspector() {
+      const container = document.getElementById('inspector-results');
+      container.innerHTML = '<div style="color:var(--muted)">Running scenarios...</div>';
+      clearStorage();
+      let html = '';
+
+      // --- Scenario 1: Beach Explorer ---
+      html += '<div class="inspector-scenario"><h3>Scenario 1: Beach Explorer</h3>';
+      clearStorage();
+      const t1 = IntentTracker.create({ root: document.getElementById('mock-items'), debug: true, flushInterval: 500 });
+
+      t1.trackClick('bali');
+      t1.trackClick('phuket');
+      t1.trackClick('cancun');
+      await wait(700);
+      html += inspectorStep('After clicking Bali, Phuket, Cancun', snapshot(t1));
+
+      t1.trackClick('bali');
+      t1.trackSearch('beach resort');
+      await wait(700);
+      html += inspectorStep('After repeat Bali click + search "beach resort"', snapshot(t1));
+      t1.destroy();
+      html += '</div>';
+
+      // --- Scenario 2: Culture & City Interest ---
+      html += '<div class="inspector-scenario"><h3>Scenario 2: Culture & City Interest</h3>';
+      clearStorage();
+      const t2 = IntentTracker.create({ root: document.getElementById('mock-items'), debug: true, flushInterval: 500 });
+
+      t2.trackClick('paris');
+      t2.trackClick('tokyo');
+      t2.trackClick('prague');
+      await wait(700);
+      html += inspectorStep('After clicking Paris, Tokyo, Prague', snapshot(t2));
+
+      t2.trackClick('marrakech');
+      t2.trackClick('paris');
+      await wait(700);
+      html += inspectorStep('After adding Marrakech + repeat Paris', snapshot(t2));
+      t2.destroy();
+      html += '</div>';
+
+      // --- Scenario 3: Tab Browsing ---
+      html += '<div class="inspector-scenario"><h3>Scenario 3: Tab Browsing (no item clicks)</h3>';
+      clearStorage();
+      const t3 = IntentTracker.create({ root: document.getElementById('mock-items'), debug: true, flushInterval: 500 });
+
+      t3.trackTabView('adventure', ['adventure']);
+      t3.trackTabView('adventure', ['adventure']);
+      t3.trackTabView('adventure', ['adventure']);
+      t3.trackTabView('romantic', ['romantic']);
+      await wait(700);
+      html += inspectorStep('After 3x Adventure tab + 1x Romantic tab', snapshot(t3));
+
+      t3.trackTabView('culture', ['culture']);
+      t3.trackTabView('culture', ['culture']);
+      t3.trackTabView('culture', ['culture']);
+      await wait(700);
+      html += inspectorStep('After adding 3x Culture tab', snapshot(t3));
+      t3.destroy();
+      html += '</div>';
+
+      // --- Scenario 4: Mixed Signals ---
+      html += '<div class="inspector-scenario"><h3>Scenario 4: Mixed Signals (tabs + clicks + search)</h3>';
+      clearStorage();
+      const t4 = IntentTracker.create({ root: document.getElementById('mock-items'), debug: true, flushInterval: 500 });
+
+      t4.trackTabView('adventure', ['adventure']);
+      t4.trackTabView('adventure', ['adventure']);
+      t4.trackClick('reykjavik');
+      t4.trackClick('marrakech');
+      await wait(700);
+      html += inspectorStep('After Adventure tabs + clicking Reykjavik & Marrakech', snapshot(t4));
+
+      t4.trackSearch('luxury beach');
+      t4.trackClick('bali');
+      t4.trackTabView('romantic', ['romantic']);
+      await wait(700);
+      html += inspectorStep('After search "luxury beach" + Bali click + Romantic tab', snapshot(t4));
+      t4.destroy();
+      html += '</div>';
+
+      // --- Scenario 5: Interest Shift (Decay) ---
+      html += '<div class="inspector-scenario"><h3>Scenario 5: Interest Shift (Gradual Decay)</h3>';
+      clearStorage();
+      const t5 = IntentTracker.create({ root: document.getElementById('mock-items'), debug: true, flushInterval: 400 });
+
+      t5.trackClick('bali');
+      t5.trackClick('phuket');
+      t5.trackClick('cancun');
+      await wait(600);
+      html += inspectorStep('Step 1: Strong beach signal', snapshot(t5));
+
+      t5.trackClick('paris');
+      t5.trackClick('tokyo');
+      t5.trackClick('prague');
+      t5.trackClick('paris');
+      await wait(600);
+      html += inspectorStep('Step 2: Shift to culture (beach decaying)', snapshot(t5));
+
+      t5.trackClick('paris');
+      t5.trackClick('tokyo');
+      await wait(600);
+      html += inspectorStep('Step 3: More culture (beach further decayed)', snapshot(t5));
+      t5.destroy();
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+/* === IntentTracker Standalone Dashboard === */
+:root {
+  --tk-bg: #111;
+  --tk-surface: #1c1c1c;
+  --tk-border: #333;
+  --tk-text: #e0e0e0;
+  --tk-text-muted: #888;
+  --tk-accent: #ff8d6b;
+  --tk-green: #10b981;
+  --tk-teal: #14b8a6;
+  --tk-purple: #a78bfa;
+  --tk-blue: #60a5fa;
+  --tk-orange: #ff8d6b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--tk-bg);
+  color: var(--tk-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* === Header === */
+.tk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--tk-surface);
+  border-bottom: 1px solid var(--tk-border);
+}
+
+.tk-header h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tk-accent);
+  letter-spacing: -0.01em;
+}
+
+.tk-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--tk-text-muted);
+}
+
+.tk-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tk-green);
+  animation: tk-pulse 2s ease infinite;
+}
+
+@keyframes tk-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.tk-status-dot.idle {
+  background: var(--tk-text-muted);
+  animation: none;
+}
+
+/* === Grid Layout === */
+.tk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: 1px;
+  background: var(--tk-border);
+  height: calc(100vh - 52px);
+}
+
+.tk-grid > * {
+  background: var(--tk-bg);
+}
+
+/* === Panel === */
+.tk-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tk-panel-header {
+  padding: 0.75rem 1rem;
+  background: var(--tk-surface);
+  border-bottom: 1px solid var(--tk-border);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tk-text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tk-panel-count {
+  font-weight: 500;
+  color: var(--tk-accent);
+}
+
+.tk-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tk-border) transparent;
+}
+
+.tk-panel-body::-webkit-scrollbar { width: 4px; }
+.tk-panel-body::-webkit-scrollbar-thumb { background: var(--tk-border); border-radius: 2px; }
+
+/* === Recommendations spans full bottom row === */
+.tk-panel-recs {
+  grid-column: 1 / -1;
+}
+
+/* === Right column splits into profile + journey === */
+.tk-panel-right {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tk-panel-right .tk-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.tk-panel-right .tk-panel + .tk-panel {
+  border-top: 1px solid var(--tk-border);
+}
+
+/* === Event Item === */
+.tk-event {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.78rem;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+.tk-event:last-child { border-bottom: none; }
+
+.tk-event-type {
+  flex-shrink: 0;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  min-width: 52px;
+  text-align: center;
+}
+
+.tk-event-type.click { background: rgba(255,141,107,0.2); color: var(--tk-orange); }
+.tk-event-type.hover { background: rgba(20,184,166,0.2); color: var(--tk-teal); }
+.tk-event-type.view { background: rgba(16,185,129,0.2); color: var(--tk-green); }
+.tk-event-type.search { background: rgba(167,139,250,0.2); color: var(--tk-purple); }
+.tk-event-type.page_view { background: rgba(96,165,250,0.2); color: var(--tk-blue); }
+.tk-event-type.tab_view { background: rgba(251,191,36,0.2); color: #fbbf24; }
+
+.tk-event-detail {
+  flex: 1;
+  color: var(--tk-text);
+  word-break: break-word;
+}
+
+.tk-event-time {
+  flex-shrink: 0;
+  color: var(--tk-text-muted);
+  font-size: 0.7rem;
+}
+
+/* === Intent Item === */
+.tk-intent {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.tk-intent:last-child { border-bottom: none; }
+
+.tk-intent.inactive {
+  opacity: 0.4;
+}
+
+.tk-intent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.tk-intent-summary {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.tk-intent-confidence {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+}
+
+.tk-intent-confidence.high { background: rgba(16,185,129,0.2); color: var(--tk-green); }
+.tk-intent-confidence.medium { background: rgba(255,141,107,0.2); color: var(--tk-orange); }
+.tk-intent-confidence.low { background: rgba(136,136,136,0.2); color: var(--tk-text-muted); }
+
+.tk-intent-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.7rem;
+  color: var(--tk-text-muted);
+}
+
+.tk-intent-category {
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  font-size: 0.65rem;
+}
+
+.tk-intent-tags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+.tk-tag {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+  background: rgba(255,141,107,0.1);
+  color: var(--tk-accent);
+}
+
+/* === Profile: Tag Weights === */
+.tk-stat {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--tk-text-muted);
+}
+
+.tk-stat strong {
+  color: var(--tk-accent);
+  font-weight: 700;
+}
+
+.tk-weight-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.tk-weight-label {
+  width: 100px;
+  flex-shrink: 0;
+  text-align: right;
+  color: var(--tk-text-muted);
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+.tk-weight-bar-bg {
+  flex: 1;
+  height: 14px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tk-weight-bar {
+  height: 100%;
+  background: var(--tk-accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.tk-weight-value {
+  width: 40px;
+  flex-shrink: 0;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--tk-text-muted);
+}
+
+/* === Journey === */
+.tk-journey-section {
+  padding: 0.5rem 0.75rem;
+}
+
+.tk-journey-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tk-text-muted);
+  margin-bottom: 0.3rem;
+}
+
+.tk-path {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tk-path-node {
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  font-size: 0.72rem;
+}
+
+.tk-path-node.current {
+  background: rgba(255,141,107,0.15);
+  color: var(--tk-accent);
+  font-weight: 600;
+}
+
+.tk-path-arrow {
+  color: var(--tk-text-muted);
+  font-size: 0.7rem;
+}
+
+.tk-transition {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+  font-size: 0.72rem;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+.tk-transition-route {
+  flex: 1;
+  color: var(--tk-text);
+}
+
+.tk-transition-count {
+  color: var(--tk-text-muted);
+}
+
+.tk-prediction {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+
+.tk-prediction-name {
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.tk-prediction-bar-bg {
+  flex: 1;
+  height: 12px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tk-prediction-bar {
+  height: 100%;
+  background: var(--tk-accent);
+  border-radius: 2px;
+}
+
+.tk-prediction-pct {
+  width: 36px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--tk-accent);
+  font-weight: 600;
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+/* === Recommendation Card === */
+.tk-recs-grid {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  overflow-x: auto;
+}
+
+.tk-rec-card {
+  flex-shrink: 0;
+  width: 220px;
+  background: var(--tk-surface);
+  border: 1px solid var(--tk-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tk-rec-card-body {
+  padding: 0.6rem;
+}
+
+.tk-rec-card-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.tk-rec-card-reason {
+  font-size: 0.7rem;
+  color: var(--tk-accent);
+  margin-bottom: 0.25rem;
+}
+
+.tk-rec-card-score {
+  font-size: 0.65rem;
+  color: var(--tk-text-muted);
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+}
+
+.tk-rec-card-tags {
+  display: flex;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+}
+
+/* === Empty state === */
+.tk-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--tk-text-muted);
+  font-size: 0.82rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .tk-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+  }
+
+  .tk-panel {
+    max-height: 50vh;
+  }
+
+  .tk-panel-recs {
+    grid-column: 1;
+  }
+}
