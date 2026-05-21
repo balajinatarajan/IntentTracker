@@ -14,7 +14,7 @@
 }
 
 .signin-trigger {
-  background: var(--color-primary);
+  background: var(--color-accent);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-pill);
@@ -23,11 +23,11 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: filter 0.15s ease;
 }
 
 .signin-trigger:hover {
-  background: var(--color-primary-dark, #000000);
+  filter: brightness(0.92);
 }
 
 .signin-avatar {
