@@ -38,26 +38,46 @@ export function mountJourneyPill({ currentGroup }) {
   const maxWeight = Math.max(...Object.values(tagWeights));
   if (!(maxWeight >= 0.5)) return null;
 
-  // 4. Pick top tag with deterministic tie-break: weight desc, then localeCompare asc.
+  // 4. Build sorted candidates with deterministic tie-break: weight desc, then localeCompare asc.
   const excluded = new Set(PAGE_GROUP_TO_THEMES[currentGroup] || []);
-  const topTag = Object.entries(tagWeights)
+  const candidates = Object.entries(tagWeights)
     .filter(([t]) => !PILL_TAG_BLACKLIST.has(t))
     .filter(([t]) => !!PILL_THEME_LOOKUP[t])
     .filter(([t]) => !excluded.has(PILL_THEME_LOOKUP[t]))
-    .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
-    [0]?.[0];
+    .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]));
 
-  if (!topTag) return null;
+  if (candidates.length === 0) return null;
 
-  // 5. Map tag -> theme id (guaranteed defined by step 4 filter).
-  const themeId = PILL_THEME_LOOKUP[topTag];
+  // 5. Hysteresis: prefer the previously-shown tag if it's still a valid candidate
+  //    AND the new top tag doesn't beat it by ≥ HYSTERESIS_MARGIN. Per-page-group
+  //    state so each surface has its own stable theme.
+  const HYSTERESIS_MARGIN = 1.20;  // new must be ≥ 1.20× old to flip
+  const HYSTERESIS_KEY = `ik_pill_tag_${currentGroup}`;
+  const [newTopTag, newTopWeight] = candidates[0];
+  let resolvedTag = newTopTag;
+  try {
+    const prevTag = localStorage.getItem(HYSTERESIS_KEY);
+    if (prevTag && prevTag !== newTopTag) {
+      const prevEntry = candidates.find(([t]) => t === prevTag);
+      if (prevEntry) {
+        const prevWeight = prevEntry[1];
+        if (newTopWeight < prevWeight * HYSTERESIS_MARGIN) {
+          resolvedTag = prevTag;
+        }
+      }
+    }
+  } catch (_err) { /* localStorage unavailable — fall back to newTopTag */ }
+  try { localStorage.setItem(HYSTERESIS_KEY, resolvedTag); } catch (_err) {}
 
-  // 6. Look up label.
+  // 6. Map tag -> theme id (guaranteed defined by step 4 filter).
+  const themeId = PILL_THEME_LOOKUP[resolvedTag];
+
+  // 7. Look up label.
   const theme = THEMES.find((t) => t.id === themeId);
   if (!theme) return null;
   const themeLabel = theme.label;
 
-  // 7. Render and insert before #signin-mount in the page nav.
+  // 8. Render and insert before #signin-mount in the page nav.
   const pill = document.createElement("a");
   pill.className = "journey-pill";
   pill.href = `for-you.html?tab=${themeId}`;
@@ -76,6 +96,6 @@ export function mountJourneyPill({ currentGroup }) {
     else return null;
   }
 
-  // 8. Teardown.
+  // 9. Teardown.
   return () => pill.remove();
 }
