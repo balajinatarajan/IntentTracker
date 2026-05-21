@@ -10,6 +10,9 @@ Last update: 2026-05-21
 | Analytics backend + dashboard | `e0978d4` | `server/` + `dashboard.html` |
 | Working agent docs (gitignored folder) | `32cc224` | `working/` force-added |
 | **Foundation (sign-in + persona seed + navbar)** | `593e261` | Sarah Chen / Luxury Beach persona |
+| **F2 For You Strip** | `fbaa6f6` (merge of `c8960e0`) | Cross-vertical inline recs on 4 vertical pages; shared `catalog-manifest.js` |
+| **F1 Homepage For You Tab** | `a2ce457` (merge of `ab9e0dc`) | Tabbed grid (Popular + For You) on `index.html`; gated on profile signal |
+| **F4 For You Search** | `a5d39cc` (merge of `613b1e0`) | `for-you-search.html` standalone region-picker + persona-ranked results |
 
 ## Planning artifacts (in `working/`)
 
@@ -28,23 +31,21 @@ Last update: 2026-05-21
 
 ## In flight
 
-_(none — next agent picks up Phase A)_
+_(none — Phase A complete; next agent picks up Phase B / F3)_
 
 ## Open (priority order, ready to execute)
 
-### Phase A (run in parallel — three worktrees)
+### Phase A — DONE
 
-| # | Feature | Plan | Branch (to create) | Status |
-|---|---|---|---|---|
-| 1 | Homepage For You Tab | `working/plans/homepage-for-you-tab.md` | `feature/homepage-for-you-tab` | Not started |
-| 2 | For You Strip | `working/plans/for-you-strip.md` | `feature/for-you-strip` | Not started |
-| 4 | For You Search | `working/plans/for-you-search.md` | `feature/for-you-search` | Not started |
+All three features merged to `henry`. Branches `feature/homepage-for-you-tab`, `feature/for-you-strip`, `feature/for-you-search` retained for reference; feature worktrees removed.
 
-### Phase B (after Phase A merges to `henry`)
+Resolved at merge: one trivial conflict in `index.html` (both F1 and F4 added a `<link>` after `navbar.css`) — both lines kept.
+
+### Phase B (ready — F1 + F2 deps satisfied)
 
 | # | Feature | Plan | Branch (to create) | Blocking on |
 |---|---|---|---|---|
-| 3 | For You Page | `working/plans/for-you-page.md` | `feature/for-you-page` | F1 + F2 merged to `henry` |
+| 3 | For You Page | `working/plans/for-you-page.md` | `feature/for-you-page` | None — F1's `styles/tabbed-grid.css` + `.tab-pill` and F2's `js/data/catalog-manifest.js` are on `henry` |
 
 ## Open questions for the next agent
 
