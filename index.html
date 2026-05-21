@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles/recommendations.css">
   <link rel="stylesheet" href="styles/tabs.css">
   <link rel="stylesheet" href="styles/navbar.css">
-  <link rel="stylesheet" href="styles/for-you-search.css">
+  <link rel="stylesheet" href="styles/for-you.css">
 </head>
 <body>
 
@@ -38,9 +38,6 @@
       <span class="search-icon">&#128269;</span>
       <input type="text" id="search-input" placeholder="Search destinations, regions, or trip types..." autocomplete="off">
     </div>
-    <a href="for-you-search.html" class="hero-foryou-link">
-      Plan a trip with For You →
-    </a>
   </header>
 
   <!-- Continue Your Search (journey predictions) — hidden for now -->
@@ -65,6 +62,10 @@
     import { mountSigninControl } from './js/ui/signin-control.js';
     const mountEl = document.getElementById('signin-mount');
     if (mountEl) mountSigninControl(mountEl);
+  </script>
+  <script type="module">
+    import { mountJourneyPill } from './js/ui/journey-pill.js';
+    mountJourneyPill({ currentGroup: 'home' });
   </script>
 </body>
 </html>

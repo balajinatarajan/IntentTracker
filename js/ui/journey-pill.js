@@ -1,5 +1,6 @@
-// Journey pill: mounts a single themed pill into `.nav-links` of a vertical page.
-// See working/plans/for-you-page.md §5.6 for the contract.
+// Journey pill: mounts a single themed pill into the .site-nav, just before the
+// #signin-mount slot (so it sits next to the sign-in control instead of inside
+// .nav-links). Falls back to appending to .site-nav if the slot is missing.
 import { isSignedIn } from "../auth/auth-state.js";
 import {
   THEMES,
@@ -9,13 +10,13 @@ import {
 } from "./for-you-page.js";
 
 /**
- * Mounts a journey pill into the given nav-links element.
- * Returns a teardown function, or null if the pill is hidden.
+ * Mounts a journey pill adjacent to the #signin-mount slot in the page nav.
+ * Returns a teardown function, or null if the pill is hidden (no profile signal).
  *
- * @param {{ navLinksEl: HTMLElement, currentGroup: string }} opts
+ * @param {{ currentGroup: string }} opts
  * @returns {(() => void) | null}
  */
-export function mountJourneyPill({ navLinksEl, currentGroup }) {
+export function mountJourneyPill({ currentGroup }) {
   // 1. Guest? No pill.
   if (!isSignedIn()) return null;
 
@@ -56,7 +57,7 @@ export function mountJourneyPill({ navLinksEl, currentGroup }) {
   if (!theme) return null;
   const themeLabel = theme.label;
 
-  // 7. Render and append as last child of navLinksEl.
+  // 7. Render and insert before #signin-mount in the page nav.
   const pill = document.createElement("a");
   pill.className = "journey-pill";
   pill.href = `for-you.html?tab=${themeId}`;
@@ -65,7 +66,15 @@ export function mountJourneyPill({ navLinksEl, currentGroup }) {
     `${themeLabel} picks personalized for you`
   );
   pill.textContent = `${themeLabel} picks for you →`;
-  navLinksEl.appendChild(pill);
+
+  const signinSlot = document.getElementById("signin-mount");
+  if (signinSlot && signinSlot.parentNode) {
+    signinSlot.parentNode.insertBefore(pill, signinSlot);
+  } else {
+    const navEl = document.querySelector(".site-nav");
+    if (navEl) navEl.appendChild(pill);
+    else return null;
+  }
 
   // 8. Teardown.
   return () => pill.remove();

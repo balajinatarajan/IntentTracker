@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/cards.css">
   <link rel="stylesheet" href="styles/navbar.css">
-  <link rel="stylesheet" href="styles/for-you-strip.css">
 </head>
 <body>
 
@@ -31,7 +30,6 @@
     <p>World-class cuisine and local flavors</p>
   </header>
 
-  <section id="for-you-strip" class="for-you-strip" hidden></section>
 
   <main class="main-content">
     <h2 class="section-title">Curated Dining Experiences</h2>
@@ -133,24 +131,6 @@
         </div>
       </div>
 
-      <div hidden data-ik-id="nyc-boutique" data-ik-tags="urban, boutique, luxury, nightlife" data-ik-group="hotels" data-ik-name="NYC Boutique Hotel" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="london-business" data-ik-tags="urban, business, downtown, classic" data-ik-group="hotels" data-ik-name="London Business Hotel" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="tokyo-capsule" data-ik-tags="urban, budget, unique, solo" data-ik-group="hotels" data-ik-name="Tokyo Capsule Hotel" data-ik-price="budget"></div>
-      <div hidden data-ik-id="paris-luxury-suite" data-ik-tags="urban, luxury, romantic, boutique" data-ik-group="hotels" data-ik-name="Paris Luxury Suite" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="chicago-airport" data-ik-tags="urban, budget, business, convenient" data-ik-group="hotels" data-ik-name="Chicago Airport Hotel" data-ik-price="budget"></div>
-      <div hidden data-ik-id="sf-downtown" data-ik-tags="urban, downtown, tech, modern" data-ik-group="hotels" data-ik-name="SF Downtown Hotel" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="cancun-all-inclusive" data-ik-tags="beach, luxury, caribbean, all-inclusive, couples" data-ik-group="all-inclusive" data-ik-name="Cancun All-Inclusive" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="punta-cana-resort" data-ik-tags="beach, family, caribbean, all-inclusive, tropical" data-ik-group="all-inclusive" data-ik-name="Punta Cana Resort" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="jamaica-beach-pkg" data-ik-tags="beach, adults-only, caribbean, all-inclusive, romantic" data-ik-group="all-inclusive" data-ik-name="Jamaica Beach Package" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="aruba-luxury-stay" data-ik-tags="beach, luxury, caribbean, all-inclusive, spa" data-ik-group="all-inclusive" data-ik-name="Aruba Luxury Stay" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="riviera-maya-family" data-ik-tags="beach, family, caribbean, all-inclusive, adventure" data-ik-group="all-inclusive" data-ik-name="Riviera Maya Family" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="bahamas-couples" data-ik-tags="beach, couples, caribbean, all-inclusive, romantic" data-ik-group="all-inclusive" data-ik-name="Bahamas Couples" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="maldives-water-villa" data-ik-tags="tropical, luxury, spa, romantic, overwater" data-ik-group="resorts" data-ik-name="Maldives Water Villa" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="aspen-ski-lodge" data-ik-tags="ski, adventure, mountain, winter, luxury" data-ik-group="resorts" data-ik-name="Aspen Ski Lodge" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="bali-spa-resort" data-ik-tags="tropical, wellness, spa, culture, relaxation" data-ik-group="resorts" data-ik-name="Bali Spa Resort" data-ik-price="mid-range"></div>
-      <div hidden data-ik-id="hawaii-golf-resort" data-ik-tags="tropical, golf, luxury, beach, family" data-ik-group="resorts" data-ik-name="Hawaii Golf Resort" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="swiss-alps-chalet" data-ik-tags="ski, mountain, wellness, luxury, scenic" data-ik-group="resorts" data-ik-name="Swiss Alps Chalet" data-ik-price="luxury"></div>
-      <div hidden data-ik-id="costa-rica-eco" data-ik-tags="adventure, tropical, eco, wildlife, nature" data-ik-group="resorts" data-ik-name="Costa Rica Eco Lodge" data-ik-price="mid-range"></div>
 
     </div>
   </main>
@@ -162,9 +142,6 @@
       debug: true,
       pageMeta: { name: 'Dining', category: 'dining', url: '/dining.html' },
       emit: '/api/ingest',
-      onRecommendations: (recs) => {
-        if (window.__renderForYouStrip) window.__renderForYouStrip(recs);
-      },
     });
     window.__intentTracker = tracker;
   </script>
@@ -174,21 +151,8 @@
     if (mountEl) mountSigninControl(mountEl);
   </script>
   <script type="module">
-    import { mountForYouStrip, renderForYouStrip } from './js/ui/for-you-strip.js';
-    const stripEl = document.getElementById('for-you-strip');
-    const tracker = window.__intentTracker;
-    if (stripEl && tracker) {
-      const currentGroup = 'dining';
-      window.__renderForYouStrip = (recs) => {
-        renderForYouStrip(stripEl, recs, { currentGroup, profile: tracker.getProfile(), tracker });
-      };
-      mountForYouStrip(stripEl, tracker, { currentGroup });
-    }
-  </script>
-  <script type="module">
     import { mountJourneyPill } from './js/ui/journey-pill.js';
-    const navLinksEl = document.querySelector('.nav-links');
-    if (navLinksEl) mountJourneyPill({ navLinksEl, currentGroup: 'dining' });
+    mountJourneyPill({ currentGroup: 'dining' });
   </script>
 </body>
 </html>

@@ -48,7 +48,14 @@ F3 merged to `henry` at `03b2745`. Streams D and E were folded into a single age
 
 ### Open
 
-All four roadmap features (F1, F2, F3, F4) are shipped on `henry`. Plan repository (`working/plans/`) holds the gold-standard format for any future feature; the foundation plan remains the format reference per HANDOFF §1.
+Roadmap refocused on **F3 (For You page) only**. F1, F2, F4 are removed or retired. Plan repository (`working/plans/`) holds the gold-standard format for any future feature; the foundation plan remains the format reference per HANDOFF §1.
+
+### Scope reduction (post `eaded3d` merge)
+
+- **F1** (homepage Popular + For You tabs): retired at the main merge (main's lifestyle tabs own the homepage).
+- **F2** (For You Strip on vertical pages): **REMOVED**. Deleted files: `js/ui/for-you-strip.js`, `styles/for-you-strip.css`. Stripped from all 4 vertical pages: the strip `<section>`, 18 hidden catalog stubs, `onRecommendations` callback, strip mount script. `js/data/catalog-manifest.js` is RETAINED — F3's `for-you-page.js` consumes it.
+- **F4** (For You Search standalone page): **REMOVED**. Deleted files: `for-you-search.html`, `js/ui/fys-search.js`, `styles/for-you-search.css`. Stripped from `index.html`: hero "Plan a trip with For You →" anchor + `for-you-search.css` link.
+- **F3** journey pill repositioned: now mounts in the `.site-nav` adjacent to `#signin-mount` (out of `.nav-links`). API changed: `mountJourneyPill({ currentGroup })` — module finds the signin slot itself. Mount script added to `index.html` (`currentGroup: 'home'`) so the homepage now has an entry point to `for-you.html`. Pill remains gated on signed-in + tagWeights signal.
 
 ### Post-merge reconciliation with `origin/main` (commit `eaded3d`)
 
