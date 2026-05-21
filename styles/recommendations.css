@@ -111,3 +111,96 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* === Continue Your Search Section === */
+.continue-search-section {
+  background: var(--color-primary);
+  color: white;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.continue-search-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.continue-search-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.continue-search-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.25rem;
+}
+
+.continue-search-grid {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.journey-link-card {
+  flex: 1 1 200px;
+  max-width: 280px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  padding: 1.2rem 1rem;
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.journey-link-card:hover {
+  background: rgba(255, 141, 107, 0.1);
+  border-color: var(--color-accent);
+}
+
+.journey-link-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.journey-link-desc {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.journey-link-bar-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.3rem;
+}
+
+.journey-link-bar-fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+
+.journey-link-pct {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .continue-search-grid {
+    flex-direction: column;
+  }
+  .journey-link-card {
+    max-width: none;
+  }
+}

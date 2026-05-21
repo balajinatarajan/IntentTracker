@@ -1,0 +1,13 @@
+{
+  "name": "intent-tracker",
+  "version": "1.0.0",
+  "description": "Zero-config drop-in intent tracking plugin",
+  "main": "dist/intent-tracker.js",
+  "module": "dist/intent-tracker.esm.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0"
+  }
+}

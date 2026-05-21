@@ -17,7 +17,7 @@
 <body>
 <div class="diagram-container">
   <div class="diagram-title">Wanderlust — System Architecture</div>
-  <div class="diagram-subtitle">Intent-Based Context Tracking at Edge</div>
+  <div class="diagram-subtitle">Signal-Based Context Tracking at Edge</div>
 
   <svg viewBox="0 0 1100 820" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -63,7 +63,7 @@
     <rect x="380" y="100" width="160" height="4" rx="0" fill="#a78bfa"/>
     <text x="460" y="130" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="14" font-weight="700" fill="#7c3aed">Search</text>
     <text x="460" y="148" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#707070">query input (debounce 300ms)</text>
-    <text x="460" y="162" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#a78bfa" font-weight="600">explicit intent</text>
+    <text x="460" y="162" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#a78bfa" font-weight="600">explicit signal</text>
 
     <!-- View (disabled) -->
     <rect x="560" y="100" width="160" height="72" rx="4" fill="#f4f4f4" filter="url(#shadow)" stroke="#ddd" stroke-width="1" stroke-dasharray="4 2"/>
@@ -104,9 +104,9 @@
     <line x1="370" y1="290" x2="370" y2="336" stroke="#ff8d6b" stroke-width="2" marker-end="url(#arrow)"/>
     <text x="380" y="318" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#707070">onFlush(events[])</text>
 
-    <!-- ===== ROW 3: INTENT SUMMARIZER ===== -->
+    <!-- ===== ROW 3: SIGNAL SUMMARIZER ===== -->
     <rect x="20" y="340" width="700" height="140" rx="4" fill="#fff" filter="url(#shadow)" stroke="#ff8d6b" stroke-width="1.5"/>
-    <text x="40" y="366" font-family="DM Sans, Arial, sans-serif" font-size="11" fill="#ff8d6b" font-weight="700" letter-spacing="1.5">INTENT SUMMARIZER</text>
+    <text x="40" y="366" font-family="DM Sans, Arial, sans-serif" font-size="11" fill="#ff8d6b" font-weight="700" letter-spacing="1.5">SIGNAL SUMMARIZER</text>
 
     <!-- Sub-boxes inside summarizer -->
     <!-- Recency -->
@@ -127,7 +127,7 @@
     <!-- Pattern detection -->
     <rect x="520" y="380" width="180" height="48" rx="3" fill="#fff7ed"/>
     <text x="610" y="400" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="10" font-weight="700" fill="#1c1c1c">Pattern Detection</text>
-    <text x="610" y="416" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#707070">6 intent categories</text>
+    <text x="610" y="416" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#707070">6 signal categories</text>
 
     <!-- Output intents -->
     <text x="40" y="454" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#707070">Output:</text>
@@ -136,7 +136,7 @@
     <rect x="212" y="440" width="120" height="20" rx="10" fill="#14b8a6"/>
     <text x="272" y="454" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#fff" font-weight="600">Hover Interest</text>
     <rect x="338" y="440" width="100" height="20" rx="10" fill="#a78bfa"/>
-    <text x="388" y="454" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#fff" font-weight="600">Search Intent</text>
+    <text x="388" y="454" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#fff" font-weight="600">Search Signal</text>
     <rect x="444" y="440" width="90" height="20" rx="10" fill="#1c1c1c"/>
     <text x="489" y="454" text-anchor="middle" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#fff" font-weight="600">Comparison</text>
     <rect x="540" y="440" width="80" height="20" rx="10" fill="#e0693e"/>
@@ -150,11 +150,11 @@
 
     <!-- ===== ARROW DOWN TO STORE ===== -->
     <line x1="370" y1="480" x2="370" y2="526" stroke="#ff8d6b" stroke-width="2" marker-end="url(#arrow)"/>
-    <text x="380" y="508" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#707070">intents[] + confidence</text>
+    <text x="380" y="508" font-family="DM Sans, Arial, sans-serif" font-size="10" fill="#707070">signals[] + confidence</text>
 
-    <!-- ===== ROW 4: INTENT STORE ===== -->
+    <!-- ===== ROW 4: SIGNAL STORE ===== -->
     <rect x="20" y="530" width="340" height="120" rx="4" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
-    <text x="40" y="556" font-family="DM Sans, Arial, sans-serif" font-size="11" fill="#1c1c1c" font-weight="700" letter-spacing="1.5">INTENT STORE</text>
+    <text x="40" y="556" font-family="DM Sans, Arial, sans-serif" font-size="11" fill="#1c1c1c" font-weight="700" letter-spacing="1.5">SIGNAL STORE</text>
 
     <!-- localStorage icon -->
     <rect x="40" y="568" width="130" height="36" rx="3" fill="#f4f4f4"/>
@@ -219,11 +219,11 @@
     <text x="796" y="166" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">Live stream of hover (teal), click (coral),</text>
     <text x="796" y="178" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">search (purple) with timestamps + dwell time</text>
 
-    <!-- Tab: Intents -->
+    <!-- Tab: Signals -->
     <rect x="780" y="198" width="280" height="60" rx="3" fill="#2a2a2a"/>
     <rect x="780" y="198" width="3" height="60" rx="0" fill="#ff8d6b"/>
-    <text x="796" y="218" font-family="DM Sans, Arial, sans-serif" font-size="11" font-weight="700" fill="#ff8d6b">Intents</text>
-    <text x="796" y="234" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">Summarized intents with confidence %,</text>
+    <text x="796" y="218" font-family="DM Sans, Arial, sans-serif" font-size="11" font-weight="700" fill="#ff8d6b">Signals</text>
+    <text x="796" y="234" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">Summarized signals with confidence %,</text>
     <text x="796" y="246" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">category labels, source event counts, tags</text>
 
     <!-- Tab: Profile -->
@@ -273,7 +273,7 @@
     <text x="900" y="674" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#ff8d6b" font-weight="700">24</text>
     <text x="916" y="674" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">destinations</text>
     <text x="1000" y="674" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#ff8d6b" font-weight="700">6</text>
-    <text x="1010" y="674" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">intent types</text>
+    <text x="1010" y="674" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">signal types</text>
     <text x="800" y="690" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#ff8d6b" font-weight="700">0.8×</text>
     <text x="828" y="690" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#aaa">session decay</text>
     <text x="920" y="690" font-family="DM Sans, Arial, sans-serif" font-size="9" fill="#ff8d6b" font-weight="700">Top 6</text>

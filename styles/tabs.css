@@ -1,0 +1,65 @@
+/* === Tab Bar === */
+.tab-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0 0 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex-shrink: 0;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+.tab-btn.active {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background: rgba(255, 141, 107, 0.08);
+}
+
+/* --- For You tab entrance animation --- */
+.tab-btn.for-you-btn {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.4s ease, transform 0.4s ease, color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.tab-btn.for-you-btn.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tab-btn.for-you-btn:not(.active) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* --- Recommendation reason on For You cards --- */
+.card-rec-reason {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-accent);
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}

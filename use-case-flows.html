@@ -181,7 +181,7 @@
 <!-- ═══════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
 <div class="page-header">
   <h1>Use Case <span class="accent">Flows</span></h1>
-  <p>Five end-to-end scenarios showing how raw user interactions flow through the intent-tracking pipeline — from events → intents → profile → personalized recommendations — all running client-side at the edge.</p>
+  <p>Five end-to-end scenarios showing how raw user interactions flow through the signal-tracking pipeline — from events → signals → profile → personalized recommendations — all running client-side at the edge.</p>
   <div class="badge-row">
     <span class="header-badge"><span class="dot" style="background:#14b8a6"></span> Hover Events</span>
     <span class="header-badge"><span class="dot" style="background:#ff8d6b"></span> Click Events</span>
@@ -236,7 +236,7 @@
 
     <!-- STAGE 2: Intents -->
     <div class="stage stage-intent" data-delay="200">
-      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Signal Summarization</div>
       <div class="stage-card">
         <div class="flex-wrap">
           <span class="ip ip-trip">Adventure <span class="conf">92%</span></span>
@@ -287,7 +287,7 @@
 
   <div class="insight-box">
     <div class="insight-title">Key Insight</div>
-    <p><span class="highlight">Repeat clicks amplify signal:</span> Cusco was clicked twice, earning a frequency bonus of log₂(2) = +1.0 on top of the base click weight (3×). Combined with the "altitude trekking" search that matched Cusco's tags, it dominated the ranking. Patagonia was never clicked but ranked #2 purely from a sustained 4.1-second hover — demonstrating how the 2× hover weight captures passive intent that clicks alone would miss.</p>
+    <p><span class="highlight">Repeat clicks amplify signal:</span> Cusco was clicked twice, earning a frequency bonus of log₂(2) = +1.0 on top of the base click weight (3×). Combined with the "altitude trekking" search that matched Cusco's tags, it dominated the ranking. Patagonia was never clicked but ranked #2 purely from a sustained 4.1-second hover — demonstrating how the 2× hover weight captures passive signal that clicks alone would miss.</p>
   </div>
 </div>
 
@@ -321,9 +321,9 @@
 
     <div class="arrow-conn">│</div>
 
-    <!-- Session 1 Intents -->
+    <!-- Session 1 Signals -->
     <div class="stage stage-intent" data-delay="200">
-      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 — Intents</div>
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 — Signals</div>
       <div class="stage-card">
         <div class="flex-wrap">
           <span class="ip ip-trip">Romantic <span class="conf">90%</span></span>
@@ -423,7 +423,7 @@
     <div class="arrow-conn">│</div>
 
     <div class="stage stage-intent" data-delay="150">
-      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 Intents</div>
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Session 1 Signals</div>
       <div class="stage-card">
         <div class="flex-wrap">
           <span class="ip ip-region">SE Asia <span class="conf">85%</span></span>
@@ -530,14 +530,14 @@
           <span class="ev ev-click">👆 Kyoto</span>
           <span class="ev ev-search">🔍 "cultural slow travel"</span>
         </div>
-        <div class="sub-label">7 events but only 1 click · 5 sustained hovers (all >3s) · This user reads card previews carefully without clicking through. Without hover tracking, 85% of their intent data would be lost.</div>
+        <div class="sub-label">7 events but only 1 click · 5 sustained hovers (all >3s) · This user reads card previews carefully without clicking through. Without hover tracking, 85% of their signal data would be lost.</div>
       </div>
     </div>
 
     <div class="arrow-conn">│</div>
 
     <div class="stage stage-intent" data-delay="200">
-      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Signal Summarization</div>
       <div class="stage-card">
         <div class="flex-wrap">
           <span class="ip ip-trip">Culture <span class="conf">88%</span></span>
@@ -622,7 +622,7 @@
     <div class="arrow-conn">│</div>
 
     <div class="stage stage-intent" data-delay="200">
-      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Intent Summarization</div>
+      <div class="stage-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Signal Summarization</div>
       <div class="stage-card">
         <div class="flex-wrap">
           <span class="ip ip-trip">Adventure <span class="conf">55%</span></span>

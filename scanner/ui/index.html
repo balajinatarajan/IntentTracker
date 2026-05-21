@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignalTracker Site Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/ui/scanner.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1>SignalTracker <span class="accent">Site Scanner</span></h1>
+    <p>Scan any URL to auto-generate a reference file for the legacy intent tracker</p>
+  </header>
+
+  <main class="main">
+    <!-- Scan Input -->
+    <div class="scan-bar">
+      <input type="url" id="url-input" placeholder="Enter a URL to scan (e.g., https://example.com)" autocomplete="off">
+      <button id="scan-btn" onclick="startScan()">Scan</button>
+    </div>
+
+    <!-- Scan Options -->
+    <div class="scan-options">
+      <label class="toggle-label">
+        <input type="checkbox" id="scan-images-toggle">
+        <span class="toggle-switch"></span>
+        <span class="toggle-text">Include screenshot <span class="toggle-hint">(vision — sends page image to AI for richer tags)</span></span>
+      </label>
+      <div class="model-selector" id="model-selector" style="display: none;">
+        <label class="model-label">Model:</label>
+        <select id="model-select"></select>
+      </div>
+      <div class="api-key-input" id="api-key-input" style="display: none;">
+        <input type="password" id="api-key" placeholder="Paste API key" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Tag Keywords (collapsible) -->
+    <details class="tag-config" id="tag-config">
+      <summary>Tag Keywords <span class="tag-config-hint">— customize which tags are matched against page content</span></summary>
+      <div class="tag-config-body">
+        <p class="tag-config-desc">One tag per line. Format: <code>tagname: keyword1, keyword2, keyword3</code></p>
+        <textarea id="tag-keywords" rows="12" spellcheck="false">beach: beach, ocean, sea, coast, tropical
+mountain: mountain, alpine, ski, hiking, trek
+city: city, urban, downtown, metro
+luxury: luxury, premium, 5-star, exclusive, suite
+budget: budget, affordable, cheap, deal, value
+family: family, kid, children
+romantic: romantic, couples, honeymoon
+food: food, dining, restaurant, cuisine, culinary
+spa: spa, wellness, relax
+adventure: adventure, explore, discover</textarea>
+      </div>
+    </details>
+
+    <!-- Progress -->
+    <div class="progress" id="progress" style="display: none;">
+      <div class="progress-steps">
+        <span class="step" id="step-fetch">Fetching page...</span>
+        <span class="step" id="step-analyze">Analyzing content...</span>
+        <span class="step" id="step-llm">Generating tags with AI...</span>
+        <span class="step" id="step-build">Building reference file...</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="error-box" style="display: none;">
+      <span class="error-icon">!</span>
+      <span id="error-text"></span>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results" style="display: none;">
+      <div class="results-header">
+        <div class="results-meta">
+          <span class="meta-badge" id="meta-count">0 items</span>
+          <span class="meta-badge" id="meta-sections">0 sections</span>
+          <span class="meta-url" id="meta-url"></span>
+        </div>
+        <div class="results-actions">
+          <button class="btn-action" onclick="copyJSON()">Copy JSON</button>
+          <button class="btn-action" onclick="downloadJS()">Download .js</button>
+          <button class="btn-action" onclick="downloadJSON()">Download .json</button>
+        </div>
+      </div>
+
+      <div class="results-body">
+        <div class="results-code" id="results-code"></div>
+      </div>
+
+      <div class="results-tip">Click any value to edit inline. Changes update the output immediately.</div>
+    </div>
+  </main>
+
+  <!-- Page Screenshot Preview -->
+  <div class="screenshot-section" id="screenshot-section" style="display: none;">
+    <h3 class="screenshot-title">Page Screenshot</h3>
+    <p class="screenshot-desc">What the scanner saw when rendering the page</p>
+    <div class="screenshot-wrapper">
+      <img id="screenshot-img" class="screenshot-img" alt="Page screenshot">
+    </div>
+  </div>
+
+  <script src="/ui/scanner.js"></script>
+</body>
+</html>

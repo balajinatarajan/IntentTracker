@@ -1,167 +1,186 @@
-// Tabbed homepage grid: Popular (always) + For You (revealed when profile has signal)
-import { regions } from "../utils/categories.js";
+import { destinations } from '../data/destinations.js';
+import { regions } from '../utils/categories.js';
 
-const SEEN_KEY = "foryou_seen";
+// --- State ---
+let allDestinations = [];
+let cardClickHandler = null;
+let tabBarEl = null;
+let gridEl = null;
+let activeTab = 'explore';
+let exploreSet = []; // random subset, stable per session
+let forYouRecs = []; // populated when recommendations arrive
+let searchFilter = '';
 
-const state = {
-  tabBarEl: null,
-  gridContainer: null,
-  popularDests: [],
-  forYouRecs: [],
-  forYouRevealed: false,
-  activeTab: "popular",
-  query: "",
-  onCardClick: null,
-  newDotVisible: false
-};
+const TABS = [
+  { id: 'explore', label: 'Explore' },
+  { id: 'adventure', label: 'Adventure' },
+  { id: 'romantic', label: 'Romantic' },
+  { id: 'family', label: 'Family' },
+  { id: 'solo', label: 'Solo' },
+  { id: 'culture', label: 'Culture' },
+];
 
-export function initTabs(tabBarEl, gridContainer, destinations, onCardClick) {
-  state.tabBarEl = tabBarEl;
-  state.gridContainer = gridContainer;
-  state.popularDests = Array.isArray(destinations) ? destinations : [];
-  state.onCardClick = typeof onCardClick === "function" ? onCardClick : () => {};
-  state.newDotVisible = sessionStorage.getItem(SEEN_KEY) !== "1";
+// --- Public API ---
 
-  tabBarEl.addEventListener("click", onTabBarClick);
+export function initTabs(barEl, containerEl, dests, onCardClick) {
+  tabBarEl = barEl;
+  gridEl = containerEl;
+  allDestinations = dests;
+  cardClickHandler = onCardClick;
+
+  // Generate a random "Explore" set (8 cards, stable for this page load)
+  exploreSet = shuffle([...allDestinations]).slice(0, 8);
 
   renderTabBar();
-  renderActive();
+  renderGrid();
 }
 
-export function showForYouTab(recs) {
-  if (!recs || recs.length === 0) {
-    if (state.forYouRevealed) {
-      state.forYouRevealed = false;
-      state.forYouRecs = [];
-      if (state.activeTab === "foryou") {
-        state.activeTab = "popular";
-      }
-      renderTabBar();
-      renderActive();
+export function showForYouTab(recommendations) {
+  if (!recommendations || recommendations.length === 0) return;
+  forYouRecs = recommendations;
+
+  // Add tab button if not already present
+  if (!tabBarEl.querySelector('[data-tab="for-you"]')) {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn for-you-btn';
+    btn.dataset.tab = 'for-you';
+    btn.textContent = 'For You ✦';
+    btn.addEventListener('click', () => switchTab('for-you'));
+
+    // Insert after Explore (first tab)
+    const firstTab = tabBarEl.querySelector('.tab-btn');
+    if (firstTab && firstTab.nextSibling) {
+      tabBarEl.insertBefore(btn, firstTab.nextSibling);
+    } else {
+      tabBarEl.appendChild(btn);
     }
-    return;
+
+    // Entrance animation
+    requestAnimationFrame(() => btn.classList.add('visible'));
   }
 
-  state.forYouRecs = recs;
-
-  if (!state.forYouRevealed) {
-    state.forYouRevealed = true;
-    state.newDotVisible = sessionStorage.getItem(SEEN_KEY) !== "1";
-    renderTabBar();
-  }
-
-  if (state.activeTab === "foryou") {
-    renderActive();
-  }
+  // If user is currently on the For You tab, re-render
+  if (activeTab === 'for-you') renderGrid();
 }
 
 export function setSearchFilter(query) {
-  state.query = (query || "").toLowerCase().trim();
-  renderActive();
+  searchFilter = query.toLowerCase().trim();
+  renderGrid();
 }
 
-function onTabBarClick(event) {
-  const pill = event.target.closest(".tab-pill");
-  if (!pill || !state.tabBarEl.contains(pill)) return;
-  const tab = pill.dataset.tab;
-  if (!tab || tab === state.activeTab) return;
-  if (tab === "foryou" && !state.forYouRevealed) return;
-
-  state.activeTab = tab;
-
-  if (tab === "foryou" && state.newDotVisible) {
-    state.newDotVisible = false;
-    sessionStorage.setItem(SEEN_KEY, "1");
-  }
-
-  renderTabBar();
-  renderActive();
+export function getActiveTabDestinations() {
+  return getFilteredCards();
 }
+
+// --- Tab rendering ---
 
 function renderTabBar() {
-  if (!state.tabBarEl) return;
-  const popularActive = state.activeTab === "popular" ? " active" : "";
-  let html = '<button class="tab-pill' + popularActive + '" type="button" data-tab="popular">Popular</button>';
+  tabBarEl.innerHTML = '';
 
-  if (state.forYouRevealed) {
-    const foryouActive = state.activeTab === "foryou" ? " active" : "";
-    const hasNew = state.newDotVisible ? " has-new" : "";
-    const dot = state.newDotVisible ? '<span class="tab-new-dot" aria-label="new"></span>' : "";
-    html += '<button class="tab-pill' + foryouActive + hasNew + '" type="button" data-tab="foryou">For You' + dot + '</button>';
-  }
-
-  state.tabBarEl.innerHTML = html;
+  TABS.forEach(tab => {
+    const btn = document.createElement('button');
+    btn.className = `tab-btn${tab.id === activeTab ? ' active' : ''}`;
+    btn.dataset.tab = tab.id;
+    btn.textContent = tab.label;
+    btn.addEventListener('click', () => switchTab(tab.id));
+    tabBarEl.appendChild(btn);
+  });
 }
 
-function renderActive() {
-  if (!state.gridContainer) return;
-  state.gridContainer.innerHTML = "";
+function switchTab(tabId) {
+  activeTab = tabId;
 
-  let source;
-  if (state.activeTab === "foryou") {
-    source = state.forYouRecs
-      .map(r => (r && r.destination) ? r.destination : null)
-      .filter(d => d && d.id);
+  // Update active state on all tab buttons
+  tabBarEl.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+
+  renderGrid();
+
+  // Track tab view as an intent signal (skip generic tabs)
+  if (window.__intentTracker) {
+    const tags = (tabId === 'explore' || tabId === 'for-you') ? [] : [tabId];
+    window.__intentTracker.trackTabView(tabId, tags);
+    window.__intentTracker.scan();
+  }
+}
+
+// --- Grid rendering ---
+
+function getFilteredCards() {
+  let cards;
+
+  if (activeTab === 'explore') {
+    cards = exploreSet;
+  } else if (activeTab === 'for-you') {
+    // For You tab returns full destination objects from recommendations
+    cards = forYouRecs.map(r => r.destination).filter(Boolean);
   } else {
-    source = state.popularDests;
+    // Filter by tripType
+    cards = allDestinations.filter(d => d.tripTypes.includes(activeTab));
   }
 
-  const filtered = filter(source, state.query);
-
-  if (state.activeTab === "foryou") {
-    const subtitle = document.createElement("div");
-    subtitle.className = "for-you-subtitle";
-    subtitle.textContent = "Picked for you based on your recent activity";
-    state.gridContainer.appendChild(subtitle);
+  // Apply search filter
+  if (searchFilter) {
+    cards = cards.filter(dest => {
+      const searchable = [
+        dest.name, dest.country, dest.shortDesc, dest.region,
+        ...dest.tags, ...dest.tripTypes, dest.priceTier
+      ].join(' ').toLowerCase();
+      return searchFilter.split(/\s+/).every(term => searchable.includes(term));
+    });
   }
 
-  if (filtered.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "no-results";
-    empty.textContent = "No destinations match your search.";
-    state.gridContainer.appendChild(empty);
+  return cards;
+}
+
+function renderGrid() {
+  const cards = getFilteredCards();
+  gridEl.innerHTML = '';
+
+  if (cards.length === 0) {
+    gridEl.innerHTML = '<div class="no-results">No destinations match your search.</div>';
     return;
   }
 
-  const isForYou = state.activeTab === "foryou";
-  filtered.forEach(dest => {
-    const card = buildCard(dest);
-    card.addEventListener("click", () => {
-      state.onCardClick(dest);
-      if (isForYou && window.__intentTracker && typeof window.__intentTracker.trackClick === "function") {
-        window.__intentTracker.trackClick(dest.id);
-      }
-    });
-    state.gridContainer.appendChild(card);
+  if (activeTab === 'for-you') {
+    renderForYouCards(cards);
+  } else {
+    renderStandardCards(cards);
+  }
+}
+
+function renderStandardCards(cards) {
+  cards.forEach(dest => {
+    const card = createCard(dest);
+    card.addEventListener('click', () => cardClickHandler(dest));
+    gridEl.appendChild(card);
   });
 }
 
-function filter(items, query) {
-  if (!query) return items;
-  const terms = query.split(/\s+/).filter(Boolean);
-  if (terms.length === 0) return items;
-
-  return items.filter(dest => {
-    const searchable = [
-      dest.name,
-      dest.country,
-      dest.shortDesc,
-      dest.region,
-      ...(dest.tags || []),
-      ...(dest.tripTypes || []),
-      dest.priceTier
-    ].join(" ").toLowerCase();
-
-    return terms.every(term => searchable.includes(term));
+function renderForYouCards(cards) {
+  cards.forEach(dest => {
+    const rec = forYouRecs.find(r => r.destination?.id === dest.id);
+    const card = createCard(dest, rec?.reason);
+    card.addEventListener('click', () => cardClickHandler(dest));
+    gridEl.appendChild(card);
   });
 }
 
-function buildCard(dest) {
-  const card = document.createElement("article");
-  card.className = "destination-card";
+// --- Card creation (mirrors destination-grid.js) ---
+
+function createCard(dest, reason) {
+  const card = document.createElement('article');
+  card.className = 'destination-card';
   card.dataset.destinationId = dest.id;
+  // IntentTracker data attributes
+  card.dataset.ikId = dest.id;
+  card.dataset.ikTags = dest.tags.join(', ');
+  card.dataset.ikGroup = dest.region;
+  card.dataset.ikName = dest.name;
+  card.dataset.ikPrice = dest.priceTier;
 
-  const regionLabel = (regions[dest.region] && regions[dest.region].label) || dest.region;
+  const regionLabel = regions[dest.region]?.label || dest.region;
 
   card.innerHTML = `
     <div class="card-image-wrapper">
@@ -175,14 +194,25 @@ function buildCard(dest) {
     <div class="card-body">
       <div class="card-meta">
         <span class="region-tag">${regionLabel}</span>
-        <span class="price-badge ${dest.priceTier}">${dest.priceTier.replace("-", " ")}</span>
+        <span class="price-badge ${dest.priceTier}">${dest.priceTier.replace('-', ' ')}</span>
       </div>
+      ${reason ? `<p class="card-rec-reason">${reason}</p>` : ''}
       <p class="card-desc">${dest.shortDesc}</p>
       <div class="card-tags">
-        ${dest.tripTypes.map(t => `<span class="card-tag">${t}</span>`).join("")}
+        ${dest.tripTypes.map(t => `<span class="card-tag">${t}</span>`).join('')}
       </div>
     </div>
   `;
 
   return card;
+}
+
+// --- Utils ---
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
 }

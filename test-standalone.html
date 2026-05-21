@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IntentTracker — Standalone Test</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { color: #333; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+    .card {
+      border: 1px solid #ddd; border-radius: 8px; padding: 1rem; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .card h3 { margin: 0 0 0.5rem; }
+    .card p { margin: 0; color: #666; font-size: 0.9rem; }
+    .tags { margin-top: 0.5rem; }
+    .tag { display: inline-block; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin: 2px; }
+    #recs { margin-top: 2rem; padding: 1rem; background: #f9f9f9; border-radius: 8px; display: none; }
+    #recs h2 { margin-top: 0; }
+    .rec-item { padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .rec-reason { color: #888; font-size: 0.85rem; }
+    #search { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>IntentTracker Test Page</h1>
+  <p>Interact with the cards below. Open the debug panel (gear icon) to see intent tracking in action.</p>
+
+  <input type="text" id="search" placeholder="Search products...">
+
+  <div class="grid" id="product-grid">
+    <div class="card" data-ik-id="laptop-1" data-ik-tags="electronics, laptop, portable, work" data-ik-group="computers" data-ik-name="MacBook Pro" data-ik-price="premium">
+      <h3>MacBook Pro</h3>
+      <p>High-performance laptop for professionals</p>
+      <div class="tags"><span class="tag">electronics</span><span class="tag">laptop</span><span class="tag">work</span></div>
+    </div>
+
+    <div class="card" data-ik-id="laptop-2" data-ik-tags="electronics, laptop, gaming, performance" data-ik-group="computers" data-ik-name="Razer Blade" data-ik-price="premium">
+      <h3>Razer Blade</h3>
+      <p>Gaming laptop with RTX graphics</p>
+      <div class="tags"><span class="tag">electronics</span><span class="tag">gaming</span><span class="tag">performance</span></div>
+    </div>
+
+    <div class="card" data-ik-id="laptop-3" data-ik-tags="electronics, laptop, budget, student" data-ik-group="computers" data-ik-name="Chromebook" data-ik-price="budget">
+      <h3>Chromebook</h3>
+      <p>Affordable laptop for everyday use</p>
+      <div class="tags"><span class="tag">electronics</span><span class="tag">budget</span><span class="tag">student</span></div>
+    </div>
+
+    <div class="card" data-ik-id="phone-1" data-ik-tags="electronics, phone, premium, camera" data-ik-group="phones" data-ik-name="iPhone 16 Pro" data-ik-price="premium">
+      <h3>iPhone 16 Pro</h3>
+      <p>Flagship phone with pro camera system</p>
+      <div class="tags"><span class="tag">phone</span><span class="tag">premium</span><span class="tag">camera</span></div>
+    </div>
+
+    <div class="card" data-ik-id="phone-2" data-ik-tags="electronics, phone, budget, value" data-ik-group="phones" data-ik-name="Pixel 8a" data-ik-price="budget">
+      <h3>Pixel 8a</h3>
+      <p>Great camera phone at an affordable price</p>
+      <div class="tags"><span class="tag">phone</span><span class="tag">budget</span><span class="tag">value</span></div>
+    </div>
+
+    <div class="card" data-ik-id="headphones-1" data-ik-tags="audio, wireless, noise-cancelling, premium" data-ik-group="audio" data-ik-name="Sony WH-1000XM5" data-ik-price="mid">
+      <h3>Sony WH-1000XM5</h3>
+      <p>Best-in-class noise cancelling headphones</p>
+      <div class="tags"><span class="tag">audio</span><span class="tag">wireless</span><span class="tag">noise-cancelling</span></div>
+    </div>
+
+    <div class="card" data-ik-id="headphones-2" data-ik-tags="audio, wireless, sport, budget" data-ik-group="audio" data-ik-name="JBL Tune" data-ik-price="budget">
+      <h3>JBL Tune</h3>
+      <p>Wireless earbuds for sports</p>
+      <div class="tags"><span class="tag">audio</span><span class="tag">sport</span><span class="tag">budget</span></div>
+    </div>
+
+    <div class="card" data-ik-id="tablet-1" data-ik-tags="electronics, tablet, creative, drawing" data-ik-group="tablets" data-ik-name="iPad Pro" data-ik-price="premium">
+      <h3>iPad Pro</h3>
+      <p>Creative powerhouse with Apple Pencil support</p>
+      <div class="tags"><span class="tag">tablet</span><span class="tag">creative</span><span class="tag">drawing</span></div>
+    </div>
+
+    <div class="card" data-ik-id="watch-1" data-ik-tags="wearable, fitness, health, smart" data-ik-group="wearables" data-ik-name="Apple Watch Ultra" data-ik-price="premium">
+      <h3>Apple Watch Ultra</h3>
+      <p>Advanced fitness and health tracking</p>
+      <div class="tags"><span class="tag">wearable</span><span class="tag">fitness</span><span class="tag">health</span></div>
+    </div>
+  </div>
+
+  <div id="recs">
+    <h2>Recommended for You</h2>
+    <div id="recs-list"></div>
+  </div>
+
+  <!-- IntentTracker plugin -->
+  <script src="lib/dist/intent-tracker.js"></script>
+  <script>
+    const tracker = IntentTracker.create({
+      root: document.getElementById('product-grid'),
+      debug: true,
+      onRecommendations: function(recs) {
+        var container = document.getElementById('recs');
+        var list = document.getElementById('recs-list');
+        if (recs.length > 0) {
+          container.style.display = 'block';
+          list.innerHTML = recs.map(function(r) {
+            return '<div class="rec-item"><strong>' + (r.item.name || r.itemId) + '</strong> (score: ' + r.score + ')<div class="rec-reason">' + r.reason + '</div></div>';
+          }).join('');
+        }
+      },
+      onIntentsChanged: function(intents, profile) {
+        console.log('[IntentTracker] Intents:', intents.length, 'Tags:', Object.keys(profile.tagWeights).length);
+      }
+    });
+
+    // Wire search
+    document.getElementById('search').addEventListener('input', function(e) {
+      var q = e.target.value.trim();
+      if (q.length >= 2) tracker.trackSearch(q);
+    });
+  </script>
+</body>
+</html>
