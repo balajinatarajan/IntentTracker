@@ -191,7 +191,7 @@ function renderThemedTabs(tabBarEl, gridEl, tabs, opts) {
   function paintTabBar() {
     tabBarEl.innerHTML = tabs.map(t => {
       const activeClass = t.id === activeTabId ? " active" : "";
-      return `<button type="button" class="tab-pill${activeClass}" data-tab-id="${escapeHtml(t.id)}">${escapeHtml(t.label)}</button>`;
+      return `<button type="button" class="tab-btn${activeClass}" data-tab-id="${escapeHtml(t.id)}">${escapeHtml(t.label)}</button>`;
     }).join("");
   }
 
@@ -213,7 +213,7 @@ function renderThemedTabs(tabBarEl, gridEl, tabs, opts) {
   }
 
   tabBarEl.addEventListener("click", e => {
-    const pill = e.target.closest && e.target.closest(".tab-pill");
+    const pill = e.target.closest && e.target.closest(".tab-btn");
     if (!pill || !tabBarEl.contains(pill)) return;
     const nextId = pill.dataset.tabId;
     if (!nextId || nextId === activeTabId) return;
