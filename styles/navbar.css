@@ -1,53 +1,5 @@
-/* === Site Navigation === */
-.site-nav {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.75rem 1.5rem;
-  width: 100%;
-}
-
-.nav-brand {
-  font-weight: 700;
-  font-size: 1.15rem;
-  color: var(--color-primary);
-  text-decoration: none;
-  letter-spacing: -0.01em;
-}
-
-.nav-brand:hover {
-  color: var(--color-accent);
-}
-
-.nav-links {
-  display: flex;
-  flex-direction: row;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.nav-links a {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
-  padding: 0.25rem 0;
-  transition: color 0.15s ease;
-}
-
-.nav-links a:hover {
-  color: var(--color-accent);
-}
-
-.nav-links a.active {
-  color: var(--color-accent);
-  border-bottom: 1px solid var(--color-accent);
-}
+/* Nav structure (.site-nav, .nav-brand, .nav-links) is owned by styles/main.css.
+   This file scopes to the sign-in slot + sign-in control only. */
 
 .nav-signin-slot {
   margin-left: auto;
