@@ -1,0 +1,159 @@
+/* === For You Strip — cross-vertical inline recommendations (Feature 2) === */
+
+.for-you-strip {
+  display: block;
+  width: 100%;
+  background: var(--color-bg);
+  padding: 2rem 0 2.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.for-you-strip[hidden] {
+  display: none;
+}
+
+.for-you-strip-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.25rem;
+}
+
+.for-you-strip-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.for-you-strip-subtitle {
+  font-size: 0.92rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.for-you-strip-track {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem 0.5rem;
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.for-you-strip-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.for-you-strip-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.for-you-strip-track::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.for-you-strip-card {
+  flex: 0 0 280px;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: opacity 0.2s ease;
+  position: relative;
+}
+
+.for-you-strip-card:hover {
+  opacity: 0.92;
+}
+
+.for-you-strip-card-image-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.for-you-strip-card-image {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.for-you-strip-card:hover .for-you-strip-card-image {
+  transform: scale(1.05);
+}
+
+.for-you-strip-card-from-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 2px;
+  backdrop-filter: blur(4px);
+}
+
+.for-you-strip-card-body {
+  padding: 0.7rem 0.85rem 0.85rem;
+}
+
+.for-you-strip-card-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--color-text);
+  margin-bottom: 0.35rem;
+}
+
+.for-you-strip-card-meta {
+  display: flex;
+  flex-direction: row;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.for-you-strip-card-reason {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .for-you-strip {
+    padding: 1.5rem 0 1.75rem;
+  }
+
+  .for-you-strip-header {
+    padding: 0 1rem 1rem;
+  }
+
+  .for-you-strip-track {
+    padding: 0 1rem 0.5rem;
+    gap: 1rem;
+  }
+
+  .for-you-strip-card {
+    flex: 0 0 240px;
+  }
+
+  .for-you-strip-card-image {
+    height: 120px;
+  }
+}
