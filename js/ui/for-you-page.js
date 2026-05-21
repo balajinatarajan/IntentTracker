@@ -1,16 +1,12 @@
-// For You page bootstrap + theme taxonomy (Feature 3, Streams D + E folded).
+// For You page bootstrap (Feature 3). Auto-runs an IIFE that paints the
+// themed-tab UI on for-you.html. The theme constants are owned by
+// for-you-themes.js (pure data, separately importable by journey-pill.js
+// without triggering this bootstrap).
 //
-// Exports the theme constants consumed by `journey-pill.js` (Stream B),
-// and auto-runs an IIFE that paints the themed-tab UI on `for-you.html`.
-//
-// On vertical pages, this module is transitively imported by `journey-pill.js`
-// solely for the THEMES / PILL_* / PAGE_GROUP_TO_THEMES constants. The bootstrap
-// IIFE early-returns there (no #tab-bar / #destination-grid elements).
-//
-// See working/plans/for-you-page.md §5.1 (theme taxonomy), §5.3 (Plan B renderer),
-// §5.4 (slice), §5.5 (inline scorer — note the deliberate deviations from
+// See working/plans/for-you-page.md §5.3 (Plan B renderer), §5.4 (slice),
+// §5.5 (inline scorer — note the deliberate deviations from
 // RecommendationEngine.recommend: NO score<=0 drop, NO maxPerGroup cap),
-// §5.6 (tie-break), §5.9 (bootstrap shape).
+// §5.9 (bootstrap shape).
 
 import { catalogManifest } from "../data/catalog-manifest.js";
 import {

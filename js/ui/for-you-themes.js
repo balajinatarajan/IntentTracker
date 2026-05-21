@@ -50,9 +50,3 @@ export const PILL_TAG_BLACKLIST = new Set([
   "all-inclusive",
 ]);
 
-export const PAGE_GROUP_TO_THEMES = {
-  hotels:          ["urban"],
-  "all-inclusive": ["beaches"],
-  resorts:         ["luxury"],
-  dining:          ["luxury"],
-};

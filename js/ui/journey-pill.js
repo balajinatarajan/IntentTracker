@@ -1,22 +1,24 @@
 // Journey pill: mounts a single themed pill into the .site-nav, just before the
 // #signin-mount slot (so it sits next to the sign-in control instead of inside
 // .nav-links). Falls back to appending to .site-nav if the slot is missing.
+//
+// The pill always shows the user's top theme — no per-page exclusion. Hysteresis
+// is global (single localStorage key) so the chip text stays consistent across
+// pages and only flips when a new theme decisively beats the current one.
 import { isSignedIn } from "../auth/auth-state.js";
 import {
   THEMES,
   PILL_THEME_LOOKUP,
   PILL_TAG_BLACKLIST,
-  PAGE_GROUP_TO_THEMES,
 } from "./for-you-themes.js";
 
 /**
  * Mounts a journey pill adjacent to the #signin-mount slot in the page nav.
  * Returns a teardown function, or null if the pill is hidden (no profile signal).
  *
- * @param {{ currentGroup: string }} opts
  * @returns {(() => void) | null}
  */
-export function mountJourneyPill({ currentGroup }) {
+export function mountJourneyPill() {
   // 1. Guest? No pill.
   if (!isSignedIn()) return null;
 
@@ -39,20 +41,19 @@ export function mountJourneyPill({ currentGroup }) {
   if (!(maxWeight >= 0.5)) return null;
 
   // 4. Build sorted candidates with deterministic tie-break: weight desc, then localeCompare asc.
-  const excluded = new Set(PAGE_GROUP_TO_THEMES[currentGroup] || []);
+  //    No page-based exclusion — the pill always shows the absolute top theme.
   const candidates = Object.entries(tagWeights)
     .filter(([t]) => !PILL_TAG_BLACKLIST.has(t))
     .filter(([t]) => !!PILL_THEME_LOOKUP[t])
-    .filter(([t]) => !excluded.has(PILL_THEME_LOOKUP[t]))
     .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]));
 
   if (candidates.length === 0) return null;
 
   // 5. Hysteresis: prefer the previously-shown tag if it's still a valid candidate
-  //    AND the new top tag doesn't beat it by ≥ HYSTERESIS_MARGIN. Per-page-group
-  //    state so each surface has its own stable theme.
+  //    AND the new top tag doesn't beat it by ≥ HYSTERESIS_MARGIN. Single global
+  //    key so the chip stays consistent across pages.
   const HYSTERESIS_MARGIN = 1.20;  // new must be ≥ 1.20× old to flip
-  const HYSTERESIS_KEY = `ik_pill_tag_${currentGroup}`;
+  const HYSTERESIS_KEY = "ik_pill_tag";
   const [newTopTag, newTopWeight] = candidates[0];
   let resolvedTag = newTopTag;
   try {
