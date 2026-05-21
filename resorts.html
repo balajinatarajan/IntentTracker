@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/cards.css">
+  <link rel="stylesheet" href="styles/navbar.css">
 </head>
 <body>
 
@@ -21,6 +22,7 @@
       <a href="resorts.html" class="active">Resorts</a>
       <a href="dining.html">Dining</a>
     </div>
+    <div id="signin-mount" class="nav-signin-slot"></div>
   </nav>
 
   <header class="hero">
@@ -140,6 +142,11 @@
       emit: '/api/ingest',
     });
     window.__intentTracker = tracker;
+  </script>
+  <script type="module">
+    import { mountSigninControl } from './js/ui/signin-control.js';
+    const mountEl = document.getElementById('signin-mount');
+    if (mountEl) mountSigninControl(mountEl);
   </script>
 </body>
 </html>

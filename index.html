@@ -12,8 +12,21 @@
   <link rel="stylesheet" href="styles/modal.css">
   <link rel="stylesheet" href="styles/recommendations.css">
   <link rel="stylesheet" href="styles/debug-panel.css">
+  <link rel="stylesheet" href="styles/navbar.css">
 </head>
 <body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html">Hotels</a>
+      <a href="resorts.html">Resorts</a>
+      <a href="dining.html">Dining</a>
+    </div>
+    <div id="signin-mount" class="nav-signin-slot"></div>
+  </nav>
 
   <!-- Hero Section with Search -->
   <header class="hero">
@@ -64,5 +77,10 @@
   </button>
 
   <script type="module" src="js/app.js"></script>
+  <script type="module">
+    import { mountSigninControl } from './js/ui/signin-control.js';
+    const mountEl = document.getElementById('signin-mount');
+    if (mountEl) mountSigninControl(mountEl);
+  </script>
 </body>
 </html>
