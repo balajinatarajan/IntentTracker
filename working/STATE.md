@@ -48,7 +48,21 @@ F3 merged to `henry` at `03b2745`. Streams D and E were folded into a single age
 
 ### Open
 
-None — all four roadmap features (F1, F2, F3, F4) are shipped. Plan repository (`working/plans/`) holds the gold-standard format for any future feature; the foundation plan remains the format reference per HANDOFF §1.
+All four roadmap features (F1, F2, F3, F4) are shipped on `henry`. Plan repository (`working/plans/`) holds the gold-standard format for any future feature; the foundation plan remains the format reference per HANDOFF §1.
+
+### Post-merge reconciliation with `origin/main` (commit `eaded3d`)
+
+`origin/main` was 1 commit ahead at `45fa99a` ("Latest code including deashboard") — independent work by the upstream repo owner that introduced its own `js/ui/tabbed-grid.js` (6 lifestyle tabs: Explore/Adventure/Romantic/Family/Solo/Culture), real `js/ui/continue-search.js`, dashboard, legacy tracker, lib sources, docs, and assorted test/scanner pages. Resolution per user's call ("I want both in the recommended way"):
+
+- **Homepage tabs:** kept main's lifestyle tabs on `index.html`. **F1's Popular + For You tabs are effectively retired from the homepage.** F1's `js/ui/tabbed-grid.js` and `js/ui/continue-search.js` were overwritten by main's versions during merge.
+- **F1's `styles/tabbed-grid.css` retained** — it's still loaded by `for-you.html` (F3) for `.tab-pill` styling. Do not delete.
+- **Foundation kept intact.** Main has no sign-in concept; `signin-mount` slot + `mountSigninControl` script added to main's nav structure. Sign-in still works from `index.html`.
+- **F4 hero link preserved** in `index.html` — "Plan a trip with For You →" anchor below the search container.
+- **F2 strip + F3 pill + F3 for-you.html + F4 for-you-search.html** all untouched — additive on main side.
+- **For You user experience now lives entirely OFF the homepage:** journey pill (vertical pages → for-you.html), F2 strip (vertical pages), F4 search (hero link → for-you-search.html). Homepage is brand-owned by main's lifestyle tabs.
+
+Follow-up worth flagging:
+- The Continue Your Search section in `index.html` is kept commented out per main's intent. Uncomment `<section id="continue-search-section">` to enable the predictNext UI now that the real renderer is in place.
 
 ## Open questions for the next agent
 
