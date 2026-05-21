@@ -185,5 +185,10 @@
       mountForYouStrip(stripEl, tracker, { currentGroup });
     }
   </script>
+  <script type="module">
+    import { mountJourneyPill } from './js/ui/journey-pill.js';
+    const navLinksEl = document.querySelector('.nav-links');
+    if (navLinksEl) mountJourneyPill({ navLinksEl, currentGroup: 'all-inclusive' });
+  </script>
 </body>
 </html>
