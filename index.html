@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="styles/tabs.css">
   <link rel="stylesheet" href="styles/navbar.css">
   <link rel="stylesheet" href="styles/for-you.css">
+  <link rel="stylesheet" href="styles/cart.css">
+  <link rel="stylesheet" href="styles/booking.css">
 </head>
 <body>
 
@@ -26,6 +28,25 @@
       <a href="hotels.html">Hotels</a>
       <a href="resorts.html">Resorts</a>
       <a href="dining.html">Dining</a>
+    </div>
+    <!-- Cart icon (additive; renders empty/hidden until items are queued) -->
+    <div class="cart-nav-wrap site-nav-cart" id="cart-nav-wrap">
+      <button type="button" class="cart-nav-link" id="cart-nav-toggle" aria-label="Cart, empty" aria-expanded="false" aria-haspopup="true">
+        <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        <span class="cart-notification-bubble" id="cart-badge" hidden aria-label="Items in cart">
+          <span class="cart-badge-count">0</span>
+        </span>
+      </button>
+      <div class="cart-flyout" id="cart-flyout" hidden role="dialog" aria-label="Cart preview">
+        <div class="cart-flyout-header">
+          <span class="cart-flyout-label">In your cart</span>
+        </div>
+        <div class="cart-flyout-body" id="cart-flyout-body"></div>
+        <div class="cart-flyout-actions">
+          <a href="cart.html" class="btn btn-primary cart-flyout-view">View Cart</a>
+          <button type="button" class="btn btn-secondary cart-flyout-clear" id="cart-flyout-clear">Clear &amp; Start Over</button>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -53,6 +74,9 @@
     <div class="modal-content"></div>
   </div>
 
+  <!-- Multi-step booking flow overlay (hidden until openBookingFlow is called) -->
+  <div id="booking-overlay"></div>
+
   <!-- IntentTracker plugin (IIFE build — exposes window.IntentTracker) -->
   <script src="lib/dist/intent-tracker.js?v=9"></script>
   <!-- Shared profile-state helpers (window.IntentTrackerExt) — drives the
@@ -61,5 +85,74 @@
 
   <script type="module" src="js/app2.js?v=8"></script>
   <script src="js/ui/for-you-chip.js"></script>
+
+  <!--
+    Cart + booking wiring. Additive on top of the IntentTracker plugin —
+    we don't touch app2.js. Booking events are forwarded to /api/ingest
+    using the plugin's userId/sessionId so the Journey Observatory
+    (journey-dashboard.html) sees the full cart + checkout path as part
+    of the same user's journey.
+  -->
+  <script type="module">
+    import { destinations } from './js/data/destinations.js';
+    import { initCartIcon, updateCartIcon } from './js/ui/cart-icon.js';
+    import { initBookingFlow, openBookingFlow, resumeAbandonedBooking, bookingStore } from './js/ui/booking-flow.js';
+
+    const destMap = new Map(destinations.map(d => [d.id, d]));
+
+    // Reuse the IntentTracker plugin's userId so the journey dashboard
+    // attributes booking events to the same user that's browsing. Falls
+    // back to a stable cart-only ID if the plugin hasn't initialized yet.
+    function getUserId() {
+      const profile = window.__intentTracker?.getProfile?.();
+      return profile?.userId
+        || (window.__cartUserId ||= 'user-cart-' + Math.random().toString(36).slice(2, 10));
+    }
+    function getSessionId() {
+      return window.__cartSessionId ||= 'session-' + Date.now();
+    }
+
+    function emitBookingEvent(event) {
+      const body = JSON.stringify({
+        userId: getUserId(),
+        sessionId: getSessionId(),
+        pageUrl: location.pathname,
+        ts: Date.now(),
+        signals: [event],
+        profile: null,
+      });
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/ingest', new Blob([body], { type: 'application/json' }));
+          return;
+        }
+      } catch (_) { /* fall through */ }
+      fetch('/api/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body, keepalive: true,
+      }).catch(() => {});
+    }
+
+    initBookingFlow({
+      onEvent: emitBookingEvent,
+      onCartChange: updateCartIcon,
+      onComplete: () => updateCartIcon(),
+      onAbandon: () => updateCartIcon(),
+    });
+    initCartIcon({});
+
+    // Event-delegated "Book This Trip" handler on the existing detail modal.
+    // We piggyback on data-dest-id added by detail-modal.js — no extra coupling.
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action="book"][data-dest-id]');
+      if (!btn) return;
+      const dest = destMap.get(btn.dataset.destId);
+      if (!dest) return;
+      const abandoned = bookingStore.getAbandoned().find(a => a.destinationId === dest.id);
+      if (abandoned) resumeAbandonedBooking(dest, abandoned);
+      else openBookingFlow(dest);
+    });
+  </script>
 </body>
 </html>
