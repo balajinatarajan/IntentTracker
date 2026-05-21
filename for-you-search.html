@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plan a Trip — Wanderlust</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cards.css">
+  <link rel="stylesheet" href="styles/modal.css">
+  <link rel="stylesheet" href="styles/recommendations.css">
+  <link rel="stylesheet" href="styles/navbar.css">
+  <link rel="stylesheet" href="styles/for-you-search.css">
+</head>
+<body>
+
+  <nav class="site-nav">
+    <a href="index.html" class="nav-brand">Wanderlust</a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="vacations.html">Vacations</a>
+      <a href="hotels.html">Hotels</a>
+      <a href="resorts.html">Resorts</a>
+      <a href="dining.html">Dining</a>
+    </div>
+    <div id="signin-mount" class="nav-signin-slot"></div>
+  </nav>
+
+  <header class="fys-hero">
+    <h1 class="fys-hero-title">Plan a trip — tailored to you</h1>
+    <p class="fys-hero-subtitle">Pick a region; we'll order it by your profile.</p>
+    <div class="fys-picker-row">
+      <label for="fys-region-picker" class="fys-picker-label">Region</label>
+      <select id="fys-region-picker" class="fys-region-picker">
+        <option value="">Choose a region…</option>
+      </select>
+    </div>
+  </header>
+
+  <main id="fys-results" class="fys-results"></main>
+
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal-content"></div>
+  </div>
+
+  <script type="module">
+    import { RecommendationEngine } from './js/recommendations/recommendation-engine.js';
+    import { destinations } from './js/data/destinations.js';
+    import { regions } from './js/utils/categories.js';
+    import { initModal, openModal } from './js/ui/detail-modal.js';
+    import { mountSigninControl } from './js/ui/signin-control.js';
+    import { computeFysResults, renderFysResults, populateRegionPicker, getRegionFromUrl, setRegionInUrl, readSeededProfile } from './js/ui/fys-search.js';
+
+    // Mount signin control (same pattern as other pages)
+    const signinEl = document.getElementById('signin-mount');
+    if (signinEl) mountSigninControl(signinEl);
+
+    // Init modal
+    initModal();
+
+    // Build dependencies
+    const recEngine = new RecommendationEngine(destinations);
+    const picker = document.getElementById('fys-region-picker');
+    const resultsEl = document.getElementById('fys-results');
+
+    populateRegionPicker(picker, regions);
+
+    function handleCardClick(dest) { openModal(dest); }
+
+    function rerender() {
+      const region = picker.value || null;
+      const profile = readSeededProfile();
+      const regionLabel = region ? (regions[region]?.label || null) : null;
+      const result = computeFysResults(profile, region, regionLabel, destinations, recEngine);
+      renderFysResults(resultsEl, result, handleCardClick);
+      setRegionInUrl(region);
+    }
+
+    // Initial state from URL
+    const initial = getRegionFromUrl();
+    if (initial && regions[initial]) picker.value = initial;
+    picker.addEventListener('change', rerender);
+    rerender();
+  </script>
+</body>
+</html>
