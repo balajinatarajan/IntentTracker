@@ -7,7 +7,7 @@ import {
   PILL_THEME_LOOKUP,
   PILL_TAG_BLACKLIST,
   PAGE_GROUP_TO_THEMES,
-} from "./for-you-page.js";
+} from "./for-you-themes.js";
 
 /**
  * Mounts a journey pill adjacent to the #signin-mount slot in the page nav.

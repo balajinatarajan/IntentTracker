@@ -12,20 +12,26 @@
    .site-nav / .nav-links are owned by foundation. Do NOT restyle them here.
    ========================================================================== */
 
-/* --- Journey pill (vertical-page chip linking to For You) ----------------- */
+/* --- Journey pill (nav chip linking to For You) --------------------------- */
+/* Sits adjacent to #signin-mount in .site-nav. Styled as a colored nav link,
+   not a filled button — accent text on transparent, with a soft hover wash. */
 .journey-pill {
-  background: var(--color-accent);
-  color: white;
-  border-radius: var(--radius-pill);
-  padding: 0.4rem 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: var(--color-accent);
+  padding: 0.4rem 0.75rem;
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   text-decoration: none;
-  margin-left: 0.5rem;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .journey-pill:hover {
-  filter: brightness(0.92);
+  background: rgba(255, 141, 107, 0.1);
 }
 
 .journey-pill:focus-visible {
