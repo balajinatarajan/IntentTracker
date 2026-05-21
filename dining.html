@@ -9,8 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/cards.css">
-  <link rel="stylesheet" href="styles/navbar.css">
-  <link rel="stylesheet" href="styles/for-you.css">
 </head>
 <body>
 
@@ -23,14 +21,12 @@
       <a href="resorts.html">Resorts</a>
       <a href="dining.html" class="active">Dining</a>
     </div>
-    <div id="signin-mount" class="nav-signin-slot"></div>
   </nav>
 
   <header class="hero">
     <h1>Restaurants & Dining</h1>
     <p>World-class cuisine and local flavors</p>
   </header>
-
 
   <main class="main-content">
     <h2 class="section-title">Curated Dining Experiences</h2>
@@ -132,7 +128,6 @@
         </div>
       </div>
 
-
     </div>
   </main>
 
@@ -146,14 +141,7 @@
     });
     window.__intentTracker = tracker;
   </script>
-  <script type="module">
-    import { mountSigninControl } from './js/ui/signin-control.js';
-    const mountEl = document.getElementById('signin-mount');
-    if (mountEl) mountSigninControl(mountEl);
-  </script>
-  <script type="module">
-    import { mountJourneyPill } from './js/ui/journey-pill.js';
-    mountJourneyPill();
-  </script>
+  <script src="js/utils/profile-state.js"></script>
+  <script src="js/ui/for-you-chip.js"></script>
 </body>
 </html>

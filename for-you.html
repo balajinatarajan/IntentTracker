@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css">
   <link rel="stylesheet" href="styles/cards.css">
-  <link rel="stylesheet" href="styles/navbar.css">
+  <link rel="stylesheet" href="styles/modal.css">
   <link rel="stylesheet" href="styles/tabs.css">
   <link rel="stylesheet" href="styles/for-you.css">
 </head>
@@ -23,35 +23,37 @@
       <a href="hotels.html">Hotels</a>
       <a href="resorts.html">Resorts</a>
       <a href="dining.html">Dining</a>
+      <a href="for-you.html" class="active for-you-nav-link">For You ✦</a>
     </div>
-    <div id="signin-mount" class="nav-signin-slot"></div>
   </nav>
 
   <header class="hero">
     <h1>For You</h1>
-    <p id="for-you-reason">Explore picks by theme.</p>
+    <p>Personalized picks based on where you've been and what you've explored.</p>
   </header>
 
   <main class="main-content">
-    <div id="tab-bar" class="tab-bar"></div>
-    <div id="destination-grid" class="destination-grid"></div>
+    <div id="intent-strip" class="intent-strip"></div>
+
+    <section id="fy-empty" class="fy-empty" hidden>
+      <h2>Nothing here yet</h2>
+      <p>Browse a few destinations and we'll surface a personalized feed for you.</p>
+      <a href="index.html" class="fy-cta">Start exploring</a>
+    </section>
+
+    <section id="fy-content" hidden>
+      <div id="fy-tab-bar" class="tab-bar"></div>
+      <div id="destination-grid" class="destination-grid"></div>
+    </section>
   </main>
 
+  <!-- Detail Modal -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal-content"></div>
+  </div>
+
   <script src="lib/dist/intent-tracker.js"></script>
-  <script>
-    const tracker = IntentTracker.create({
-      root: document.getElementById('destination-grid'),
-      debug: true,
-      pageMeta: { name: 'For You', category: 'for-you', url: '/for-you.html' },
-      emit: '/api/ingest',
-    });
-    window.__intentTracker = tracker;
-  </script>
-  <script type="module">
-    import { mountSigninControl } from './js/ui/signin-control.js';
-    const mountEl = document.getElementById('signin-mount');
-    if (mountEl) mountSigninControl(mountEl);
-  </script>
-  <script type="module" src="js/ui/for-you-page.js"></script>
+  <script src="js/utils/profile-state.js"></script>
+  <script type="module" src="js/for-you-page.js"></script>
 </body>
 </html>
