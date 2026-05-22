@@ -183,6 +183,12 @@
         '  0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,71,0.55); }',
         '  50%      { box-shadow: 0 0 0 4px rgba(255,107,71,0); }',
         '}',
+        // The Live Journey dashboard is a desktop-only analytics tool —
+        // hide the chip on narrow viewports so the navbar stops wrapping
+        // and the cart stays inline with the menu.
+        '@media (max-width: 768px) {',
+        '  .site-nav a.journey-nav-link { display: none; }',
+        '}',
       ].join('\n');
       document.head.appendChild(style);
       const chip = document.createElement('a');
