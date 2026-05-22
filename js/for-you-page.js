@@ -1,8 +1,15 @@
 // For You page — intent-driven tab layout.
-// Tabs derive from the user's intent profile: a default "Top Picks" tab driven
-// by the recommendation engine, plus one tab per high-signal tag from
-// tagWeights. Access is gated on the profile having intent data — first-time
-// anonymous visitors land on the empty state (per #31 cold-start).
+// Tabs derive from the user's intent profile: a "Top Picks" tab scored
+// against the full destination catalog, plus one tab per high-signal tag
+// from tagWeights. Access is gated on the profile having intent data —
+// first-time anonymous visitors land on the empty state.
+//
+// Why not the lib's RecommendationEngine for Top Picks: that engine reads
+// from the per-tracker DOM-scanned catalog, which is empty when the page
+// bootstraps (the grid hasn't been rendered yet). It also caps results
+// with maxPerGroup=3 and drops score<=0 entries, which collides with the
+// "always fill 12 slots" UX rule. We score destinations.js directly here
+// so every tab is guaranteed PER_TAB_LIMIT cards.
 
 import { destinations } from './data/destinations.js';
 import { initModal, openModal } from './ui/detail-modal.js';
@@ -73,40 +80,53 @@ function bootstrap(tracker) {
 function deriveTabs(tracker, profile) {
   const tabs = [];
   const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
-  const byClicksDesc = (a, b) => (clickCounts[b.id] || 0) - (clickCounts[a.id] || 0);
-
-  // Top Picks: pull a wider candidate pool from the rec engine so that
-  // repeatedly-clicked items have a chance to surface, then re-sort by
-  // click count (stable sort preserves rec order as the tiebreaker).
-  const recs = tracker.recommend(PER_TAB_LIMIT * 4);
-  if (recs.length > 0) {
-    recs.sort((a, b) => (clickCounts[b.itemId] || 0) - (clickCounts[a.itemId] || 0));
-    tabs.push({
-      id: 'top-picks',
-      label: 'Top Picks',
-      type: 'recommendations',
-      recs: recs.slice(0, PER_TAB_LIMIT),
-    });
-  }
-
   const weights = profile?.tagWeights || {};
+
+  // Score every destination against the user's tagWeights. Click count is a
+  // small additive boost so repeatedly-clicked items rise but never dominate
+  // a low-affinity tab. Normalized by sqrt(tagCount) to mirror the lib's
+  // RecommendationEngine bias correction.
+  const scored = destinations.map(d => {
+    const tagScore = (d.tags || []).reduce((acc, t) => acc + (weights[t] || 0), 0);
+    const normalized = d.tags && d.tags.length > 0 ? tagScore / Math.sqrt(d.tags.length) : 0;
+    const clickBoost = (clickCounts[d.id] || 0) * 0.5;
+    return { dest: d, score: normalized + clickBoost };
+  });
+
+  const topPicks = scored.slice().sort((a, b) => b.score - a.score).slice(0, PER_TAB_LIMIT);
+  // Always include Top Picks — guarantees 12 cards (catalog is 100+).
+  tabs.push({
+    id: 'top-picks',
+    label: 'Top Picks',
+    type: 'top-picks',
+    destinations: topPicks.map(s => s.dest),
+  });
+
   const sortedTags = Object.entries(weights)
     .filter(isContentTag)
     .sort((a, b) => b[1] - a[1])
     .map(([tag]) => tag);
 
   for (const tag of sortedTags) {
-    const matches = destinations
-      .filter(d => d.tags && d.tags.includes(tag))
-      .slice()
-      .sort(byClicksDesc);
-    if (matches.length === 0) continue;
+    const matches = destinations.filter(d => d.tags && d.tags.includes(tag));
+    // Rule: a tab only ships if it can fill all PER_TAB_LIMIT slots.
+    // A half-empty tab looks worse than no tab at all.
+    if (matches.length < PER_TAB_LIMIT) continue;
+    // Sort: click count desc, then score desc (so a click-heavy item beats a
+    // weight-matched-but-never-clicked item; absent clicks, weight wins).
+    const ranked = matches
+      .map(d => {
+        const tagScore = (d.tags || []).reduce((acc, t) => acc + (weights[t] || 0), 0);
+        const normalized = d.tags.length > 0 ? tagScore / Math.sqrt(d.tags.length) : 0;
+        return { dest: d, clicks: clickCounts[d.id] || 0, score: normalized };
+      })
+      .sort((a, b) => (b.clicks - a.clicks) || (b.score - a.score));
     tabs.push({
       id: `tag-${tag}`,
       label: prettyLabel(tag),
       type: 'tag',
       tag,
-      destinations: matches.slice(0, PER_TAB_LIMIT),
+      destinations: ranked.slice(0, PER_TAB_LIMIT).map(r => r.dest),
     });
     if (tabs.length - 1 >= MAX_TAG_TABS) break;
   }
@@ -159,22 +179,9 @@ function renderTabs(tracker, tabs) {
 
 function renderGrid(tab) {
   gridEl.innerHTML = '';
-  if (tab.type === 'recommendations') {
-    tab.recs.forEach(rec => {
-      const dest = destMap.get(rec.itemId) || rec.item;
-      if (!dest) return;
-      gridEl.appendChild(createCard(dest, rec.reason));
-    });
-  } else {
-    tab.destinations.forEach(dest => {
-      gridEl.appendChild(createCard(dest, ''));
-    });
-  }
-
-  if (gridEl.children.length === 0) {
-    gridEl.innerHTML = '<div class="no-results">No matches yet — try exploring more.</div>';
-  }
-
+  tab.destinations.forEach(dest => {
+    gridEl.appendChild(createCard(dest, ''));
+  });
   if (window.__intentTracker) window.__intentTracker.scan();
 }
 

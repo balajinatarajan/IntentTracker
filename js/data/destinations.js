@@ -15,13 +15,21 @@
 //
 // Images
 // ------
-// The catalog reuses a curated set of ~24 Unsplash photo IDs thematically.
-// Acceptable for demo / showcase purposes; replace with bespoke photography
+// Each destination gets a unique image via Lorem Flickr — keyword-matched
+// Creative Commons photos from Flickr. The keyword string is derived from
+// the destination's country + most distinctive content tag (first non-region,
+// non-price tag), and the ?lock= seed is the destination id so the same
+// photo loads every time. Acceptable for demo; swap for bespoke photography
 // before production launch.
+//
+// Note: the legacy `IMG()` helper still appears in each entry below as a
+// no-op stub that returns its own argument — the real image URL is computed
+// by the post-processor at the bottom of this file. This keeps the data
+// rows visually tidy without per-destination URL editing.
 
-const IMG = (id) => `https://images.unsplash.com/${id}?w=400&h=300&fit=crop`;
+const IMG = (id) => id; // legacy stub — see buildImageUrl below
 
-export const destinations = [
+const _rawDestinations = [
   // ── ASIA ──────────────────────────────────────────────────────────────
   {
     id: "bali",
@@ -1710,3 +1718,24 @@ export const destinations = [
     highlights: ["Great Blue Hole", "Caye Caulker", "ATM Cave Tour", "Caracol Maya Ruins"]
   }
 ];
+
+// Region tags and price tags that should NOT be the keyword on the image URL —
+// we want the visual cue ("beach", "mountains", "city") not the metadata cue.
+const REGION_TAGS = new Set([
+  'europe', 'southeast-asia', 'east-asia', 'south-asia', 'middle-east',
+  'africa', 'north-america', 'south-america', 'central-america', 'caribbean',
+  'oceania',
+]);
+
+function buildImageUrl(d) {
+  const themeTag = (d.tags || []).find(t => !REGION_TAGS.has(t) && !t.startsWith('price:') && t !== 'mid-range' && t !== 'budget' && t !== 'luxury');
+  const keywords = [d.country, themeTag].filter(Boolean).join(',');
+  const safeKeywords = encodeURIComponent(keywords || d.name);
+  const seed = encodeURIComponent(d.id);
+  return `https://loremflickr.com/400/300/${safeKeywords}?lock=${seed}`;
+}
+
+export const destinations = _rawDestinations.map(d => ({
+  ...d,
+  image: buildImageUrl(d),
+}));
