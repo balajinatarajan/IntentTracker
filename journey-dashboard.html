@@ -293,11 +293,21 @@
     .brief-item b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); font-weight: 700; }
     .brief-item span { color: var(--ink); font-size: 14px; }
     details { margin-top: 14px; }
-    summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: 8px 0; outline: none; user-select: none; }
+    summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: 8px 0; outline: none; user-select: none; display: flex; align-items: center; gap: 8px; }
     summary::-webkit-details-marker { display: none; }
-    summary::before { content: "›"; display: inline-block; margin-right: 8px; transform: rotate(0deg); transition: transform 120ms ease; }
+    summary::before { content: "\203A"; display: inline-block; transform: rotate(0deg); transition: transform 120ms ease; }
     details[open] summary::before { transform: rotate(90deg); }
     pre { margin: 12px 0 0; padding: 18px; background: #05071a; border: 1px solid var(--line-soft); border-radius: 14px; color: #cdd5f3; max-height: 440px; overflow: auto; font-size: 11.5px; font-family: "JetBrains Mono", monospace; }
+
+    /* Request vs Response panels — color-coded so the two halves of the
+       AI conversation are visually distinct. Request uses the accent gold
+       (what we send), Response uses a complementary teal (what we get
+       back). The Copy buttons live inline with the summary text. */
+    .payload-request summary { color: #ffd66b; }
+    .payload-response summary { color: #7adcaa; }
+    .payload-response pre { border-color: rgba(122, 220, 170, 0.22); }
+    .payload-copy { margin-left: auto; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 999px; background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+    .payload-copy:hover { background: var(--bg-elev); color: var(--ink); border-color: var(--line-soft); }
 
     .empty { padding: 80px 20px; color: var(--muted); text-align: center; }
     .section-title { margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
@@ -1107,21 +1117,47 @@
         payloadHead.style.justifyContent = 'space-between';
         payloadHead.style.marginBottom = '12px';
         payloadHead.appendChild(sectionTitle('AI handoff'));
-        const copyButton = text('button', 'button ghost', 'Copy payload');
-        payloadHead.appendChild(copyButton);
         payload.appendChild(payloadHead);
         payload.appendChild(renderAiBrief(data));
-        const details = document.createElement('details');
-        details.className = 'payload-details';
-        details.appendChild(text('summary', '', 'Show technical payload'));
-        const pre = text('pre', '', JSON.stringify(data.genai_payload, null, 2));
-        details.appendChild(pre);
-        payload.appendChild(details);
-        copyButton.addEventListener('click', async () => {
-          await navigator.clipboard.writeText(pre.textContent);
-          copyButton.textContent = 'Copied';
-          setTimeout(() => { copyButton.textContent = 'Copy payload'; }, 1200);
+
+        // Show BOTH sides of the AI conversation so judges see the full
+        // contract: the request payload we'd POST to GPT/Claude, and the
+        // simulated structured response we'd parse back. The three narrative
+        // lines above (Journey state / Most important signal / Recommended
+        // next test) are the *plain-English summary* of the response object;
+        // exposing the raw response makes it obvious those lines aren't
+        // hard-coded — they're derived fields from a mocked LLM reply.
+        const reqDetails = document.createElement('details');
+        reqDetails.className = 'payload-details payload-request';
+        const reqSummary = text('summary', '', '\u2192 Request payload (what we POST to the LLM)');
+        reqDetails.appendChild(reqSummary);
+        const reqPre = text('pre', '', JSON.stringify(data.genai_payload, null, 2));
+        const reqCopy = text('button', 'button ghost payload-copy', 'Copy');
+        reqCopy.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await navigator.clipboard.writeText(reqPre.textContent);
+          reqCopy.textContent = 'Copied';
+          setTimeout(() => { reqCopy.textContent = 'Copy'; }, 1200);
         });
+        reqSummary.appendChild(reqCopy);
+        reqDetails.appendChild(reqPre);
+        payload.appendChild(reqDetails);
+
+        const respDetails = document.createElement('details');
+        respDetails.className = 'payload-details payload-response';
+        const respSummary = text('summary', '', '\u2190 Simulated AI response (what the LLM returns)');
+        respDetails.appendChild(respSummary);
+        const respPre = text('pre', '', JSON.stringify(data.mock_ai_response, null, 2));
+        const respCopy = text('button', 'button ghost payload-copy', 'Copy');
+        respCopy.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await navigator.clipboard.writeText(respPre.textContent);
+          respCopy.textContent = 'Copied';
+          setTimeout(() => { respCopy.textContent = 'Copy'; }, 1200);
+        });
+        respSummary.appendChild(respCopy);
+        respDetails.appendChild(respPre);
+        payload.appendChild(respDetails);
         lower.appendChild(timeline);
         lower.appendChild(payload);
         detail.appendChild(lower);
@@ -1136,7 +1172,7 @@
         // Without this the 1s live poll wipes whatever state the user
         // had built up and snaps the whole panel back to defaults.
         const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid'];
-        const DETAILS_SELECTORS = ['.payload-details'];
+        const DETAILS_SELECTORS = ['.payload-request', '.payload-response'];
         const prevScrollY = silent ? window.scrollY : null;
         const scrollSnap = silent ? (() => {
           const m = new Map();
