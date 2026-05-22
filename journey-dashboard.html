@@ -205,6 +205,38 @@
     .display-name { font-family: "Instrument Serif", serif; letter-spacing: -0.01em; color: var(--ink); }
     .user-row .display-name { font-size: 15px; line-height: 1.1; font-weight: 400; }
     .current-user-card .display-name { font-size: 22px; line-height: 1.1; }
+
+    /* AGGREGATE FRICTION STRIP */
+    .friction-strip { display: grid; gap: 14px; padding: 18px 20px; }
+    .friction-strip-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .friction-strip-head h3 { margin: 0; font-family: "Instrument Serif", serif; font-size: 22px; letter-spacing: -0.01em; font-weight: 400; color: var(--ink); }
+    .friction-strip-head .meta { color: var(--muted); font-size: 12.5px; }
+    .friction-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .friction-tile { position: relative; padding: 12px 14px; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 13px; overflow: hidden; }
+    .friction-tile::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--muted); }
+    .friction-tile.abandonment::before { background: var(--abandonment); }
+    .friction-tile.consideration::before { background: var(--consideration); }
+    .friction-tile.discovery::before { background: var(--discovery); }
+    .friction-tile.checkout::before { background: var(--checkout); }
+    .friction-tile.conversion::before { background: var(--conversion); }
+    .friction-tile .count { font-family: "Instrument Serif", serif; font-size: 28px; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+    .friction-tile .count .pct { color: var(--muted); font-size: 13px; font-family: "JetBrains Mono", monospace; margin-left: 6px; }
+    .friction-tile .label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-top: 6px; }
+
+    /* WOULD-RECOMMEND CARDS — closes the loop from signals -> recs */
+    .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .rec-card { position: relative; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 140ms ease, border-color 140ms ease; }
+    .rec-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .rec-card .thumb { width: 100%; aspect-ratio: 16/10; background: var(--surface-2); overflow: hidden; }
+    .rec-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .rec-card .body { padding: 11px 13px 13px; display: grid; gap: 6px; }
+    .rec-card .name { color: var(--ink); font-size: 13.5px; font-weight: 600; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .rec-card .why { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
+    .rec-card .why em { color: var(--accent); font-style: normal; font-weight: 600; }
+    .rec-card .price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
+    .rec-card .tier { color: var(--ink-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+    .rec-card .score { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 11px; }
+    .rec-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
     .insight-card h3, .experiment-card h3 { margin: 0; font-size: 16px; font-family: "Instrument Serif", serif; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
     .insight-card p, .experiment-card p { margin: 0; color: var(--ink-dim); font-size: 13px; }
     .experiment-card .meta-line { color: var(--muted); font-size: 12px; }
@@ -701,6 +733,100 @@
       return wrap;
     }
 
+    // -- Aggregate friction across all tracked users --
+    // Tells the systemic story ("across 30 users we found these patterns")
+    // above the per-user analysis. Fetched once per page load / refresh and
+    // re-fetched on the same cadence as the user list (5s) so it stays
+    // current during the demo without spamming the API.
+    async function renderFrictionStrip(targetEl) {
+      let data;
+      try {
+        data = await fetchJSON('/api/analytics/friction');
+      } catch (err) {
+        targetEl.replaceChildren(text('div', 'meta', `Failed to load friction summary: ${err.message}`));
+        return;
+      }
+      const wrap = text('div', 'friction-strip');
+      const head = text('div', 'friction-strip-head');
+      head.appendChild(text('h3', '', 'Across all tracked users'));
+      head.appendChild(text('span', 'meta',
+        `${fmt(data.users_analyzed)} users analyzed \u00b7 ${fmt(data.users_with_friction)} (${data.pct_with_friction}%) showing friction`
+      ));
+      wrap.appendChild(head);
+      const tiles = text('div', 'friction-tiles');
+      if (!data.items.length) {
+        tiles.appendChild(text('div', 'meta', 'No friction patterns detected yet \u2014 seed users with `node server/seed.js`.'));
+      } else {
+        for (const item of data.items) {
+          const tile = text('div', `friction-tile ${item.tone}`);
+          const count = text('span', 'count');
+          count.appendChild(document.createTextNode(fmt(item.count)));
+          count.appendChild(text('span', 'pct', `${item.pct}%`));
+          tile.appendChild(count);
+          tile.appendChild(text('span', 'label', item.label));
+          tiles.appendChild(tile);
+        }
+      }
+      wrap.appendChild(tiles);
+      targetEl.replaceChildren(wrap);
+    }
+
+    // -- For You recommendation cards --
+    // The point of the dashboard for a hackathon judge: "we collected
+    // signals, inferred intent, AND we'd surface THESE destinations in this
+    // user's For You tab." Without this section the loop from signals to
+    // product surface is invisible.
+    function renderRecCards(recs = [], tagWeights = {}) {
+      const wrap = text('div', 'rec-grid');
+      if (!recs.length) {
+        wrap.appendChild(text('div', 'rec-empty', 'No recommendations yet \u2014 user needs more signals before the recommender can rank reliably.'));
+        return wrap;
+      }
+      const topUserTags = Object.entries(tagWeights)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([t]) => t);
+
+      for (const rec of recs.slice(0, 6)) {
+        const card = text('div', 'rec-card');
+        if (rec.image) {
+          const thumb = text('div', 'thumb');
+          const img = document.createElement('img');
+          img.src = rec.image;
+          img.alt = rec.name || '';
+          img.loading = 'lazy';
+          thumb.appendChild(img);
+          card.appendChild(thumb);
+        }
+        const body = text('div', 'body');
+        body.appendChild(text('div', 'name', rec.name || rec.id));
+        const matchedHighlights = (rec.matchedTags || [])
+          .filter(t => topUserTags.includes(t))
+          .slice(0, 2);
+        const why = text('div', 'why');
+        if (matchedHighlights.length) {
+          why.appendChild(document.createTextNode('Matches '));
+          matchedHighlights.forEach((tag, i) => {
+            if (i > 0) why.appendChild(document.createTextNode(' + '));
+            why.appendChild(text('em', '', labelFormatter.tag(tag)));
+          });
+          why.appendChild(document.createTextNode(' interest'));
+        } else if ((rec.matchedTags || []).length) {
+          why.textContent = `Matches ${rec.matchedTags.slice(0, 2).map(t => labelFormatter.tag(t)).join(' + ')}`;
+        } else {
+          why.textContent = 'Recommended based on overall profile';
+        }
+        body.appendChild(why);
+        const priceRow = text('div', 'price-row');
+        if (rec.priceTier) priceRow.appendChild(text('span', 'tier', labelFormatter.phrase(rec.priceTier)));
+        if (rec.score != null) priceRow.appendChild(text('span', 'score', `score ${Number(rec.score).toFixed(2)}`));
+        body.appendChild(priceRow);
+        card.appendChild(body);
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
     function renderStoryCard(data) {
       const wrap = text('div', 'story-card');
       wrap.appendChild(text('span', 'eyebrow', 'The story'));
@@ -820,6 +946,21 @@
         const isYou = userId === currentBrowserUserId;
         const displayName = data.display_name || data.persona.label || 'Unnamed visitor';
 
+        // Aggregate friction strip — populated asynchronously so we don't
+        // block the hero render. Skips re-fetching on silent polls (it
+        // only changes when new users get ingested, not on every click).
+        const frictionCard = text('div', 'card');
+        frictionCard.appendChild(text('div', 'meta panel-pad', 'Loading systemic friction summary\u2026'));
+        detail.appendChild(frictionCard);
+        if (!silent) renderFrictionStrip(frictionCard);
+        else {
+          // On silent polls, just keep whatever was there from the previous
+          // render so the strip doesn't blink between states.
+          const prev = byId('detail').querySelector('.friction-strip');
+          if (prev) frictionCard.replaceChildren(prev.cloneNode(true));
+          else renderFrictionStrip(frictionCard);
+        }
+
         const hero = text('div', 'card hero');
         const left = text('div', 'hero-left');
         const chipRow = text('div');
@@ -847,6 +988,17 @@
         detail.appendChild(hero);
 
         detail.appendChild(renderStoryCard(data));
+
+        // Close the loop: surface the actual destinations the recommender
+        // would put in this user's For You tab. Without this section the
+        // pitch's central claim ("intent drives recs") is asserted but
+        // never visually demonstrated.
+        const recsCard = text('div', 'card panel-pad');
+        const recsHead = text('div', 'section-title');
+        recsHead.appendChild(text('span', 'eyebrow', 'What we\u2019d show in their For You tab'));
+        recsCard.appendChild(recsHead);
+        recsCard.appendChild(renderRecCards(data.recommendations, data.tag_weights));
+        detail.appendChild(recsCard);
 
         const overview = text('div', 'card panel-pad');
         overview.appendChild(sectionTitle('Journey stages'));

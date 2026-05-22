@@ -1002,6 +1002,75 @@ export function userJourneyAnalysis(userId) {
   };
 }
 
+// Aggregate friction across all users — runs the per-user pattern detector
+// against every user with signals and counts how many users exhibit each
+// pattern. Used by /api/analytics/friction to show the "across all users"
+// strip at the top of the Journey Observatory, so judges immediately see
+// systemic value (not just per-user analysis).
+//
+// Cost is O(users * signals) and fully in-memory; fine at hackathon scale
+// (tens of users, low thousands of signals). Cache at the HTTP layer if it
+// ever becomes a hot path.
+const FRICTION_PATTERN_META = {
+  cart_abandonment:     { label: 'Checkout abandonments', tone: 'abandonment' },
+  price_shock:          { label: 'Price-shock exits',     tone: 'abandonment' },
+  decision_paralysis:   { label: 'Decision paralysis',    tone: 'consideration' },
+  comparison_loop:      { label: 'Comparison loops',      tone: 'consideration' },
+  comparison_fatigue:   { label: 'Browsing fatigue',      tone: 'consideration' },
+  search_deadend:       { label: 'Search dead-ends',      tone: 'consideration' },
+  search_refinement:    { label: 'Search refinement',     tone: 'consideration' },
+  bounce_risk:          { label: 'Bounce risk',           tone: 'discovery' },
+  passive_consideration:{ label: 'Long dwell, no click',  tone: 'discovery' },
+  return_resume:        { label: 'Recovered after abandon', tone: 'conversion' },
+  converted:            { label: 'Completed bookings',    tone: 'conversion' },
+};
+
+export function aggregateFriction() {
+  const userRows = db.prepare(`SELECT DISTINCT user_id FROM signals`).all();
+  const counts = Object.fromEntries(
+    Object.keys(FRICTION_PATTERN_META).map(id => [id, 0])
+  );
+  let usersAnalyzed = 0;
+  let usersWithFriction = 0;
+
+  for (const { user_id } of userRows) {
+    const analysis = userJourneyAnalysis(user_id);
+    if (!analysis) continue;
+    usersAnalyzed++;
+    const ids = analysis.pain_points.map(p => p.id);
+    const hasNonPositive = analysis.pain_points.some(p => p.severity !== 'positive');
+    if (hasNonPositive) usersWithFriction++;
+    for (const id of ids) {
+      if (counts[id] != null) counts[id]++;
+    }
+  }
+
+  // Order: friction patterns first (most users affected), then positives
+  const items = Object.entries(counts)
+    .map(([id, count]) => ({
+      id,
+      label: FRICTION_PATTERN_META[id].label,
+      tone: FRICTION_PATTERN_META[id].tone,
+      count,
+      pct: usersAnalyzed ? +((count / usersAnalyzed) * 100).toFixed(1) : 0,
+    }))
+    .filter(x => x.count > 0)
+    .sort((a, b) => {
+      // Positives go to the right; otherwise descending count.
+      const aPos = a.tone === 'conversion' ? 1 : 0;
+      const bPos = b.tone === 'conversion' ? 1 : 0;
+      if (aPos !== bPos) return aPos - bPos;
+      return b.count - a.count;
+    });
+
+  return {
+    users_analyzed: usersAnalyzed,
+    users_with_friction: usersWithFriction,
+    pct_with_friction: usersAnalyzed ? +((usersWithFriction / usersAnalyzed) * 100).toFixed(1) : 0,
+    items,
+  };
+}
+
 export function summary() {
   const row = db.prepare(`
     SELECT

@@ -142,6 +142,50 @@
     });
     initCartIcon({});
 
+    // "Live Journey" navbar chip — close the loop from product to analytics:
+    // click takes you to the Journey Observatory pre-filtered to your live
+    // session. Sits next to the For You chip; gold to match dashboard accent.
+    (function mountJourneyChip() {
+      const navLinks = document.querySelector('.site-nav .nav-links');
+      if (!navLinks || navLinks.querySelector('.journey-nav-link')) return;
+      const style = document.createElement('style');
+      style.textContent = [
+        '.journey-nav-link {',
+        '  display: inline-flex; align-items: center; gap: 0.4rem;',
+        '  padding: 0.4rem 0.9rem; margin-left: 0.25rem; border-radius: 999px;',
+        '  background: linear-gradient(135deg, #ffd66b, #f0b929);',
+        '  color: #1a1300 !important; font-family: "DM Sans", sans-serif;',
+        '  font-weight: 600; font-size: 0.9rem; text-decoration: none;',
+        '  box-shadow: 0 2px 8px rgba(255,214,107,0.35);',
+        '  transition: transform 0.2s ease, box-shadow 0.2s ease;',
+        '}',
+        '.journey-nav-link:hover {',
+        '  transform: translateY(-1px);',
+        '  box-shadow: 0 4px 12px rgba(255,214,107,0.5);',
+        '}',
+        '.journey-nav-link .live-dot {',
+        '  width: 7px; height: 7px; border-radius: 50%;',
+        '  background: #d4361a;',
+        '  animation: journey-live-pulse 1.4s ease-in-out infinite;',
+        '}',
+        '@keyframes journey-live-pulse {',
+        '  0%, 100% { box-shadow: 0 0 0 0 rgba(212,54,26,0.55); }',
+        '  50%      { box-shadow: 0 0 0 5px rgba(212,54,26,0); }',
+        '}',
+      ].join('\n');
+      document.head.appendChild(style);
+      const chip = document.createElement('a');
+      chip.className = 'journey-nav-link';
+      chip.href = '/journey-dashboard.html';
+      chip.title = 'See your live behavioral journey + AI-suggested experiments';
+      const dot = document.createElement('span');
+      dot.className = 'live-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      chip.appendChild(dot);
+      chip.appendChild(document.createTextNode('Live Journey'));
+      navLinks.appendChild(chip);
+    })();
+
     // Event-delegated "Book This Trip" handler on the existing detail modal.
     // We piggyback on data-dest-id added by detail-modal.js — no extra coupling.
     document.addEventListener('click', (e) => {

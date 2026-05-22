@@ -13,7 +13,7 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { ingest, topTags, signalVolume, summary, userTypes, topRecommendations, listUsers, userDetail, userJourneyAnalysis } from './db.js';
+import { ingest, topTags, signalVolume, summary, userTypes, topRecommendations, listUsers, userDetail, userJourneyAnalysis, aggregateFriction } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
@@ -88,6 +88,10 @@ app.get('/api/analytics/top-recommendations', (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 10, 50);
   const perUser = Math.min(parseInt(req.query.perUser, 10) || 6, 20);
   res.json(topRecommendations({ limit, perUser }));
+});
+
+app.get('/api/analytics/friction', (req, res) => {
+  res.json(aggregateFriction());
 });
 
 // --- Per-user drill-down ---
