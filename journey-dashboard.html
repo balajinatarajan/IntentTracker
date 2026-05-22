@@ -1171,7 +1171,9 @@
         //     "Show technical payload" panel doesn\u2019t collapse every 1s)
         // Without this the 1s live poll wipes whatever state the user
         // had built up and snaps the whole panel back to defaults.
-        const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid'];
+        // Scroll containers (inner scroll) AND <pre> blocks inside the AI
+        // handoff disclosures (so JSON scroll persists when open).
+        const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid', '.payload-request pre', '.payload-response pre'];
         const DETAILS_SELECTORS = ['.payload-request', '.payload-response'];
         const prevScrollY = silent ? window.scrollY : null;
         const scrollSnap = silent ? (() => {
@@ -1191,6 +1193,17 @@
           return m;
         })() : null;
         setOnly(byId('detail'), detail);
+
+        // CRITICAL ORDER: open <details> FIRST so the page reaches its
+        // full height, THEN restore window scroll — otherwise scrollTo
+        // gets clamped to the shorter (details-closed) page height and
+        // the user snaps back up the moment the panel re-opens below.
+        if (detailsSnap) {
+          for (const sel of detailsSnap.keys()) {
+            const el = byId('detail').querySelector(sel);
+            if (el) el.open = true;
+          }
+        }
         if (prevScrollY != null) window.scrollTo(0, prevScrollY);
         if (scrollSnap) {
           for (const [sel, pos] of scrollSnap) {
@@ -1198,12 +1211,6 @@
             if (!el) continue;
             if (pos.top) el.scrollTop = pos.top;
             if (pos.left) el.scrollLeft = pos.left;
-          }
-        }
-        if (detailsSnap) {
-          for (const sel of detailsSnap.keys()) {
-            const el = byId('detail').querySelector(sel);
-            if (el) el.open = true;
           }
         }
       } catch (err) {
