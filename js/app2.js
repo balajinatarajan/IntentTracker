@@ -3,7 +3,7 @@ import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';
 import { destinations } from './data/destinations.js';
-import { scoreDestinations } from './utils/scoring.js';
+import { pickTopPicks } from './utils/scoring.js';
 
 // --- DOM refs ---
 const tabBarEl = document.getElementById('tab-bar');
@@ -76,12 +76,18 @@ function initTracker() {
 function refreshForYouTab() {
   const tracker = window.__intentTracker;
   if (!tracker) return;
-  const profile = tracker.getProfile();
-  const weights = profile?.tagWeights || {};
-  // Cold-start guard: no weights, no For You tab.
+  // Merged weights (lib intents + click-derived). The lib's tag_affinity
+  // intent has a 0.35-of-total threshold that single-item heavy clicking
+  // fails; the click-derived map keeps the For You ranking responsive in
+  // that case. See profile-state.js.
+  const weights = window.IntentTrackerExt?.getMergedTagWeights?.(tracker) || tracker.getProfile()?.tagWeights || {};
+  // Cold-start guard: no weights at all, no For You tab.
   if (!Object.values(weights).some(w => w > 0)) return;
   const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
-  const top = scoreDestinations(destinations, weights, clickCounts, FOR_YOU_LIMIT);
+  // Same composer the FY page Top Picks uses: MMR + country cap +
+  // region serendipity, so the homepage For You ✦ tab shows variety
+  // instead of mirroring a single-tag filtered view.
+  const top = pickTopPicks(destinations, weights, clickCounts, FOR_YOU_LIMIT);
   showForYouTab(top);
 }
 

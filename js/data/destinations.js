@@ -254,7 +254,7 @@ const _rawDestinations = [
     name: "Okinawa, Japan",
     region: "east-asia",
     country: "Japan",
-    image: "https://images.unsplash.com/photo-1601034913836-a1f43e143611?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1647336963732-7446b9da7a6f?w=400&h=300&fit=crop",
     price: 1400,
     priceTier: "mid-range",
     tags: ["beach", "east-asia", "japan", "mid-range", "family", "nature", "culture"],
