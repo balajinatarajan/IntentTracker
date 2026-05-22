@@ -239,6 +239,35 @@
     .rec-card .match-tag { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(255,214,107,0.28); text-transform: lowercase; letter-spacing: 0.02em; font-weight: 600; }
     .rec-card .tier { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-top: 2px; }
     .rec-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+
+    /* Friction-adapted recommendation cards — these visually distinguish
+       picks the recommender re-ranked in response to friction (vs pure
+       affinity matches). The colored top border + badge tell judges at a
+       glance that the system reacted, not just personalized. */
+    .rec-card { position: relative; transition: transform 120ms ease; }
+    .rec-card.adapt-value      { border-color: rgba(120, 220, 170, 0.45); box-shadow: 0 0 0 1px rgba(120,220,170,0.15) inset; }
+    .rec-card.adapt-reassurance { border-color: rgba(160, 200, 255, 0.45); box-shadow: 0 0 0 1px rgba(160,200,255,0.15) inset; }
+    .rec-card.adapt-confidence  { border-color: rgba(255, 214, 107, 0.6);  box-shadow: 0 0 0 1px rgba(255,214,107,0.18) inset; }
+    .rec-card.adapt-social_proof { border-color: rgba(200, 160, 255, 0.45); box-shadow: 0 0 0 1px rgba(200,160,255,0.15) inset; }
+    .rec-card.adapt-recovery   { border-color: rgba(255, 150, 130, 0.55); box-shadow: 0 0 0 1px rgba(255,150,130,0.18) inset; }
+    .rec-card.adapt-discovery  { border-color: rgba(140, 200, 220, 0.45); box-shadow: 0 0 0 1px rgba(140,200,220,0.15) inset; }
+    .adapt-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; cursor: help; align-self: flex-start; }
+    .adapt-badge.tone-value      { background: rgba(120, 220, 170, 0.14); color: #7adcaa; border: 1px solid rgba(120,220,170,0.4); }
+    .adapt-badge.tone-reassurance { background: rgba(160, 200, 255, 0.14); color: #a0c8ff; border: 1px solid rgba(160,200,255,0.4); }
+    .adapt-badge.tone-confidence  { background: rgba(255, 214, 107, 0.16); color: #ffd66b; border: 1px solid rgba(255,214,107,0.5); }
+    .adapt-badge.tone-social_proof { background: rgba(200, 160, 255, 0.14); color: #c8a0ff; border: 1px solid rgba(200,160,255,0.4); }
+    .adapt-badge.tone-recovery   { background: rgba(255, 150, 130, 0.16); color: #ff9682; border: 1px solid rgba(255,150,130,0.45); }
+    .adapt-badge.tone-discovery  { background: rgba(140, 200, 220, 0.14); color: #8cc8dc; border: 1px solid rgba(140,200,220,0.4); }
+
+    /* Adaptation strategy banner — sits above the For You strip and
+       explains in plain English how the friction we diagnosed changed
+       what's about to be shown below. This is the connective tissue
+       between "what's hurting them" and "what we'd serve them." */
+    .adapt-strategy { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; margin-bottom: 14px; background: linear-gradient(180deg, rgba(255,214,107,0.08), rgba(255,214,107,0.03)); border: 1px solid rgba(255,214,107,0.22); border-radius: 12px; }
+    .adapt-strategy .icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #1a1a1a; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+    .adapt-strategy .body { display: grid; gap: 2px; }
+    .adapt-strategy .eyebrow { color: var(--accent); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .adapt-strategy .text { color: var(--ink); font-size: 13px; line-height: 1.45; }
     .insight-card h3, .experiment-card h3 { margin: 0; font-size: 15px; font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
     .insight-card p, .experiment-card p { margin: 0; color: var(--ink-dim); font-size: 13px; }
     .experiment-card .meta-line { color: var(--muted); font-size: 12px; }
@@ -793,7 +822,8 @@
         .map(([t]) => t);
 
       for (const rec of recs.slice(0, 6)) {
-        const card = text('div', 'rec-card');
+        const tone = rec.adaptation?.tone || '';
+        const card = text('div', `rec-card${tone ? ' adapt-' + tone : ''}`);
         if (rec.image) {
           const thumb = text('div', 'thumb');
           const img = document.createElement('img');
@@ -804,6 +834,19 @@
           card.appendChild(thumb);
         }
         const body = text('div', 'body');
+
+        // Friction-adapted badge — shown when the recommender adjusted this
+        // pick in response to detected friction (price-shock, paralysis, etc).
+        // This is what makes the For You strip visibly different from "just
+        // affinity matches" — and ties the For You section back to the
+        // friction we diagnosed up top.
+        if (rec.adaptation) {
+          const adapt = text('div', `adapt-badge tone-${tone}`);
+          adapt.appendChild(text('span', 'adapt-label', rec.adaptation.label));
+          adapt.title = rec.adaptation.why;
+          body.appendChild(adapt);
+        }
+
         body.appendChild(text('div', 'name', rec.name || rec.id));
 
         // The "why" line tells the stakeholder *what about this user*
@@ -1015,6 +1058,20 @@
         const recsHead = text('div', 'section-title');
         recsHead.appendChild(text('span', 'eyebrow', 'What we\u2019d show in their For You tab'));
         recsCard.appendChild(recsHead);
+
+        // Adaptation strategy banner — explicitly explains how the friction
+        // we diagnosed above changed the picks below. This is the missing
+        // connective tissue between Story → For You.
+        if (data.recommendation_adaptation?.summary) {
+          const strat = text('div', 'adapt-strategy');
+          strat.appendChild(text('span', 'icon', '\u21B3'));
+          const body = text('div', 'body');
+          body.appendChild(text('span', 'eyebrow', 'How the friction changes what we serve'));
+          body.appendChild(text('span', 'text', data.recommendation_adaptation.summary));
+          strat.appendChild(body);
+          recsCard.appendChild(strat);
+        }
+
         recsCard.appendChild(renderRecCards(data.recommendations, data.tag_weights));
         detail.appendChild(recsCard);
 

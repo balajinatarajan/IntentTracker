@@ -926,6 +926,116 @@ function buildMockAiResponse(payload) {
   };
 }
 
+// Close the loop: take the pure affinity-ranked recommendations and adapt
+// them based on the friction patterns we just detected. This is the heart of
+// the hackathon pitch — "we don't just personalize, we *react* to friction."
+// Each adapted rec carries an `adaptation: { label, why, tone }` so the UI
+// can show a colored badge explaining *why* this rec made the cut.
+function adaptRecommendationsForFriction(baseRecs, patternIds, tagWeights) {
+  const patterns = new Set(patternIds);
+  const pick = (recs) => recs.map(r => ({ ...r }));
+  const stamp = (recs, idx, adaptation) => {
+    if (recs[idx]) recs[idx].adaptation = adaptation;
+    return recs;
+  };
+
+  // PRICE_SHOCK — surface value-tier picks in the same interest space, then
+  // re-show 1-2 luxury picks with a "rate-locked" reassurance badge.
+  if (patterns.has('price_shock')) {
+    const decayed = { ...tagWeights };
+    if (decayed.luxury) decayed.luxury = decayed.luxury * 0.15;
+    if (decayed['price:luxury']) decayed['price:luxury'] = decayed['price:luxury'] * 0.15;
+    const expanded = recommendForProfile(decayed, { maxResults: 12 });
+    const value = expanded.filter(r => r.priceTier !== 'luxury').slice(0, 4).map(r => ({
+      ...r,
+      adaptation: { label: 'Value pick', why: 'Same vibe, better rate — surfaced because price shock was detected at room selection', tone: 'value' },
+    }));
+    const premium = baseRecs.filter(r => r.priceTier === 'luxury').slice(0, 2).map(r => ({
+      ...r,
+      adaptation: { label: 'Rate-locked', why: 'Keeping the luxury pick they liked, paired with a "rate held 24h" badge to remove price anxiety', tone: 'reassurance' },
+    }));
+    return {
+      recommendations: [...value, ...premium],
+      adaptationSummary: 'Price-shocked at a luxury room. The For You strip leads with value-tier picks in the same romantic-beach space, then keeps the luxury options with a rate-hold reassurance badge.',
+      adaptationStrategy: 'price_shock',
+    };
+  }
+
+  // DECISION_PARALYSIS / COMPARISON_LOOP — cut the choice set, lead with a
+  // confident "top pick" badge to break the loop.
+  if (patterns.has('decision_paralysis') || patterns.has('comparison_loop')) {
+    const top3 = pick(baseRecs.slice(0, 3));
+    stamp(top3, 0, { label: 'Top pick', why: 'Strongest overall match — chosen to break the comparison loop', tone: 'confidence' });
+    if (top3[1]) top3[1].adaptation = { label: 'Runner-up', why: 'Second best match for this profile', tone: 'discovery' };
+    return {
+      recommendations: top3,
+      adaptationSummary: 'Stuck in a comparison loop. The For You strip drops from 6 picks to 3 and badges the top one as the confident pick to break decision paralysis.',
+      adaptationStrategy: 'decision_paralysis',
+    };
+  }
+
+  // COMPARISON_FATIGUE — keep the choice but add social proof to the top picks
+  if (patterns.has('comparison_fatigue')) {
+    const adapted = pick(baseRecs.slice(0, 6));
+    stamp(adapted, 0, { label: 'Most-booked', why: '7 of 10 travelers with similar interests booked this', tone: 'social_proof' });
+    stamp(adapted, 1, { label: 'Most-booked', why: '7 of 10 travelers with similar interests booked this', tone: 'social_proof' });
+    return {
+      recommendations: adapted,
+      adaptationSummary: 'Long comparison sessions with no commitment. Keeping the full pick set but adding "most-booked by similar travelers" social proof to the top two cards.',
+      adaptationStrategy: 'comparison_fatigue',
+    };
+  }
+
+  // CART_ABANDONMENT — lead with a recovery prompt on the top match
+  if (patterns.has('cart_abandonment') && !patterns.has('return_resume')) {
+    const adapted = pick(baseRecs.slice(0, 6));
+    stamp(adapted, 0, { label: 'Resume booking', why: 'Pick up where they left off — rate held for 24 hours as recovery hook', tone: 'recovery' });
+    return {
+      recommendations: adapted,
+      adaptationSummary: 'Reached checkout and abandoned. The top For You card becomes a recovery prompt — "resume booking, your rate is held 24h" — instead of a generic match.',
+      adaptationStrategy: 'cart_abandonment',
+    };
+  }
+
+  // SEARCH_DEADEND — explain why we're showing what we are
+  if (patterns.has('search_deadend')) {
+    const adapted = pick(baseRecs.slice(0, 6));
+    [0, 1, 2].forEach(i => stamp(adapted, i, { label: 'Closest available', why: "We don't carry what they searched for — surfacing the closest matches to their other interests", tone: 'discovery' }));
+    return {
+      recommendations: adapted,
+      adaptationSummary: 'Searched for destinations we don\'t carry. The For You strip leads with the closest available matches and explains the substitution in the card badge.',
+      adaptationStrategy: 'search_deadend',
+    };
+  }
+
+  // BOUNCE_RISK — too little signal to personalize confidently
+  if (patterns.has('bounce_risk') && baseRecs.length < 3) {
+    return {
+      recommendations: baseRecs,
+      adaptationSummary: 'Bounced before generating enough signal to personalize. The For You strip falls back to default popular picks while we wait for more data.',
+      adaptationStrategy: 'bounce_risk',
+    };
+  }
+
+  // CONVERTED / RETURN_RESUME — positive state, surface upsell
+  if (patterns.has('converted') || patterns.has('return_resume')) {
+    const adapted = pick(baseRecs.slice(0, 6));
+    stamp(adapted, 0, { label: patterns.has('converted') ? 'Add to itinerary' : 'Loyalty pick', why: patterns.has('converted') ? 'Complementary destination for a multi-stop trip' : 'Reward the return visit with a loyalty-tier suggestion', tone: 'social_proof' });
+    return {
+      recommendations: adapted,
+      adaptationSummary: `${patterns.has('converted') ? 'Converted cleanly' : 'Came back after a previous abandon and booked'} — surfacing complementary picks for a follow-up itinerary or loyalty signup.`,
+      adaptationStrategy: 'positive',
+    };
+  }
+
+  // Default — pure affinity, no friction detected
+  return {
+    recommendations: baseRecs,
+    adaptationSummary: 'No friction detected. Showing pure affinity matches ranked by interest overlap.',
+    adaptationStrategy: 'baseline',
+  };
+}
+
 export function userJourneyAnalysis(userId) {
   const detail = userDetail(userId);
   if (!detail) return null;
@@ -959,6 +1069,14 @@ export function userJourneyAnalysis(userId) {
     profileDisplayNameHint(detail.user_id),
   );
 
+  // Adapt the affinity-only recommendations using the friction we detected.
+  // This is what closes the loop: friction analysis → adjusted product surface.
+  const adapted = adaptRecommendationsForFriction(
+    detail.recommendations,
+    detected.map(p => p.id),
+    detail.tag_weights,
+  );
+
   const payload = {
     userId: detail.user_id,
     displayName,
@@ -982,7 +1100,8 @@ export function userJourneyAnalysis(userId) {
     detectedPatterns: detected.map(p => p.id),
     recommendationContext: {
       topTags: topTags.map(t => t.tag),
-      topRecommendations: detail.recommendations.map(r => r.name),
+      topRecommendations: adapted.recommendations.map(r => r.name),
+      adaptationStrategy: adapted.adaptationStrategy,
     },
   };
 
@@ -995,7 +1114,11 @@ export function userJourneyAnalysis(userId) {
     sessions: normalizedSessions,
     type_counts: detail.type_counts,
     tag_weights: detail.tag_weights,
-    recommendations: detail.recommendations,
+    recommendations: adapted.recommendations,
+    recommendation_adaptation: {
+      summary: adapted.adaptationSummary,
+      strategy: adapted.adaptationStrategy,
+    },
     pain_points: detected,
     genai_payload: payload,
     mock_ai_response: buildMockAiResponse(payload),
