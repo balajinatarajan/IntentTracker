@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart — Wanderlust Hotels</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/cart.css">
+  <link rel="stylesheet" href="styles/booking.css">
+</head>
+<body>
+
+  <header class="hero hero-compact">
+    <div class="hero-topbar">
+      <a href="index.html" class="hero-logo">Wanderlust</a>
+      <div class="cart-nav-wrap" id="cart-nav-wrap">
+        <button type="button" class="cart-nav-link" id="cart-nav-toggle" aria-label="Cart, empty" aria-expanded="false" aria-haspopup="true">
+          <svg class="lucide-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <span class="cart-notification-bubble" id="cart-badge" hidden aria-label="1 item in cart">
+            <span class="cart-badge-count">1</span>
+          </span>
+        </button>
+        <div class="cart-flyout" id="cart-flyout" hidden role="dialog" aria-label="Cart preview">
+          <div class="cart-flyout-header">
+            <span class="cart-flyout-label">In your cart</span>
+          </div>
+          <div class="cart-flyout-body" id="cart-flyout-body"></div>
+          <div class="cart-flyout-actions">
+            <a href="cart.html" class="btn btn-primary cart-flyout-view">View Cart</a>
+            <button type="button" class="btn btn-secondary cart-flyout-clear" id="cart-flyout-clear">Clear & Start Over</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h1>Your Cart</h1>
+    <p id="cart-hero-subtitle">Review your reservation details</p>
+  </header>
+
+  <main class="cart-page">
+    <div id="cart-page-content" class="cart-page-content"></div>
+  </main>
+
+  <div id="booking-overlay"></div>
+  <div id="cart-bar"></div>
+
+  <script type="module" src="js/cart-app.js"></script>
+</body>
+</html>

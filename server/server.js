@@ -13,13 +13,25 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { ingest, topTags, signalVolume, summary, userTypes, topRecommendations, listUsers, userDetail } from './db.js';
+import { ingest, topTags, signalVolume, summary, userTypes, topRecommendations, listUsers, userDetail, userJourneyAnalysis, aggregateFriction } from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..');
 
 const app = express();
 const PORT = process.env.PORT || 8090;
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (/^http:\/\/(localhost|127\.0\.0\.1):(8080|8090)$/.test(origin || '')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 // sendBeacon sets Content-Type: application/json with the Blob trick; raw
 // fetch fallback also uses JSON. A 1MB cap is plenty for a batch.
@@ -78,6 +90,10 @@ app.get('/api/analytics/top-recommendations', (req, res) => {
   res.json(topRecommendations({ limit, perUser }));
 });
 
+app.get('/api/analytics/friction', (req, res) => {
+  res.json(aggregateFriction());
+});
+
 // --- Per-user drill-down ---
 app.get('/api/users', (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 100, 500);
@@ -87,6 +103,12 @@ app.get('/api/users', (req, res) => {
 
 app.get('/api/users/:userId', (req, res) => {
   const u = userDetail(req.params.userId);
+  if (!u) return res.status(404).json({ error: 'user not found' });
+  res.json(u);
+});
+
+app.get('/api/users/:userId/journey', (req, res) => {
+  const u = userJourneyAnalysis(req.params.userId);
   if (!u) return res.status(404).json({ error: 'user not found' });
   res.json(u);
 });

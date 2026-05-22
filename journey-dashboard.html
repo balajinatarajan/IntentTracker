@@ -1,0 +1,1259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IntentTracker · Journey Observatory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07091a;
+      --bg-elev: #0d1126;
+      --surface: #121733;
+      --surface-2: #181f3f;
+      --surface-3: #1f2750;
+      --line: #262e58;
+      --line-soft: #1b2244;
+      --ink: #eef1ff;
+      --ink-dim: #c2c9e8;
+      --muted: #7a85b0;
+      --muted-strong: #99a2c8;
+
+      --accent: #ffd66b;
+      --accent-deep: #f0b929;
+      --accent-soft: rgba(255,214,107,0.14);
+
+      --discovery: #6ea9ff;
+      --consideration: #ffb35a;
+      --checkout: #b39bff;
+      --abandonment: #ff7a8a;
+      --conversion: #5fd8a8;
+
+      --shadow-1: 0 1px 0 rgba(255,255,255,0.04), 0 18px 50px rgba(0,0,0,0.5);
+      --shadow-2: 0 1px 0 rgba(255,255,255,0.05), 0 24px 60px rgba(0,0,0,0.55);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+      background:
+        radial-gradient(900px 460px at 12% -6%, rgba(110,169,255,0.10), transparent 60%),
+        radial-gradient(700px 420px at 92% 4%, rgba(255,214,107,0.06), transparent 60%),
+        radial-gradient(700px 600px at 80% 110%, rgba(95,216,168,0.05), transparent 60%);
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { color: #fff; }
+
+    .display { font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .eyebrow { font-family: "DM Sans", sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); font-weight: 600; }
+
+    header { position: sticky; top: 0; z-index: 30; background: rgba(7,9,26,0.78); backdrop-filter: saturate(140%) blur(20px); border-bottom: 1px solid var(--line-soft); }
+    .topbar { max-width: 1480px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { display: flex; align-items: baseline; gap: 12px; }
+    .brand-mark { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,214,107,0.12); transform: translateY(2px); }
+    .brand-title { font-family: "DM Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+    .brand-sub { color: var(--muted); font-size: 12px; }
+    .nav-actions { display: flex; align-items: center; gap: 14px; }
+
+    .button { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #1a1300; border: 0; border-radius: 999px; padding: 9px 14px; font-weight: 700; cursor: pointer; transition: transform 120ms ease; }
+    .button:hover { transform: translateY(-1px); }
+    .button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .live-indicator { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(95,216,168,0.10); border: 1px solid rgba(95,216,168,0.30); color: var(--conversion); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; transition: opacity 200ms ease; }
+    .live-indicator.paused { background: var(--surface-2); border-color: var(--line); color: var(--muted); }
+    .live-indicator.paused .live-dot { background: var(--muted); animation: none; box-shadow: none; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--conversion); box-shadow: 0 0 0 4px rgba(95,216,168,0.16); animation: live-pulse 1.4s ease-in-out infinite; }
+    @keyframes live-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(95,216,168,0.45); }
+      50%      { box-shadow: 0 0 0 6px rgba(95,216,168,0); }
+    }
+
+    .shell { max-width: 1480px; margin: 0 auto; padding: 26px 28px 56px; display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 22px; position: relative; }
+
+    .card { min-width: 0; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 20px; box-shadow: var(--shadow-1); position: relative; overflow: hidden; }
+    .card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); }
+    .panel-pad { padding: 22px; }
+    .grid, #detail { min-width: 0; display: grid; gap: 20px; }
+    .two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-dim); font-size: 12px; font-weight: 600; border: 1px solid var(--line-soft); width: fit-content; }
+    .chip.accent { background: var(--accent-soft); color: var(--accent); border-color: rgba(255,214,107,0.30); }
+    .chip.discovery { color: var(--discovery); border-color: rgba(110,169,255,0.32); background: rgba(110,169,255,0.10); }
+    .chip.consideration { color: var(--consideration); border-color: rgba(255,179,90,0.32); background: rgba(255,179,90,0.10); }
+    .chip.checkout { color: var(--checkout); border-color: rgba(179,155,255,0.32); background: rgba(179,155,255,0.10); }
+    .chip.abandonment { color: var(--abandonment); border-color: rgba(255,122,138,0.34); background: rgba(255,122,138,0.10); }
+    .chip.conversion { color: var(--conversion); border-color: rgba(95,216,168,0.34); background: rgba(95,216,168,0.10); }
+
+    /* SIDEBAR */
+    .sidebar { align-self: start; position: sticky; top: 84px; }
+    .sidebar h2 { margin: 0 0 14px; }
+    .sidebar-note { color: var(--muted); font-size: 13px; margin: -2px 0 16px; }
+    .current-user-card { display: grid; gap: 10px; padding: 14px; margin-bottom: 14px; background: linear-gradient(150deg, rgba(255,214,107,0.10), rgba(110,169,255,0.04)); border: 1px solid rgba(255,214,107,0.22); border-radius: 16px; }
+    .current-user-card .label { color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 700; }
+    .current-user-card .uid { font-size: 12px; overflow-wrap: anywhere; color: var(--ink); }
+    .user-search { width: 100%; background: var(--bg-elev); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; outline: none; font: 13px "JetBrains Mono", ui-monospace, monospace; }
+    .user-search::placeholder { color: var(--muted); }
+    .user-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,214,107,0.14); }
+    .user-list { margin-top: 14px; max-height: calc(100vh - 280px); overflow: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+    .user-list::-webkit-scrollbar { width: 8px; }
+    .user-list::-webkit-scrollbar-thumb { background: var(--line); border-radius: 8px; }
+    .user-row { position: relative; border: 1px solid var(--line-soft); background: var(--bg-elev); border-radius: 14px; padding: 12px 14px; cursor: pointer; transition: 120ms ease; }
+    .user-row::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: transparent; transition: background 120ms ease; }
+    .user-row:hover { border-color: var(--line); background: var(--surface); }
+    .user-row.selected { border-color: rgba(255,214,107,0.36); background: var(--surface-2); }
+    .user-row.selected::before { background: var(--accent); }
+    .user-row-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .user-row .uid { font-size: 12px; }
+    .meta { color: var(--muted); font-size: 12px; }
+
+    /* HERO */
+    .hero { padding: 28px 28px 24px; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr); gap: 26px; align-items: stretch; }
+    .hero-left { display: grid; gap: 14px; align-content: start; }
+    .hero h2 { margin: 0; font-size: 44px; line-height: 1.02; letter-spacing: -0.025em; }
+    .hero h2 .uid { font-size: 32px; color: var(--ink); }
+    .hero-copy { color: var(--ink-dim); max-width: 660px; font-size: 15.5px; }
+    .hero-copy::first-letter { color: var(--accent); }
+    .summary-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr; gap: 10px; align-content: start; }
+    .stat { position: relative; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 14px 16px; overflow: hidden; }
+    .stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: 0.5; }
+    .stat span { display: block; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 4px; font-weight: 600; }
+    .stat b { display: block; font-weight: 700; font-family: "DM Sans", sans-serif; font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+
+    /* STAGE OVERVIEW */
+    .journey-overview { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+    .stage-card { position: relative; min-height: 130px; border-radius: 16px; padding: 16px 14px 14px; background: var(--bg-elev); border: 1px solid var(--line-soft); overflow: hidden; }
+    .stage-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: currentColor; }
+    .stage-card.discovery { color: var(--discovery); }
+    .stage-card.consideration { color: var(--consideration); }
+    .stage-card.checkout { color: var(--checkout); }
+    .stage-card.abandonment { color: var(--abandonment); }
+    .stage-card.conversion { color: var(--conversion); }
+    .stage-card h3 { margin: 0 0 10px; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+    .stage-card h3::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .event-pill { display: inline-block; margin: 0 5px 6px 0; padding: 4px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-dim); border: 1px solid var(--line-soft); font-size: 11.5px; font-weight: 500; }
+    .empty-pill { color: var(--muted); font-size: 12px; font-style: italic; }
+
+    /* FLOW */
+    .flow-scroll { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; padding-bottom: 8px; overscroll-behavior-x: contain; }
+    .flow-scroll::-webkit-scrollbar { height: 9px; }
+    .flow-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; }
+    .flow-map { position: relative; min-width: 1220px; height: 580px; border-radius: 18px; background:
+      radial-gradient(800px 360px at 12% 8%, rgba(110,169,255,0.06), transparent 65%),
+      linear-gradient(180deg, var(--bg-elev), #0a0f24);
+      border: 1px solid var(--line-soft); overflow: hidden; }
+    .flow-lane { position: absolute; left: 0; right: 0; height: 92px; border-top: 1px solid rgba(255,255,255,0.04); z-index: 0; }
+    .flow-lane:last-of-type { border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .flow-lane.discovery { background: linear-gradient(90deg, rgba(110,169,255,0.10), rgba(110,169,255,0.02)); }
+    .flow-lane.consideration { background: linear-gradient(90deg, rgba(255,179,90,0.10), rgba(255,179,90,0.02)); }
+    .flow-lane.checkout { background: linear-gradient(90deg, rgba(179,155,255,0.10), rgba(179,155,255,0.02)); }
+    .flow-lane.abandonment { background: linear-gradient(90deg, rgba(255,122,138,0.12), rgba(255,122,138,0.025)); }
+    .flow-lane.conversion { background: linear-gradient(90deg, rgba(95,216,168,0.10), rgba(95,216,168,0.02)); }
+    .flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .flow-stage-labels { position: absolute; left: 22px; top: 84px; display: grid; gap: 74px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; z-index: 2; font-weight: 600; }
+    .flow-stage-labels span { display: inline-flex; align-items: center; gap: 8px; min-height: 18px; }
+    .flow-stage-labels span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .flow-stage-labels span.discovery { color: var(--discovery); }
+    .flow-stage-labels span.consideration { color: var(--consideration); }
+    .flow-stage-labels span.checkout { color: var(--checkout); }
+    .flow-stage-labels span.abandonment { color: var(--abandonment); }
+    .flow-stage-labels span.conversion { color: var(--conversion); }
+    .flow-node { position: absolute; width: 178px; min-height: 80px; padding: 12px 13px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line); box-shadow: 0 14px 28px rgba(0,0,0,0.45); z-index: 2; transition: transform 140ms ease; }
+    .flow-node:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .flow-node::before { content: ""; position: absolute; left: -7px; top: 50%; width: 7px; height: 7px; border-radius: 50%; transform: translateY(-50%); background: currentColor; box-shadow: 0 0 0 4px rgba(255,255,255,0.04); }
+    .flow-node::after { content: ""; position: absolute; right: -6px; top: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translateY(-50%); background: currentColor; }
+    .flow-node.discovery { color: var(--discovery); border-color: rgba(110,169,255,0.35); }
+    .flow-node.consideration { color: var(--consideration); border-color: rgba(255,179,90,0.35); }
+    .flow-node.checkout { color: var(--checkout); border-color: rgba(179,155,255,0.38); }
+    .flow-node.abandonment { color: var(--abandonment); border-color: rgba(255,122,138,0.55); box-shadow: 0 0 0 1px rgba(255,122,138,0.14), 0 18px 32px rgba(255,122,138,0.10); }
+    .flow-node.conversion { color: var(--conversion); border-color: rgba(95,216,168,0.50); box-shadow: 0 0 0 1px rgba(95,216,168,0.12), 0 18px 32px rgba(95,216,168,0.10); }
+    .flow-node .node-type { color: var(--ink); font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .flow-node .node-label { color: var(--ink-dim); font-size: 12px; line-height: 1.32; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .flow-node .node-time { color: var(--muted); font-size: 11px; margin-top: 8px; font-family: "JetBrains Mono", monospace; }
+    .flow-callout { position: absolute; right: 18px; top: 18px; max-width: 320px; padding: 12px 14px; border-radius: 14px; background: rgba(255,122,138,0.10); border: 1px solid rgba(255,122,138,0.36); color: var(--ink); font-size: 12px; z-index: 3; box-shadow: 0 14px 28px rgba(255,122,138,0.10); }
+    .flow-callout strong { display: block; color: var(--abandonment); margin-bottom: 3px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.10em; }
+    .flow-empty { display: grid; place-items: center; height: 100%; color: var(--muted); }
+
+    /* INSIGHTS / EXPERIMENTS */
+    .insight-grid, .experiment-grid { display: grid; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 6px; }
+    .insight-grid::-webkit-scrollbar, .experiment-grid::-webkit-scrollbar { width: 9px; }
+    .insight-grid::-webkit-scrollbar-thumb, .experiment-grid::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; }
+    .insight-card, .experiment-card { position: relative; padding: 16px 18px; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; display: grid; gap: 8px; overflow: hidden; }
+    .insight-card::before, .experiment-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--muted); }
+    .insight-card.high::before { background: var(--abandonment); }
+    .insight-card.medium::before { background: var(--consideration); }
+    .insight-card.positive::before { background: var(--conversion); }
+    .experiment-card.test::before { background: var(--checkout); }
+    .experiment-card.experiment::before { background: var(--discovery); }
+    .experiment-card.discovery::before { background: var(--discovery); }
+    .experiment-card.consideration::before { background: var(--consideration); }
+    .experiment-card.checkout::before { background: var(--checkout); }
+    .experiment-card.abandonment::before { background: var(--abandonment); }
+    .experiment-card.conversion::before { background: var(--conversion); }
+    .experiment-card .type-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+    .experiment-card .confidence { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+
+    .story-card { background: linear-gradient(150deg, rgba(255,214,107,0.07), rgba(110,169,255,0.04)); border: 1px solid rgba(255,214,107,0.20); border-radius: 18px; padding: 18px 20px; display: grid; gap: 10px; }
+    .story-card .eyebrow { color: var(--accent); }
+    .story-card p { margin: 0; font-family: "DM Sans", sans-serif; font-weight: 500; font-size: 18px; line-height: 1.45; letter-spacing: -0.01em; color: var(--ink); }
+    .story-card p .accent { color: var(--accent); }
+
+    .display-name { font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+    .user-row .display-name { font-size: 14px; line-height: 1.2; font-weight: 600; }
+    .current-user-card .display-name { font-size: 20px; line-height: 1.2; }
+
+    /* AGGREGATE FRICTION STRIP */
+    .friction-strip { display: grid; gap: 14px; padding: 18px 20px; }
+    .friction-strip-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+    .friction-strip-head h3 { margin: 0; font-family: "DM Sans", sans-serif; font-size: 18px; letter-spacing: -0.01em; font-weight: 700; color: var(--ink); }
+    .friction-strip-head .meta { color: var(--muted); font-size: 12.5px; }
+    .friction-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .friction-tile { position: relative; padding: 12px 14px; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 13px; overflow: hidden; }
+    .friction-tile::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--muted); }
+    .friction-tile.abandonment::before { background: var(--abandonment); }
+    .friction-tile.consideration::before { background: var(--consideration); }
+    .friction-tile.discovery::before { background: var(--discovery); }
+    .friction-tile.checkout::before { background: var(--checkout); }
+    .friction-tile.conversion::before { background: var(--conversion); }
+    .friction-tile .count { font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 24px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); }
+    .friction-tile .count .pct { color: var(--muted); font-size: 13px; font-family: "JetBrains Mono", monospace; margin-left: 6px; }
+    .friction-tile .label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-top: 6px; }
+
+    /* WOULD-RECOMMEND CARDS — closes the loop from signals -> recs */
+    .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .rec-card { position: relative; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 140ms ease, border-color 140ms ease; }
+    .rec-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .rec-card .thumb { width: 100%; aspect-ratio: 16/10; background: var(--surface-2); overflow: hidden; }
+    .rec-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .rec-card .body { padding: 11px 13px 13px; display: grid; gap: 6px; }
+    .rec-card .name { color: var(--ink); font-size: 13.5px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .rec-card .why { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
+    .rec-card .why em { color: var(--accent); font-style: normal; font-weight: 700; }
+    .rec-card .match-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+    .rec-card .match-tag { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(255,214,107,0.28); text-transform: lowercase; letter-spacing: 0.02em; font-weight: 600; }
+    .rec-card .tier { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-top: 2px; }
+    .rec-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+
+    /* Friction-adapted recommendation cards — these visually distinguish
+       picks the recommender re-ranked in response to friction (vs pure
+       affinity matches). The colored top border + badge tell judges at a
+       glance that the system reacted, not just personalized. */
+    .rec-card { position: relative; transition: transform 120ms ease; }
+    .rec-card.adapt-value      { border-color: rgba(120, 220, 170, 0.45); box-shadow: 0 0 0 1px rgba(120,220,170,0.15) inset; }
+    .rec-card.adapt-reassurance { border-color: rgba(160, 200, 255, 0.45); box-shadow: 0 0 0 1px rgba(160,200,255,0.15) inset; }
+    .rec-card.adapt-confidence  { border-color: rgba(255, 214, 107, 0.6);  box-shadow: 0 0 0 1px rgba(255,214,107,0.18) inset; }
+    .rec-card.adapt-social_proof { border-color: rgba(200, 160, 255, 0.45); box-shadow: 0 0 0 1px rgba(200,160,255,0.15) inset; }
+    .rec-card.adapt-recovery   { border-color: rgba(255, 150, 130, 0.55); box-shadow: 0 0 0 1px rgba(255,150,130,0.18) inset; }
+    .rec-card.adapt-discovery  { border-color: rgba(140, 200, 220, 0.45); box-shadow: 0 0 0 1px rgba(140,200,220,0.15) inset; }
+    .adapt-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; cursor: help; align-self: flex-start; }
+    .adapt-badge.tone-value      { background: rgba(120, 220, 170, 0.14); color: #7adcaa; border: 1px solid rgba(120,220,170,0.4); }
+    .adapt-badge.tone-reassurance { background: rgba(160, 200, 255, 0.14); color: #a0c8ff; border: 1px solid rgba(160,200,255,0.4); }
+    .adapt-badge.tone-confidence  { background: rgba(255, 214, 107, 0.16); color: #ffd66b; border: 1px solid rgba(255,214,107,0.5); }
+    .adapt-badge.tone-social_proof { background: rgba(200, 160, 255, 0.14); color: #c8a0ff; border: 1px solid rgba(200,160,255,0.4); }
+    .adapt-badge.tone-recovery   { background: rgba(255, 150, 130, 0.16); color: #ff9682; border: 1px solid rgba(255,150,130,0.45); }
+    .adapt-badge.tone-discovery  { background: rgba(140, 200, 220, 0.14); color: #8cc8dc; border: 1px solid rgba(140,200,220,0.4); }
+
+    /* Adaptation strategy banner — sits above the For You strip and
+       explains in plain English how the friction we diagnosed changed
+       what's about to be shown below. This is the connective tissue
+       between "what's hurting them" and "what we'd serve them." */
+    .adapt-strategy { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; margin-bottom: 14px; background: linear-gradient(180deg, rgba(255,214,107,0.08), rgba(255,214,107,0.03)); border: 1px solid rgba(255,214,107,0.22); border-radius: 12px; }
+    .adapt-strategy .icon { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #1a1a1a; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+    .adapt-strategy .body { display: grid; gap: 2px; }
+    .adapt-strategy .eyebrow { color: var(--accent); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .adapt-strategy .text { color: var(--ink); font-size: 13px; line-height: 1.45; }
+    .insight-card h3, .experiment-card h3 { margin: 0; font-size: 15px; font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+    .insight-card p, .experiment-card p { margin: 0; color: var(--ink-dim); font-size: 13px; }
+    .experiment-card .meta-line { color: var(--muted); font-size: 12px; }
+
+    /* SESSIONS */
+    .sessions-scroll { max-height: 520px; overflow-y: auto; padding-right: 6px; }
+    .sessions-scroll::-webkit-scrollbar { width: 9px; }
+    .sessions-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; }
+    .session { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+    .session-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; align-items: baseline; }
+    .session-head .uid { font-size: 12px; color: var(--ink-dim); }
+    .timeline { display: grid; gap: 6px; }
+    .timeline-row { display: grid; grid-template-columns: 84px 160px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 12.5px; padding: 4px 0; border-top: 1px solid var(--line-soft); }
+    .timeline-row:first-child { border-top: 0; }
+    .timeline-row .ts { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 11.5px; }
+    .timeline-row .type { font-weight: 600; color: var(--accent); }
+    .timeline-row .detail { color: var(--ink-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* AI HANDOFF */
+    .brief-list { display: grid; gap: 10px; }
+    .brief-item { display: grid; gap: 3px; padding: 14px; border-radius: 14px; background: var(--bg-elev); border: 1px solid var(--line-soft); position: relative; overflow: hidden; }
+    .brief-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--accent); opacity: 0.55; }
+    .brief-item b { font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); font-weight: 700; }
+    .brief-item span { color: var(--ink); font-size: 14px; }
+    details { margin-top: 14px; }
+    summary { cursor: pointer; color: var(--accent); font-weight: 600; padding: 8px 0; outline: none; user-select: none; display: flex; align-items: center; gap: 8px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::before { content: "\203A"; display: inline-block; transform: rotate(0deg); transition: transform 120ms ease; }
+    details[open] summary::before { transform: rotate(90deg); }
+    pre { margin: 12px 0 0; padding: 18px; background: #05071a; border: 1px solid var(--line-soft); border-radius: 14px; color: #cdd5f3; max-height: 440px; overflow: auto; font-size: 11.5px; font-family: "JetBrains Mono", monospace; }
+
+    /* Request vs Response panels — color-coded so the two halves of the
+       AI conversation are visually distinct. Request uses the accent gold
+       (what we send), Response uses a complementary teal (what we get
+       back). The Copy buttons live inline with the summary text. */
+    .payload-request summary { color: #ffd66b; }
+    .payload-response summary { color: #7adcaa; }
+    .payload-response pre { border-color: rgba(122, 220, 170, 0.22); }
+    .payload-copy { margin-left: auto; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 999px; background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+    .payload-copy:hover { background: var(--bg-elev); color: var(--ink); border-color: var(--line-soft); }
+    .ai-handoff-note { margin: -6px 0 14px; font-size: 12px; line-height: 1.55; color: var(--muted); font-style: italic; }
+
+    .empty { padding: 80px 20px; color: var(--muted); text-align: center; }
+    .section-title { margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
+    .section-title .eyebrow { margin: 0; }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+    @media (max-width: 1100px) {
+      .shell { grid-template-columns: 1fr; padding: 20px 18px 40px; }
+      .sidebar { position: static; }
+      .user-list { max-height: 320px; }
+      .hero, .two, .journey-overview { grid-template-columns: 1fr; }
+      .hero h2 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-title">Journey Observatory</span>
+        <span class="brand-sub">· stakeholder-ready behavioral diagnosis</span>
+      </div>
+      <div class="nav-actions">
+        <span id="live-indicator" class="live-indicator" title="Live polling status"><span class="live-dot"></span>Live</span>
+        <a href="/dashboard.html">Business Analytics</a>
+        <button class="button ghost" id="refresh">Refresh</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <aside class="card panel-pad sidebar">
+      <h2 class="section-title"><span class="eyebrow">Tracked users</span></h2>
+      <p class="sidebar-note">Choose a user to inspect their journey, friction, and recommended growth tests.</p>
+      <div id="current-user-card" class="current-user-card"></div>
+      <input id="user-search" class="user-search" placeholder="Search user ID..." autocomplete="off" />
+      <div id="user-list" class="user-list"><div class="empty">Loading users...</div></div>
+    </aside>
+
+    <section class="grid">
+      <div id="detail"><div class="card empty">Select a user to analyze their journey.</div></div>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    const byId = id => document.getElementById(id);
+    const text = (tag, className, value) => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (value != null) node.textContent = value;
+      return node;
+    };
+
+    // ----- Plain-English labels for non-technical stakeholders -----
+    const labelFormatter = {
+      eventTypes: {
+        page_view: 'Page viewed',
+        search: 'Searched',
+        tab_view: 'Filter viewed',
+        hover: 'Previewed item',
+        click: 'Opened item',
+        booking_started: 'Booking started',
+        checkout_step: 'Checkout step',
+        add_to_cart: 'Added to cart',
+        checkout_abandoned: 'Checkout abandoned',
+        booking_complete: 'Booking completed',
+        recommendation_generated: 'Recommendations shown',
+      },
+      stages: {
+        discovery: 'Discovery',
+        consideration: 'Consideration',
+        checkout: 'Checkout',
+        abandonment: 'Abandonment',
+        conversion: 'Conversion',
+      },
+      states: {
+        exploring: 'Exploring',
+        active_checkout: 'In checkout',
+        abandoned_checkout: 'Abandoned checkout',
+        completed_booking: 'Completed booking',
+      },
+      funnelSteps: {
+        search: 'Search',
+        click: 'Destination details',
+        dates: 'Dates',
+        room: 'Room selection',
+        guest: 'Guest details',
+        payment: 'Payment',
+        confirmation: 'Confirmation',
+      },
+      severity: { high: 'High priority', medium: 'Medium priority', low: 'Low priority', positive: 'Positive signal' },
+      phrase(value) {
+        if (value == null || value === '') return '-';
+        return String(value).replace(/^\/+/, '').replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      },
+      eventType(value) { return this.eventTypes[value] || this.phrase(value); },
+      stage(value) { return this.stages[value] || this.phrase(value); },
+      state(value) { return this.states[value] || this.phrase(value); },
+      step(value) { return this.funnelSteps[value] || this.phrase(value); },
+      severityLabel(value) { return this.severity[value] || this.phrase(value); },
+      metric(value) { return this.phrase(value).replace(/\bRate\b/g, 'rate'); },
+      sentence(value) {
+        return String(value || '-')
+          .replace(/\bcheckout_abandoned\b/g, 'checkout abandonment')
+          .replace(/\bbooking_complete\b/g, 'completed booking')
+          .replace(/\bclose_button\b/g, 'close button')
+          .replace(/\bsoutheast-asia\b/gi, 'Southeast Asia')
+          .replace(/_/g, ' ');
+      },
+      eventLabel(event = {}) {
+        let label = event.label || event.type || '';
+        return label
+          .replace(/\bbooking_started\b/g, 'Started booking')
+          .replace(/\bcheckout_step\b/g, 'Reached checkout step')
+          .replace(/\badd_to_cart\b/g, 'Added to cart')
+          .replace(/\bcheckout_abandoned\b/g, 'Abandoned checkout')
+          .replace(/\bclose_button\b/g, 'close button')
+          .replace(/\bguest\b/g, 'guest details')
+          .replace(/\broom\b/g, 'room selection')
+          .replace(/\bdates\b/g, 'travel dates')
+          .replace(/\bpayment\b/g, 'payment')
+          .replace(/_/g, ' ');
+      },
+      tag(value) { return this.phrase(value); },
+    };
+
+    const fmt = n => n == null ? '-' : Number(n).toLocaleString();
+    const clock = ms => ms ? new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-';
+    const shortDate = ms => ms ? new Date(ms).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+    const duration = ms => {
+      if (!ms || ms < 1000) return '<1s';
+      const s = Math.round(ms / 1000);
+      if (s < 60) return s + 's';
+      const m = Math.floor(s / 60), r = s % 60;
+      return r ? `${m}m ${r}s` : `${m}m`;
+    };
+
+    const API_BASE = location.port === '8090' ? '' : 'http://localhost:8090';
+    const LIVE_POLL_MS = 1000;          // refresh selected user's journey every second
+    const USER_LIST_POLL_MS = 5000;     // refresh sidebar every five seconds
+    let selectedUserId = new URLSearchParams(location.search).get('user') || null;
+    let didInitialSelect = false;
+    const currentBrowserUserId = readCurrentBrowserUserId();
+    let livePollHandle = null;
+    let listPollHandle = null;
+    let livePaused = false;
+    let debounce = null;
+
+    function readCurrentBrowserUserId() {
+      try {
+        const raw = localStorage.getItem('wanderlust_intent_profile');
+        return raw ? JSON.parse(raw).userId || null : null;
+      } catch { return null; }
+    }
+
+    function setLiveIndicator(state) {
+      const el = byId('live-indicator');
+      if (!el) return;
+      const isLive = state === 'live';
+      el.classList.toggle('paused', !isLive);
+      el.lastChild.textContent = isLive ? 'Live' : 'Paused';
+    }
+
+    function startLivePolling() {
+      stopLivePolling();
+      if (!selectedUserId) return;
+      livePollHandle = setInterval(() => {
+        if (document.hidden || livePaused) return;
+        loadJourney(selectedUserId, { silent: true });
+      }, LIVE_POLL_MS);
+      if (!listPollHandle) {
+        listPollHandle = setInterval(() => {
+          if (document.hidden || livePaused) return;
+          loadUsers({ silent: true });
+        }, USER_LIST_POLL_MS);
+      }
+      setLiveIndicator('live');
+    }
+
+    function stopLivePolling() {
+      if (livePollHandle) clearInterval(livePollHandle);
+      if (listPollHandle) clearInterval(listPollHandle);
+      livePollHandle = null;
+      listPollHandle = null;
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      setLiveIndicator(document.hidden || livePaused ? 'paused' : 'live');
+    });
+
+    async function fetchJSON(url) {
+      const response = await fetch(API_BASE + url, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`${url} -> ${response.status}`);
+      return response.json();
+    }
+
+    function setOnly(container, child) { container.replaceChildren(child); }
+    function renderEmpty(message) { return text('div', 'card empty', message); }
+    function chip(value, tone = '') { return text('span', `chip ${tone}`.trim(), value); }
+
+    function renderCurrentUserCard(users = []) {
+      const card = byId('current-user-card');
+      card.replaceChildren();
+      card.appendChild(text('div', 'label', 'You — this browser session'));
+      if (!currentBrowserUserId) {
+        card.appendChild(text('div', 'meta', 'No browser profile yet. Browse the app first, then refresh.'));
+        return;
+      }
+      const ingestedUser = users.find(user => user.user_id === currentBrowserUserId);
+      const displayName = ingestedUser?.display_name || 'Curious Explorer';
+      card.appendChild(text('div', 'display-name', displayName));
+      card.appendChild(text('div', 'uid mono', currentBrowserUserId));
+      const action = text('button', 'button', ingestedUser ? 'Watch live journey' : 'No signals yet — browse the app');
+      action.disabled = !ingestedUser;
+      action.addEventListener('click', () => selectUser(currentBrowserUserId));
+      card.appendChild(action);
+    }
+
+    async function loadUsers({ silent = false } = {}) {
+      const q = byId('user-search').value.trim();
+      let data;
+      try {
+        data = await fetchJSON('/api/users?limit=150' + (q ? '&search=' + encodeURIComponent(q) : ''));
+      } catch (err) {
+        if (!silent) setOnly(byId('user-list'), text('div', 'empty', `Failed to load users: ${err.message}`));
+        return;
+      }
+      const list = byId('user-list');
+      list.replaceChildren();
+      renderCurrentUserCard(data.users);
+      if (!data.users.length) {
+        list.appendChild(text('div', 'empty', 'No users found.'));
+        return;
+      }
+
+      // Promote the live browser user to the top of the list so the demo
+      // tells a story about *us* first, not a random seeded archetype.
+      const sortedUsers = [...data.users];
+      if (currentBrowserUserId) {
+        const idx = sortedUsers.findIndex(u => u.user_id === currentBrowserUserId);
+        if (idx > 0) {
+          const [self] = sortedUsers.splice(idx, 1);
+          sortedUsers.unshift(self);
+        }
+      }
+
+      for (const user of sortedUsers) {
+        const row = text('div', 'user-row' + (user.user_id === selectedUserId ? ' selected' : ''));
+        row.dataset.uid = user.user_id;
+        const top = text('div', 'user-row-top');
+        top.appendChild(text('span', 'display-name', user.display_name || 'Unnamed'));
+        if (user.user_id === currentBrowserUserId) top.appendChild(chip('You', 'conversion'));
+        else top.appendChild(chip(user.persona_label || 'Unclassified', 'accent'));
+        row.appendChild(top);
+        row.appendChild(text('div', 'uid mono', user.user_id));
+        row.appendChild(text('div', 'meta', `${fmt(user.signal_count)} signals \u00b7 ${fmt(user.session_count)} sessions`));
+        row.appendChild(text('div', 'meta', `Top interest: ${user.top_tag ? `${labelFormatter.tag(user.top_tag.tag)} \u00b7 ${user.top_tag.weight}` : '-'}`));
+        row.addEventListener('click', () => selectUser(user.user_id));
+        list.appendChild(row);
+      }
+
+      // Initial auto-select: prefer the current browser user if they\u2019re
+      // ingested; otherwise fall back to the most recently active user.
+      if (!didInitialSelect) {
+        didInitialSelect = true;
+        const preferred =
+          (selectedUserId && data.users.find(u => u.user_id === selectedUserId)) ||
+          (currentBrowserUserId && data.users.find(u => u.user_id === currentBrowserUserId)) ||
+          data.users[0];
+        if (preferred) selectUser(preferred.user_id);
+      } else if (selectedUserId && !silent) {
+        loadJourney(selectedUserId);
+      }
+    }
+
+    function selectUser(userId) {
+      selectedUserId = userId;
+      history.replaceState(null, '', '/journey-dashboard.html?user=' + encodeURIComponent(userId));
+      document.querySelectorAll('.user-row').forEach(row => row.classList.toggle('selected', row.dataset.uid === userId));
+      loadJourney(userId);
+      startLivePolling();
+    }
+
+    function normalizedEvents(data) {
+      return data.sessions.flatMap(session => session.events.map(event => ({ ...event, sessionId: session.sessionId })));
+    }
+
+    function renderStageOverview(events) {
+      const wrap = text('div', 'journey-overview');
+      for (const stage of ['discovery', 'consideration', 'checkout', 'abandonment', 'conversion']) {
+        const card = text('div', `stage-card ${stage}`);
+        card.appendChild(text('h3', '', labelFormatter.stage(stage)));
+        const stageEvents = events.filter(e => e.stage === stage).slice(0, 7);
+        if (!stageEvents.length) card.appendChild(text('span', 'empty-pill', 'No activity yet'));
+        for (const event of stageEvents) card.appendChild(text('span', 'event-pill', labelFormatter.eventType(event.type)));
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
+    const STAGE_COLORS = {
+      discovery: '#6ea9ff',
+      consideration: '#ffb35a',
+      checkout: '#b39bff',
+      abandonment: '#ff7a8a',
+      conversion: '#5fd8a8',
+    };
+
+    function renderJourneyMap(data, events) {
+      const scroll = text('div', 'flow-scroll');
+      const map = text('div', 'flow-map');
+      scroll.appendChild(map);
+
+      const importantTypes = new Set(['page_view', 'search', 'tab_view', 'click', 'booking_started', 'checkout_step', 'add_to_cart', 'checkout_abandoned', 'booking_complete']);
+      let nodes = events.filter(event => importantTypes.has(event.type));
+      if (nodes.length === 0) nodes = events.slice(0, 14);
+      if (nodes.length > 18) nodes = [...nodes.slice(0, 8), ...nodes.slice(-8)];
+
+      if (nodes.length === 0) {
+        map.appendChild(text('div', 'flow-empty', 'No events available for a flow map yet.'));
+        return scroll;
+      }
+
+      const stageY = { discovery: 110, consideration: 200, checkout: 290, abandonment: 380, conversion: 470 };
+      const nodeWidth = 178;
+      const nodeStep = nodeWidth + 78;
+      const height = 580;
+      const width = Math.max(1220, 210 + nodes.length * nodeStep);
+      map.style.width = `${width}px`;
+
+      for (const stage of ['discovery', 'consideration', 'checkout', 'abandonment', 'conversion']) {
+        const lane = text('div', `flow-lane ${stage}`);
+        lane.style.top = `${stageY[stage] - 46}px`;
+        map.appendChild(lane);
+      }
+
+      const labels = text('div', 'flow-stage-labels');
+      ['discovery', 'consideration', 'checkout', 'abandonment', 'conversion'].forEach(stage => {
+        const span = text('span', stage, labelFormatter.stage(stage));
+        labels.appendChild(span);
+      });
+      map.appendChild(labels);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'flow-svg');
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      for (const [stage, color] of Object.entries(STAGE_COLORS)) {
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+        marker.setAttribute('id', `flowArrowV2-${stage}`);
+        marker.setAttribute('markerWidth', '10');
+        marker.setAttribute('markerHeight', '10');
+        marker.setAttribute('refX', '9');
+        marker.setAttribute('refY', '5');
+        marker.setAttribute('orient', 'auto');
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        arrow.setAttribute('d', 'M0,0 L10,5 L0,10 Z');
+        arrow.setAttribute('fill', color);
+        marker.appendChild(arrow);
+        defs.appendChild(marker);
+      }
+      svg.appendChild(defs);
+      map.appendChild(svg);
+
+      const positioned = nodes.map((event, index) => ({
+        event,
+        x: 110 + index * nodeStep,
+        y: stageY[event.stage] || stageY.discovery,
+      }));
+
+      for (let i = 0; i < positioned.length - 1; i++) {
+        const a = positioned[i];
+        const b = positioned[i + 1];
+        const stage = b.event.stage;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const startX = a.x + nodeWidth + 10;
+        const startY = a.y;
+        const endX = b.x - 12;
+        const endY = b.y;
+        const bend = Math.max(44, Math.min(90, (endX - startX) / 2));
+        path.setAttribute('d', startY === endY
+          ? `M ${startX} ${startY} H ${endX}`
+          : `M ${startX} ${startY} C ${startX + bend} ${startY}, ${endX - bend} ${endY}, ${endX} ${endY}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', STAGE_COLORS[stage] || '#7a85b0');
+        path.setAttribute('stroke-width', stage === 'abandonment' || stage === 'conversion' ? '2.4' : '1.8');
+        path.setAttribute('stroke-opacity', stage === 'abandonment' ? '0.85' : '0.55');
+        path.setAttribute('marker-end', `url(#flowArrowV2-${stage in STAGE_COLORS ? stage : 'discovery'})`);
+        svg.appendChild(path);
+      }
+
+      for (const item of positioned) {
+        const node = text('div', `flow-node ${item.event.stage}`);
+        node.style.left = `${item.x}px`;
+        node.style.top = `${Math.max(16, item.y - 40)}px`;
+        node.title = labelFormatter.eventLabel(item.event);
+        node.appendChild(text('div', 'node-type', labelFormatter.eventType(item.event.type)));
+        node.appendChild(text('div', 'node-label', labelFormatter.eventLabel(item.event)));
+        node.appendChild(text('div', 'node-time', clock(item.event.ts)));
+        map.appendChild(node);
+      }
+
+      const primaryPain = (data.pain_points || []).find(point => point.severity === 'high') || (data.pain_points || [])[0];
+      if (primaryPain) {
+        const callout = text('div', 'flow-callout');
+        callout.appendChild(text('strong', '', primaryPain.title));
+        callout.appendChild(text('span', '', labelFormatter.eventLabel({ label: primaryPain.evidence })));
+        map.appendChild(callout);
+      }
+
+      return scroll;
+    }
+
+    function renderInsights(points) {
+      const wrap = text('div', 'insight-grid');
+      if (!points || !points.length) {
+        wrap.appendChild(text('div', 'meta', 'No friction detected yet.'));
+        return wrap;
+      }
+      for (const point of points) {
+        const card = text('div', `insight-card ${point.severity}`);
+        const tone = point.severity === 'high' ? 'abandonment' : point.severity === 'positive' ? 'conversion' : 'consideration';
+        card.appendChild(chip(labelFormatter.severityLabel(point.severity), tone));
+        card.appendChild(text('h3', '', point.title));
+        card.appendChild(text('p', '', labelFormatter.eventLabel({ label: point.evidence })));
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
+    function renderExperiments(response) {
+      const wrap = text('div', 'experiment-grid');
+      // Prefer the unified `recommendations` list (each item carries its own
+      // `type`, `typeLabel`, `typeTone`). Fall back to the older split shape
+      // for backward compatibility with any cached server response.
+      const items = response.recommendations && response.recommendations.length
+        ? response.recommendations
+        : [
+            ...(response.experiments || []).map(e => ({ ...e, type: 'feature_launch', typeLabel: 'Growth experiment', typeTone: 'discovery' })),
+            ...(response.abTests || []).map(e => ({ ...e, title: e.name, type: 'ab_test', typeLabel: 'A/B test', typeTone: 'checkout' })),
+          ];
+      if (!items.length) {
+        wrap.appendChild(text('div', 'meta', 'No experiments recommended yet.'));
+        return wrap;
+      }
+      for (const exp of items) {
+        const tone = exp.typeTone || 'discovery';
+        const card = text('div', `experiment-card ${tone}`);
+        const typeRow = text('div', 'type-row');
+        typeRow.appendChild(chip(exp.typeLabel || 'Experiment', tone));
+        if (exp.confidence) typeRow.appendChild(text('span', 'confidence', `${exp.confidence} confidence`));
+        card.appendChild(typeRow);
+        card.appendChild(text('h3', '', exp.title || exp.name));
+        card.appendChild(text('p', '', `Hypothesis: ${labelFormatter.sentence(exp.hypothesis)}`));
+        if (exp.targetSegment) card.appendChild(text('p', 'meta-line', `Audience: ${labelFormatter.sentence(exp.targetSegment)}`));
+        if (exp.primaryMetric) card.appendChild(text('p', 'meta-line', `Primary metric: ${labelFormatter.metric(exp.primaryMetric)}`));
+        if (exp.variants) {
+          const variants = text('div');
+          variants.style.marginTop = '4px';
+          for (const variant of exp.variants) variants.appendChild(text('span', 'event-pill', `${variant.id}: ${variant.description}`));
+          card.appendChild(variants);
+        }
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
+    // -- Aggregate friction across all tracked users --
+    // Tells the systemic story ("across 30 users we found these patterns")
+    // above the per-user analysis. Fetched once per page load / refresh and
+    // re-fetched on the same cadence as the user list (5s) so it stays
+    // current during the demo without spamming the API.
+    async function renderFrictionStrip(targetEl) {
+      let data;
+      try {
+        data = await fetchJSON('/api/analytics/friction');
+      } catch (err) {
+        targetEl.replaceChildren(text('div', 'meta', `Failed to load friction summary: ${err.message}`));
+        return;
+      }
+      const wrap = text('div', 'friction-strip');
+      const head = text('div', 'friction-strip-head');
+      head.appendChild(text('h3', '', 'Across all tracked users'));
+      head.appendChild(text('span', 'meta',
+        `${fmt(data.users_analyzed)} users analyzed \u00b7 ${fmt(data.users_with_friction)} (${data.pct_with_friction}%) showing friction`
+      ));
+      wrap.appendChild(head);
+      const tiles = text('div', 'friction-tiles');
+      if (!data.items.length) {
+        tiles.appendChild(text('div', 'meta', 'No friction patterns detected yet \u2014 seed users with `node server/seed.js`.'));
+      } else {
+        for (const item of data.items) {
+          const tile = text('div', `friction-tile ${item.tone}`);
+          const count = text('span', 'count');
+          count.appendChild(document.createTextNode(fmt(item.count)));
+          count.appendChild(text('span', 'pct', `${item.pct}%`));
+          tile.appendChild(count);
+          tile.appendChild(text('span', 'label', item.label));
+          tiles.appendChild(tile);
+        }
+      }
+      wrap.appendChild(tiles);
+      targetEl.replaceChildren(wrap);
+    }
+
+    // -- For You recommendation cards --
+    // The point of the dashboard for a hackathon judge: "we collected
+    // signals, inferred intent, AND we'd surface THESE destinations in this
+    // user's For You tab." Without this section the loop from signals to
+    // product surface is invisible.
+    function renderRecCards(recs = [], tagWeights = {}) {
+      const wrap = text('div', 'rec-grid');
+      if (!recs.length) {
+        wrap.appendChild(text('div', 'rec-empty', 'No recommendations yet \u2014 user needs more signals before the recommender can rank reliably.'));
+        return wrap;
+      }
+      const topUserTags = Object.entries(tagWeights)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([t]) => t);
+
+      for (const rec of recs.slice(0, 6)) {
+        const tone = rec.adaptation?.tone || '';
+        const card = text('div', `rec-card${tone ? ' adapt-' + tone : ''}`);
+        if (rec.image) {
+          const thumb = text('div', 'thumb');
+          const img = document.createElement('img');
+          img.src = rec.image;
+          img.alt = rec.name || '';
+          img.loading = 'lazy';
+          thumb.appendChild(img);
+          card.appendChild(thumb);
+        }
+        const body = text('div', 'body');
+
+        // Friction-adapted badge — shown when the recommender adjusted this
+        // pick in response to detected friction (price-shock, paralysis, etc).
+        // This is what makes the For You strip visibly different from "just
+        // affinity matches" — and ties the For You section back to the
+        // friction we diagnosed up top.
+        if (rec.adaptation) {
+          const adapt = text('div', `adapt-badge tone-${tone}`);
+          adapt.appendChild(text('span', 'adapt-label', rec.adaptation.label));
+          adapt.title = rec.adaptation.why;
+          body.appendChild(adapt);
+        }
+
+        body.appendChild(text('div', 'name', rec.name || rec.id));
+
+        // The "why" line tells the stakeholder *what about this user*
+        // makes this destination relevant. Highlight the user's own top
+        // tags so different archetypes produce visibly different reasons.
+        const matchedHighlights = (rec.matchedTags || [])
+          .filter(t => topUserTags.includes(t))
+          .slice(0, 2);
+        const why = text('div', 'why');
+        if (matchedHighlights.length) {
+          why.appendChild(document.createTextNode('Matches '));
+          matchedHighlights.forEach((tag, i) => {
+            if (i > 0) why.appendChild(document.createTextNode(' + '));
+            why.appendChild(text('em', '', labelFormatter.tag(tag)));
+          });
+          why.appendChild(document.createTextNode(' interest'));
+        } else if ((rec.matchedTags || []).length) {
+          why.textContent = `Matches ${rec.matchedTags.slice(0, 2).map(t => labelFormatter.tag(t)).join(' + ')}`;
+        } else {
+          why.textContent = 'Recommended based on overall profile';
+        }
+        body.appendChild(why);
+
+        // Show ALL matched tags as little pills so the visual identity of
+        // each card differs from user to user (luxury cards vs adventure
+        // cards vs european-city cards look obviously different at a glance).
+        if ((rec.matchedTags || []).length) {
+          const pills = text('div', 'match-tags');
+          for (const t of rec.matchedTags.slice(0, 4)) {
+            pills.appendChild(text('span', 'match-tag', labelFormatter.tag(t).toLowerCase()));
+          }
+          body.appendChild(pills);
+        }
+
+        if (rec.priceTier) body.appendChild(text('div', 'tier', labelFormatter.phrase(rec.priceTier)));
+        card.appendChild(body);
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
+    function renderStoryCard(data) {
+      const wrap = text('div', 'story-card');
+      wrap.appendChild(text('span', 'eyebrow', 'The story'));
+      const name = data.display_name || 'This user';
+      const state = labelFormatter.state(data.journey_summary.conversionState).toLowerCase();
+      const furthest = data.funnel.furthestStage ? labelFormatter.step(data.funnel.furthestStage).toLowerCase() : null;
+      const topPain = (data.pain_points || []).find(p => p.severity !== 'positive');
+      const topRec = (data.mock_ai_response.recommendations || [])[0];
+      const sentence = text('p');
+
+      sentence.appendChild(text('span', 'accent', name));
+      sentence.appendChild(document.createTextNode(' is currently '));
+      sentence.appendChild(text('span', 'accent', state));
+      if (furthest) {
+        sentence.appendChild(document.createTextNode(' and reached '));
+        sentence.appendChild(text('span', 'accent', furthest));
+        sentence.appendChild(document.createTextNode('.'));
+      } else {
+        sentence.appendChild(document.createTextNode('.'));
+      }
+      if (topPain) {
+        sentence.appendChild(document.createTextNode(' We see '));
+        sentence.appendChild(text('span', 'accent', topPain.title.toLowerCase()));
+        sentence.appendChild(document.createTextNode('.'));
+      }
+      if (topRec) {
+        sentence.appendChild(document.createTextNode(' Best next move: '));
+        sentence.appendChild(text('span', 'accent', `${topRec.typeLabel || 'experiment'} — ${topRec.title}`));
+        sentence.appendChild(document.createTextNode('.'));
+      }
+      wrap.appendChild(sentence);
+      return wrap;
+    }
+
+    function renderSessions(sessions) {
+      const wrap = text('div', 'sessions-scroll');
+      for (const session of sessions) {
+        const card = text('div', 'session');
+        const head = text('div', 'session-head');
+        head.appendChild(text('span', 'uid mono', session.sessionId));
+        head.appendChild(text('span', 'meta', `${shortDate(session.startedAt)} · ${duration(session.durationMs)} · ${fmt(session.signalCount)} events`));
+        card.appendChild(head);
+        const timeline = text('div', 'timeline');
+        for (const event of session.events) {
+          const row = text('div', 'timeline-row');
+          row.appendChild(text('span', 'ts', clock(event.ts)));
+          row.appendChild(text('span', 'type', labelFormatter.eventType(event.type)));
+          const detail = text('span', 'detail', labelFormatter.eventLabel(event));
+          detail.title = labelFormatter.eventLabel(event);
+          row.appendChild(detail);
+          timeline.appendChild(row);
+        }
+        card.appendChild(timeline);
+        wrap.appendChild(card);
+      }
+      return wrap;
+    }
+
+    function addStat(container, value, label) {
+      const box = text('div', 'stat');
+      box.appendChild(text('span', '', label));
+      box.appendChild(text('b', '', value));
+      container.appendChild(box);
+    }
+
+    function renderTags(tagWeights = {}) {
+      const strip = text('div', 'summary-strip');
+      Object.entries(tagWeights)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .forEach(([tag, weight]) => strip.appendChild(chip(`${labelFormatter.tag(tag)} · ${Number(weight).toFixed(1)}`)));
+      return strip;
+    }
+
+    function renderAiBrief(data) {
+      const wrap = text('div', 'brief-list');
+      const state = labelFormatter.state(data.journey_summary.conversionState);
+      const furthest = labelFormatter.step(data.funnel.furthestStage);
+      const topPain = (data.pain_points || [])[0];
+      const recs = data.mock_ai_response.recommendations || [];
+      const topRec = recs[0] || (data.mock_ai_response.experiments || [])[0] || (data.mock_ai_response.abTests || [])[0];
+      const items = [
+        ['Journey state', `${state}; furthest step was ${furthest}.`],
+        ['Most important signal', topPain ? `${topPain.title}: ${labelFormatter.sentence(topPain.evidence)}` : 'No major friction detected yet.'],
+        ['Recommended next test', topRec ? `${topRec.typeLabel ? topRec.typeLabel + ': ' : ''}${topRec.title || topRec.name}` : 'No experiment recommended yet.'],
+      ];
+      for (const [title, body] of items) {
+        const item = text('div', 'brief-item');
+        item.appendChild(text('b', '', title));
+        item.appendChild(text('span', '', body));
+        wrap.appendChild(item);
+      }
+      return wrap;
+    }
+
+    function sectionTitle(label) {
+      const wrap = text('div', 'section-title');
+      wrap.appendChild(text('span', 'eyebrow', label));
+      return wrap;
+    }
+
+    async function loadJourney(userId, { silent = false } = {}) {
+      // `silent` is used by the 1s live polling loop so we don\u2019t flicker
+      // an "Analyzing journey..." placeholder over a perfectly good view.
+      if (!silent) setOnly(byId('detail'), renderEmpty('Analyzing journey...'));
+      let data;
+      try {
+        data = await fetchJSON('/api/users/' + encodeURIComponent(userId) + '/journey');
+      } catch (err) {
+        if (!silent) setOnly(byId('detail'), renderEmpty(`Failed to load journey: ${err.message}`));
+        return;
+      }
+
+      try {
+        const detail = text('div', 'grid');
+        const events = normalizedEvents(data);
+        const isYou = userId === currentBrowserUserId;
+        const displayName = data.display_name || data.persona.label || 'Unnamed visitor';
+
+        // Aggregate friction strip — populated asynchronously so we don't
+        // block the hero render. Skips re-fetching on silent polls (it
+        // only changes when new users get ingested, not on every click).
+        const frictionCard = text('div', 'card');
+        frictionCard.appendChild(text('div', 'meta panel-pad', 'Loading systemic friction summary\u2026'));
+        detail.appendChild(frictionCard);
+        if (!silent) renderFrictionStrip(frictionCard);
+        else {
+          // On silent polls, just keep whatever was there from the previous
+          // render so the strip doesn't blink between states.
+          const prev = byId('detail').querySelector('.friction-strip');
+          if (prev) frictionCard.replaceChildren(prev.cloneNode(true));
+          else renderFrictionStrip(frictionCard);
+        }
+
+        const hero = text('div', 'card hero');
+        const left = text('div', 'hero-left');
+        const chipRow = text('div');
+        chipRow.style.display = 'flex';
+        chipRow.style.gap = '8px';
+        chipRow.style.flexWrap = 'wrap';
+        chipRow.appendChild(chip(`${data.persona.label}${data.persona.score ? ` \u00b7 score ${data.persona.score}` : ''}`, 'accent'));
+        if (isYou) chipRow.appendChild(chip('You \u00b7 live session', 'conversion'));
+        left.appendChild(chipRow);
+        const title = text('h2', 'display');
+        title.appendChild(text('span', '', displayName));
+        left.appendChild(title);
+        const subtitle = text('div', 'meta mono');
+        subtitle.textContent = data.user_id;
+        left.appendChild(subtitle);
+        left.appendChild(text('p', 'hero-copy', labelFormatter.sentence(data.mock_ai_response.summary)));
+        left.appendChild(renderTags(data.tag_weights));
+        const stats = text('div', 'stat-grid');
+        addStat(stats, fmt(data.journey_summary.totalSignals), 'Events captured');
+        addStat(stats, fmt(data.journey_summary.sessions), 'Sessions');
+        addStat(stats, labelFormatter.state(data.journey_summary.conversionState), 'Journey state');
+        addStat(stats, labelFormatter.step(data.funnel.furthestStage), 'Furthest step');
+        hero.appendChild(left);
+        hero.appendChild(stats);
+        detail.appendChild(hero);
+
+        detail.appendChild(renderStoryCard(data));
+
+        // Close the loop: surface the actual destinations the recommender
+        // would put in this user's For You tab. Without this section the
+        // pitch's central claim ("intent drives recs") is asserted but
+        // never visually demonstrated.
+        const recsCard = text('div', 'card panel-pad');
+        const recsHead = text('div', 'section-title');
+        recsHead.appendChild(text('span', 'eyebrow', 'What we\u2019d show in their For You tab'));
+        recsCard.appendChild(recsHead);
+
+        // Adaptation strategy banner — explicitly explains how the friction
+        // we diagnosed above changed the picks below. This is the missing
+        // connective tissue between Story → For You.
+        if (data.recommendation_adaptation?.summary) {
+          const strat = text('div', 'adapt-strategy');
+          strat.appendChild(text('span', 'icon', '\u21B3'));
+          const body = text('div', 'body');
+          body.appendChild(text('span', 'eyebrow', 'How the friction changes what we serve'));
+          body.appendChild(text('span', 'text', data.recommendation_adaptation.summary));
+          strat.appendChild(body);
+          recsCard.appendChild(strat);
+        }
+
+        recsCard.appendChild(renderRecCards(data.recommendations, data.tag_weights));
+        detail.appendChild(recsCard);
+
+        const overview = text('div', 'card panel-pad');
+        overview.appendChild(sectionTitle('Journey stages'));
+        overview.appendChild(renderStageOverview(events));
+        detail.appendChild(overview);
+
+        const flow = text('div', 'card panel-pad');
+        flow.appendChild(sectionTitle('Visual journey flow'));
+        flow.appendChild(renderJourneyMap(data, events));
+        detail.appendChild(flow);
+
+        const two = text('div', 'grid two');
+        const pain = text('div', 'card panel-pad');
+        pain.appendChild(sectionTitle('What needs attention'));
+        pain.appendChild(renderInsights(data.pain_points));
+        const experiments = text('div', 'card panel-pad');
+        experiments.appendChild(sectionTitle('Recommended experiments'));
+        experiments.appendChild(renderExperiments(data.mock_ai_response));
+        two.appendChild(pain);
+        two.appendChild(experiments);
+        detail.appendChild(two);
+
+        const lower = text('div', 'grid two');
+        const timeline = text('div', 'card panel-pad');
+        timeline.appendChild(sectionTitle('Session timeline'));
+        timeline.appendChild(renderSessions(data.sessions));
+        const payload = text('div', 'card panel-pad');
+        const payloadHead = text('div');
+        payloadHead.style.display = 'flex';
+        payloadHead.style.alignItems = 'center';
+        payloadHead.style.justifyContent = 'space-between';
+        payloadHead.style.marginBottom = '12px';
+        payloadHead.appendChild(sectionTitle('AI handoff'));
+        payload.appendChild(payloadHead);
+
+        // Honest single-line architectural disclaimer — the dashboard
+        // already labels the response panel "Simulated AI response" but
+        // a casual reader can miss that. This line spells out, once, in
+        // plain language, that today the response is mocked and the
+        // contract is built so dropping in a real LLM call is trivial.
+        const aiNote = text('p', 'ai-handoff-note', 'Currently mocked deterministically. POST the request payload to any LLM (GPT, Claude, etc.) and the simulated response is what you\u2019d parse back \u2014 same shape, same fields.');
+        payload.appendChild(aiNote);
+
+        payload.appendChild(renderAiBrief(data));
+
+        // Show BOTH sides of the AI conversation so judges see the full
+        // contract: the request payload we'd POST to GPT/Claude, and the
+        // simulated structured response we'd parse back. The three narrative
+        // lines above (Journey state / Most important signal / Recommended
+        // next test) are the *plain-English summary* of the response object;
+        // exposing the raw response makes it obvious those lines aren't
+        // hard-coded — they're derived fields from a mocked LLM reply.
+        const reqDetails = document.createElement('details');
+        reqDetails.className = 'payload-details payload-request';
+        const reqSummary = text('summary', '', '\u2192 Request payload (what we POST to the LLM)');
+        reqDetails.appendChild(reqSummary);
+        const reqPre = text('pre', '', JSON.stringify(data.genai_payload, null, 2));
+        const reqCopy = text('button', 'button ghost payload-copy', 'Copy');
+        reqCopy.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await navigator.clipboard.writeText(reqPre.textContent);
+          reqCopy.textContent = 'Copied';
+          setTimeout(() => { reqCopy.textContent = 'Copy'; }, 1200);
+        });
+        reqSummary.appendChild(reqCopy);
+        reqDetails.appendChild(reqPre);
+        payload.appendChild(reqDetails);
+
+        const respDetails = document.createElement('details');
+        respDetails.className = 'payload-details payload-response';
+        const respSummary = text('summary', '', '\u2190 Simulated AI response (what the LLM returns)');
+        respDetails.appendChild(respSummary);
+        const respPre = text('pre', '', JSON.stringify(data.mock_ai_response, null, 2));
+        const respCopy = text('button', 'button ghost payload-copy', 'Copy');
+        respCopy.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await navigator.clipboard.writeText(respPre.textContent);
+          respCopy.textContent = 'Copied';
+          setTimeout(() => { respCopy.textContent = 'Copy'; }, 1200);
+        });
+        respSummary.appendChild(respCopy);
+        respDetails.appendChild(respPre);
+        payload.appendChild(respDetails);
+        lower.appendChild(timeline);
+        lower.appendChild(payload);
+        detail.appendChild(lower);
+
+        // Preserve UI state during silent live refreshes so the page
+        // doesn\u2019t jump or collapse while a user is reading. We snapshot:
+        //   - window.scrollY
+        //   - scroll offsets for every cap\u2019d scroll container (journey
+        //     map horizontal, insight/experiment grids, session timeline)
+        //   - open/closed state of every <details> disclosure (so the
+        //     "Show technical payload" panel doesn\u2019t collapse every 1s)
+        // Without this the 1s live poll wipes whatever state the user
+        // had built up and snaps the whole panel back to defaults.
+        // Scroll containers (inner scroll) AND <pre> blocks inside the AI
+        // handoff disclosures (so JSON scroll persists when open).
+        const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid', '.payload-request pre', '.payload-response pre'];
+        const DETAILS_SELECTORS = ['.payload-request', '.payload-response'];
+        const prevScrollY = silent ? window.scrollY : null;
+        const scrollSnap = silent ? (() => {
+          const m = new Map();
+          for (const sel of SCROLL_SELECTORS) {
+            const el = byId('detail').querySelector(sel);
+            if (el && (el.scrollTop || el.scrollLeft)) m.set(sel, { top: el.scrollTop, left: el.scrollLeft });
+          }
+          return m;
+        })() : null;
+        const detailsSnap = silent ? (() => {
+          const m = new Map();
+          for (const sel of DETAILS_SELECTORS) {
+            const el = byId('detail').querySelector(sel);
+            if (el && el.open) m.set(sel, true);
+          }
+          return m;
+        })() : null;
+        setOnly(byId('detail'), detail);
+
+        // CRITICAL ORDER: open <details> FIRST so the page reaches its
+        // full height, THEN restore window scroll — otherwise scrollTo
+        // gets clamped to the shorter (details-closed) page height and
+        // the user snaps back up the moment the panel re-opens below.
+        if (detailsSnap) {
+          for (const sel of detailsSnap.keys()) {
+            const el = byId('detail').querySelector(sel);
+            if (el) el.open = true;
+          }
+        }
+        if (prevScrollY != null) window.scrollTo(0, prevScrollY);
+        if (scrollSnap) {
+          for (const [sel, pos] of scrollSnap) {
+            const el = byId('detail').querySelector(sel);
+            if (!el) continue;
+            if (pos.top) el.scrollTop = pos.top;
+            if (pos.left) el.scrollLeft = pos.left;
+          }
+        }
+      } catch (err) {
+        console.error('[journey-dashboard] render failed', err);
+        if (!silent) setOnly(byId('detail'), renderEmpty(`Failed to render journey: ${err.message}`));
+      }
+    }
+
+    byId('user-search').addEventListener('input', () => {
+      clearTimeout(debounce);
+      didInitialSelect = true; // user is filtering — don\u2019t auto-jump
+      debounce = setTimeout(() => loadUsers(), 200);
+    });
+    byId('refresh').addEventListener('click', () => {
+      loadUsers();
+      if (selectedUserId) loadJourney(selectedUserId);
+    });
+
+    // Clicking the LIVE chip toggles polling — handy for the demo if you want
+    // to freeze a frame and discuss it without the page rewriting itself.
+    const liveIndicator = byId('live-indicator');
+    if (liveIndicator) {
+      liveIndicator.style.cursor = 'pointer';
+      liveIndicator.title = 'Click to pause/resume live updates';
+      liveIndicator.addEventListener('click', () => {
+        livePaused = !livePaused;
+        setLiveIndicator(livePaused ? 'paused' : 'live');
+      });
+    }
+
+    setLiveIndicator('paused'); // becomes 'live' once a user is selected
+    loadUsers();
+  })();
+  </script>
+</body>
+</html>

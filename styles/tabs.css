@@ -1,6 +1,12 @@
 /* === Tab Bar === */
+/* Centered horizontally on wide screens; falls back to scrollable on
+   narrow viewports where the pills can't all fit. justify-content:
+   center is ignored once content overflows, but we add a flex-wrap
+   safety + a width: max-content trick so the gap stays neat. */
 .tab-bar {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0 0 1.5rem;
   overflow-x: auto;

@@ -42,7 +42,7 @@ export function openModal(dest) {
         ${dest.highlights.map(h => `<li>${h}</li>`).join('')}
       </ul>
       <div class="modal-actions">
-        <button class="btn btn-primary">Book This Trip</button>
+        <button class="btn btn-primary" data-action="book" data-dest-id="${dest.id}">Book This Trip</button>
         <button class="btn btn-secondary modal-close-btn">Close</button>
       </div>
     </div>
