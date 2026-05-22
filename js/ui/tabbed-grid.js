@@ -35,24 +35,26 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   allDestinations = dests;
   cardClickHandler = onCardClick;
 
-  // Explore: random PER_TAB_LIMIT destinations, stable for this page load.
-  // Non-personalized default — neutral shuffle of the full catalog.
-  exploreSet = shuffle([...allDestinations]).slice(0, PER_TAB_LIMIT);
+  // Non-FY tabs are STATIC — same content in the same order every time.
+  // Only the For You ✦ tab personalizes. Sorted alphabetically by name so
+  // the ordering is deterministic, varied, and independent of catalog
+  // source order (which would otherwise bias the first 12 to one region).
+  const byName = (a, b) => a.name.localeCompare(b.name);
+
+  // Explore: first 12 destinations alphabetically across the whole catalog.
+  exploreSet = [...allDestinations].sort(byName).slice(0, PER_TAB_LIMIT);
 
   // Trip-type tabs: precompute the candidate pool per tripType and drop any
-  // tab that can't fill all PER_TAB_LIMIT slots. Click counts (when the
-  // shared profile-state helper is loaded) bubble repeatedly-clicked items
-  // to the top of their tab — same ranking the For You page uses.
-  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+  // tab that can't fill all PER_TAB_LIMIT slots. No personalization — same
+  // alphabetical sort as Explore.
   tripTypePools = {};
   TABS = ALL_TABS.filter(tab => {
     if (tab.id === 'explore') return true;
-    const matches = allDestinations.filter(d => (d.tripTypes || []).includes(tab.id));
+    const matches = allDestinations
+      .filter(d => (d.tripTypes || []).includes(tab.id))
+      .sort(byName);
     if (matches.length < PER_TAB_LIMIT) return false;
-    const ranked = matches
-      .map(d => ({ dest: d, clicks: clickCounts[d.id] || 0 }))
-      .sort((a, b) => b.clicks - a.clicks);
-    tripTypePools[tab.id] = ranked.slice(0, PER_TAB_LIMIT).map(r => r.dest);
+    tripTypePools[tab.id] = matches.slice(0, PER_TAB_LIMIT);
     return true;
   });
 
@@ -233,12 +235,3 @@ function createCard(dest, reason) {
   return card;
 }
 
-// --- Utils ---
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}

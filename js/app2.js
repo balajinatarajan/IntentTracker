@@ -1,4 +1,4 @@
-import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=5';
+import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=6';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';
@@ -58,6 +58,19 @@ function initTracker() {
   // Profile may already have intent data from a prior session — surface the
   // tab on initial load instead of waiting for the next onRecommendations.
   refreshForYouTab();
+
+  // Poll as a backstop: onRecommendations only fires when the lib's recs
+  // actually change, which lags behind tagWeights updates in some cases.
+  // The For You ✦ tab should appear within a couple seconds of any signal
+  // that produces a positive tagWeight — same pattern the nav chip uses.
+  // Stops polling once the tab is in the DOM.
+  const pollId = setInterval(() => {
+    if (tabBarEl.querySelector('[data-tab="for-you"]')) {
+      clearInterval(pollId);
+      return;
+    }
+    refreshForYouTab();
+  }, 2000);
 }
 
 function refreshForYouTab() {
