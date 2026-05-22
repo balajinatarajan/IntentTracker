@@ -11,6 +11,13 @@ import { regions } from './utils/categories.js';
 const MAX_TAG_TABS = 4;
 const PER_TAB_LIMIT = 12;
 
+// Tags that come from meta-page categories (the FY page itself, the
+// homepage), not from content the user actually explored. Filtered out
+// of both the intent strip and the tag-tab list. Future categories like
+// these (search pages, etc.) should be added here.
+const META_TAGS = new Set(['for-you', 'home']);
+const isContentTag = ([tag, w]) => w > 0 && !tag.startsWith('price:') && !META_TAGS.has(tag);
+
 const destMap = new Map(destinations.map(d => [d.id, d]));
 
 const tabBarEl = document.getElementById('fy-tab-bar');
@@ -27,7 +34,9 @@ if (typeof IntentTracker === 'undefined') {
   const tracker = IntentTracker.create({
     root: gridEl,
     debug: true,
-    pageMeta: { name: 'For You', category: 'for-you', url: '/for-you.html' },
+    // Meta page (like the homepage) — leave category null so journey-tracker
+    // doesn't add 'for-you' to the user's tagWeights as a journey_affinity.
+    pageMeta: { name: 'For You', category: null, url: '/for-you.html' },
     emit: '/api/ingest',
   });
   window.__intentTracker = tracker;
@@ -82,7 +91,7 @@ function deriveTabs(tracker, profile) {
 
   const weights = profile?.tagWeights || {};
   const sortedTags = Object.entries(weights)
-    .filter(([tag, w]) => w > 0 && !tag.startsWith('price:'))
+    .filter(isContentTag)
     .sort((a, b) => b[1] - a[1])
     .map(([tag]) => tag);
 
@@ -109,7 +118,7 @@ function renderIntentStrip(profile) {
   if (!intentStripEl) return;
   const weights = profile?.tagWeights || {};
   const top = Object.entries(weights)
-    .filter(([t, w]) => w > 0 && !t.startsWith('price:'))
+    .filter(isContentTag)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([t]) => prettyLabel(t));
