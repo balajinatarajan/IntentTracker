@@ -81,7 +81,10 @@ function bootstrap(tracker) {
 function deriveTabs(tracker, profile) {
   const tabs = [];
   const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
-  const weights = profile?.tagWeights || {};
+  // Use merged weights (lib + click-derived) so single-item heavy clicking
+  // ranks as expected. See profile-state.js for the reason the lib's own
+  // tag_affinity threshold isn't enough.
+  const weights = window.IntentTrackerExt?.getMergedTagWeights?.(tracker) || profile?.tagWeights || {};
 
   // Always include Top Picks — guarantees 12 cards (catalog is 100+).
   const topPicks = scoreDestinations(destinations, weights, clickCounts, PER_TAB_LIMIT);
@@ -126,7 +129,9 @@ function deriveTabs(tracker, profile) {
 
 function renderIntentStrip(profile) {
   if (!intentStripEl) return;
-  const weights = profile?.tagWeights || {};
+  // Merged weights (lib + clicks) so the strip reflects the same signal
+  // the tabs are ranked against.
+  const weights = window.IntentTrackerExt?.getMergedTagWeights?.(window.__intentTracker) || profile?.tagWeights || {};
   const top = Object.entries(weights)
     .filter(isContentTag)
     .sort((a, b) => b[1] - a[1])
