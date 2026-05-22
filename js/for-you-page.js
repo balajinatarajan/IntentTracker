@@ -14,7 +14,7 @@
 import { destinations } from './data/destinations.js';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { regions } from './utils/categories.js';
-import { scoreDestinations } from './utils/scoring.js';
+import { scoreDestinations, pickTopPicks } from './utils/scoring.js';
 
 const MAX_TAG_TABS = 4;
 const PER_TAB_LIMIT = 12;
@@ -87,7 +87,9 @@ function deriveTabs(tracker, profile) {
   const weights = window.IntentTrackerExt?.getMergedTagWeights?.(tracker) || profile?.tagWeights || {};
 
   // Always include Top Picks — guarantees 12 cards (catalog is 100+).
-  const topPicks = scoreDestinations(destinations, weights, clickCounts, PER_TAB_LIMIT);
+  // Uses MMR + country cap + region serendipity so Top Picks doesn't look
+  // identical to the first category tab (which is just one tag filtered).
+  const topPicks = pickTopPicks(destinations, weights, clickCounts, PER_TAB_LIMIT);
   tabs.push({
     id: 'top-picks',
     label: 'Top Picks',

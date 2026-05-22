@@ -3,7 +3,7 @@ import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';
 import { destinations } from './data/destinations.js';
-import { scoreDestinations } from './utils/scoring.js';
+import { pickTopPicks } from './utils/scoring.js';
 
 // --- DOM refs ---
 const tabBarEl = document.getElementById('tab-bar');
@@ -84,7 +84,10 @@ function refreshForYouTab() {
   // Cold-start guard: no weights at all, no For You tab.
   if (!Object.values(weights).some(w => w > 0)) return;
   const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
-  const top = scoreDestinations(destinations, weights, clickCounts, FOR_YOU_LIMIT);
+  // Same composer the FY page Top Picks uses: MMR + country cap +
+  // region serendipity, so the homepage For You ✦ tab shows variety
+  // instead of mirroring a single-tag filtered view.
+  const top = pickTopPicks(destinations, weights, clickCounts, FOR_YOU_LIMIT);
   showForYouTab(top);
 }
 
