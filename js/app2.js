@@ -1,9 +1,12 @@
-import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=6';
+import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=7';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';
 import { destinations } from './data/destinations.js';
 import { pickTopPicks } from './utils/scoring.js';
+import { BookingStore } from './storage/booking-store.js';
+import { asHotel, ABANDONMENT_MESSAGES } from './data/hotel-utils.js';
+import { openBookingFlow, resumeAbandonedBooking } from './ui/booking-flow.js';
 
 // --- DOM refs ---
 const tabBarEl = document.getElementById('tab-bar');
@@ -15,12 +18,29 @@ const continueSection = document.getElementById('continue-search-section');
 // fill 12 slots, same rule as every other tab.
 const FOR_YOU_LIMIT = 12;
 
+const bookingStore = new BookingStore();
+const destMap = new Map(destinations.map(d => [d.id, d]));
+
 // --- Init UI ---
 initModal();
-initTabs(tabBarEl, gridContainer, destinations, handleCardClick);
+initTabs(tabBarEl, gridContainer, destinations, handleCardClick, {
+  onResumeBooking: handleResumeBooking,
+});
 
 function handleCardClick(dest) {
   openModal(dest);
+}
+
+// Resume a pinned For You card. Restores the user to the exact funnel
+// step they abandoned (dates / room / guest / review) via the booking
+// flow's resume API.
+function handleResumeBooking(dest) {
+  const abandoned = bookingStore.getAbandoned().find(a => a.destinationId === dest.id);
+  const activeCart = bookingStore.getCart();
+  const resumeFrom = abandoned
+    || (activeCart && activeCart.destinationId === dest.id ? activeCart : null);
+  if (resumeFrom) resumeAbandonedBooking(dest, resumeFrom);
+  else openBookingFlow(dest);
 }
 
 initSearchBar(searchInput, (query) => {
@@ -45,25 +65,14 @@ function initTracker() {
     pageMeta: { name: 'Home', category: 'home', url: '/index.html' },
     emit: '/api/ingest',
     onRecommendations: () => {
-      // The lib's recs come from its DOM-scanned per-page catalog and are
-      // capped at maxPerGroup:3 — neither compatible with the always-fill-12
-      // rule. Use the callback only as a "profile updated" trigger and
-      // compute our own top 12 from the full destinations.js catalog.
       refreshForYouTab();
     },
   });
 
   window.__intentTracker = tracker;
 
-  // Profile may already have intent data from a prior session — surface the
-  // tab on initial load instead of waiting for the next onRecommendations.
   refreshForYouTab();
 
-  // Poll as a backstop: onRecommendations only fires when the lib's recs
-  // actually change, which lags behind tagWeights updates in some cases.
-  // The For You ✦ tab should appear within a couple seconds of any signal
-  // that produces a positive tagWeight — same pattern the nav chip uses.
-  // Stops polling once the tab is in the DOM.
   const pollId = setInterval(() => {
     if (tabBarEl.querySelector('[data-tab="for-you"]')) {
       clearInterval(pollId);
@@ -75,20 +84,66 @@ function initTracker() {
 
 function refreshForYouTab() {
   const tracker = window.__intentTracker;
-  if (!tracker) return;
-  // Merged weights (lib intents + click-derived). The lib's tag_affinity
-  // intent has a 0.35-of-total threshold that single-item heavy clicking
-  // fails; the click-derived map keeps the For You ranking responsive in
-  // that case. See profile-state.js.
-  const weights = window.IntentTrackerExt?.getMergedTagWeights?.(tracker) || tracker.getProfile()?.tagWeights || {};
-  // Cold-start guard: no weights at all, no For You tab.
-  if (!Object.values(weights).some(w => w > 0)) return;
-  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
-  // Same composer the FY page Top Picks uses: MMR + country cap +
-  // region serendipity, so the homepage For You ✦ tab shows variety
-  // instead of mirroring a single-tag filtered view.
-  const top = pickTopPicks(destinations, weights, clickCounts, FOR_YOU_LIMIT);
-  showForYouTab(top);
+  // Merged weights (lib intents + click-derived). See profile-state.js.
+  const weights = window.IntentTrackerExt?.getMergedTagWeights?.(tracker)
+    || tracker?.getProfile()?.tagWeights || {};
+  const hasWeights = Object.values(weights).some(w => w > 0);
+
+  // Pinned abandoned/in-cart entries take priority and bypass cold-start.
+  const pinned = buildPinnedEntries();
+  if (!hasWeights && pinned.length === 0) return;
+
+  const pinnedIds = new Set(pinned.map(p => p.dest.id));
+  const slotsLeft = Math.max(0, FOR_YOU_LIMIT - pinned.length);
+
+  let fillerEntries = [];
+  if (slotsLeft > 0) {
+    const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+    const scored = hasWeights
+      ? pickTopPicks(destinations, weights, clickCounts, FOR_YOU_LIMIT + pinned.length)
+      : destinations;
+    fillerEntries = scored
+      .filter(d => !pinnedIds.has(d.id))
+      .slice(0, slotsLeft)
+      .map(dest => ({ dest }));
+  }
+
+  showForYouTab([...pinned, ...fillerEntries]);
 }
+
+function buildPinnedEntries() {
+  const entries = [];
+  const seen = new Set();
+  const activeCart = bookingStore.getCart();
+  if (activeCart && activeCart.destinationId) {
+    const dest = destMap.get(activeCart.destinationId);
+    if (dest) {
+      entries.push(buildResumeEntry(dest, activeCart));
+      seen.add(dest.id);
+    }
+  }
+  for (const a of bookingStore.getAbandoned()) {
+    if (seen.has(a.destinationId)) continue;
+    const dest = destMap.get(a.destinationId);
+    if (!dest) continue;
+    entries.push(buildResumeEntry(dest, a));
+    seen.add(dest.id);
+  }
+  return entries;
+}
+
+function buildResumeEntry(dest, booking) {
+  const hotel = asHotel(dest);
+  const step = booking?.funnelStep || 'cart';
+  const msgFn = ABANDONMENT_MESSAGES[step] || ABANDONMENT_MESSAGES.cart;
+  return {
+    dest,
+    reason: msgFn(hotel),
+    isAbandoned: true,
+    ctaLabel: 'Complete Booking',
+  };
+}
+
+window.__refreshForYou = refreshForYouTab;
 
 initTracker();

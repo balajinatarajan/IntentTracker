@@ -130,6 +130,9 @@ function wireCartNav() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && flyoutOpen) closeFlyout();
   });
+
+  window.addEventListener('resize', () => syncFlyoutPosition());
+  window.addEventListener('scroll', () => syncFlyoutPosition(), { passive: true });
 }
 
 function openFlyout() {
@@ -139,7 +142,10 @@ function openFlyout() {
   flyout.hidden = false;
   flyoutOpen = true;
   toggle?.setAttribute('aria-expanded', 'true');
-  requestAnimationFrame(() => flyout.classList.add('open'));
+  requestAnimationFrame(() => {
+    flyout.classList.add('open');
+    syncFlyoutPosition();
+  });
 }
 
 function closeFlyout() {
@@ -149,7 +155,34 @@ function closeFlyout() {
   flyout.classList.remove('open');
   flyoutOpen = false;
   toggle?.setAttribute('aria-expanded', 'false');
+  resetFlyoutPosition(flyout);
   setTimeout(() => { if (!flyoutOpen) flyout.hidden = true; }, 200);
+}
+
+// Pin the flyout to the viewport on open so it never loses a z-index
+// fight with .cart-page-content (negative margin overlap) or other
+// page layers. Absolute positioning inside the hero header always
+// eventually collides with main content on cart.html.
+function syncFlyoutPosition() {
+  const flyout = document.getElementById('cart-flyout');
+  const toggle = document.getElementById('cart-nav-toggle');
+  if (!flyout || !toggle || !flyoutOpen) return;
+  const rect = toggle.getBoundingClientRect();
+  flyout.style.position = 'fixed';
+  flyout.style.top = `${Math.round(rect.bottom + 12)}px`;
+  flyout.style.right = `${Math.round(window.innerWidth - rect.right)}px`;
+  flyout.style.left = 'auto';
+  flyout.style.width = '320px';
+  flyout.style.zIndex = '10000';
+}
+
+function resetFlyoutPosition(flyout) {
+  flyout.style.position = '';
+  flyout.style.top = '';
+  flyout.style.right = '';
+  flyout.style.left = '';
+  flyout.style.width = '';
+  flyout.style.zIndex = '';
 }
 
 function clearAllPending() {

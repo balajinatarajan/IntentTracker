@@ -58,7 +58,6 @@
   margin: 0 auto 2.5rem;
   padding: 0 0.25rem;
   position: relative;
-  z-index: 2;
 }
 
 .hero-logo {
@@ -76,7 +75,8 @@
 }
 
 .hero-compact {
-  padding: 1.75rem 2rem 2.5rem;
+  padding: 1.75rem 2rem 2rem;
+  overflow: visible;
 }
 
 .hero-compact h1 {
@@ -185,7 +185,8 @@
   border-color: rgba(255, 141, 107, 0.5);
 }
 
-/* Cart flyout dropdown */
+/* Cart flyout dropdown — position is set to fixed via JS on open so it
+   always escapes page stacking contexts (especially on cart.html). */
 .cart-flyout {
   position: absolute;
   top: calc(100% + 12px);
@@ -199,7 +200,6 @@
   opacity: 0;
   transform: translateY(-8px) scale(0.97);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 200;
   overflow: hidden;
 }
 
@@ -423,19 +423,27 @@
   cursor: pointer;
 }
 
-/* === Cart page === */
-.cart-page {
+/* === Cart page layout === */
+.cart-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-layout .cart-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg);
-  min-height: 40vh;
+  /* Room for the sticky bottom cart bar */
+  padding-bottom: 5.5rem;
 }
 
 .cart-page-content {
+  width: 100%;
   max-width: 960px;
-  margin: 0 auto;
-  padding: 0 1.5rem 5rem;
-  margin-top: -1.5rem;
-  position: relative;
-  z-index: 3;
+  margin: auto;
+  padding: 1.5rem;
 }
 
 .cart-page-card {

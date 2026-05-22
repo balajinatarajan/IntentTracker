@@ -1188,7 +1188,7 @@ const _rawDestinations = [
     name: "British Virgin Islands",
     region: "caribbean",
     country: "BVI",
-    image: "https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1690681093819-52bd788160cf?w=400&h=300&fit=crop",
     price: 2100,
     priceTier: "luxury",
     tags: ["beach", "caribbean", "bvi", "luxury", "romantic", "adventure"],

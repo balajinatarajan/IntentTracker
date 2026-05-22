@@ -95,7 +95,7 @@
   -->
   <script type="module">
     import { destinations } from './js/data/destinations.js';
-    import { initCartIcon, updateCartIcon } from './js/ui/cart-icon.js';
+    import { initCartIcon, updateCartIcon } from './js/ui/cart-icon.js?v=2';
     import { initBookingFlow, openBookingFlow, resumeAbandonedBooking, bookingStore } from './js/ui/booking-flow.js';
 
     const destMap = new Map(destinations.map(d => [d.id, d]));
@@ -134,13 +134,22 @@
       }).catch(() => {});
     }
 
+    // Booking lifecycle: keep the cart icon AND the For You ✦ tab in
+    // sync. app2.js exposes window.__refreshForYou so we can prompt a
+    // re-render after abandon/complete/clear without waiting for the
+    // next IntentTracker tick (which only fires on user interaction).
+    function onBookingChange() {
+      updateCartIcon();
+      window.__refreshForYou?.();
+    }
+
     initBookingFlow({
       onEvent: emitBookingEvent,
-      onCartChange: updateCartIcon,
-      onComplete: () => updateCartIcon(),
-      onAbandon: () => updateCartIcon(),
+      onCartChange: onBookingChange,
+      onComplete: onBookingChange,
+      onAbandon: onBookingChange,
     });
-    initCartIcon({});
+    initCartIcon({ onClear: onBookingChange });
 
     // "Live Journey" navbar chip — close the loop from product to analytics:
     // click takes you to the Journey Observatory pre-filtered to your live

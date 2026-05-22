@@ -20,14 +20,38 @@
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 -apple-system, system-ui, sans-serif; }
+
+    /* Header — mirrors Journey Observatory: sticky translucent bar with a
+       centered max-width topbar, brand cluster on the left, nav actions
+       on the right. The Wanderlust wordmark links back to the user-facing
+       app so the analytics surfaces share the same brand entry point. */
     header {
-      padding: 20px 28px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(11, 16, 32, 0.78);
+      backdrop-filter: saturate(140%) blur(20px);
+      -webkit-backdrop-filter: saturate(140%) blur(20px);
+      border-bottom: 1px solid var(--border);
     }
-    header h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: 0.2px; }
-    header h1 small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+    .topbar { max-width: 1200px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand-cluster { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .wordmark { display: inline-flex; align-items: center; gap: 8px; color: #ff8d6b; text-decoration: none; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.005em; padding-right: 14px; border-right: 1px solid var(--border); transition: opacity 120ms ease; }
+    .wordmark:hover { opacity: 0.78; }
+    .wordmark::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #ff8d6b; box-shadow: 0 0 0 3px rgba(255, 141, 107, 0.18); }
+    .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+    .brand-mark { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(108, 140, 255, 0.15); transform: translateY(2px); }
+    .brand-title { font-family: 'DM Sans', system-ui, sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: -0.005em; color: var(--ink); }
+    .brand-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-actions { display: flex; align-items: center; gap: 14px; }
+    .nav-actions a { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 13px; }
+    .nav-actions a:hover { color: #98b1ff; }
     .meta { color: var(--muted); font-size: 12px; }
     .meta b { color: var(--ink); font-weight: 600; }
+
+    @media (max-width: 720px) {
+      .topbar { flex-wrap: wrap; padding: 14px 18px; }
+      .brand-sub { display: none; }
+      .wordmark { padding-right: 10px; }
+    }
     main { padding: 24px 28px; display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
     .row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .card {
@@ -119,11 +143,20 @@
 </head>
 <body>
   <header>
-    <h1>Business Analytics <small>aggregated across all tracked users</small></h1>
-    <div class="meta">
-      <a href="/journey-dashboard.html" style="color:var(--accent);margin-right:14px;">Journey Observatory</a>
-      Last refresh: <b id="last-refresh">—</b>
-      <span class="pill" id="live-pill">live</span>
+    <div class="topbar">
+      <div class="brand-cluster">
+        <a href="/index.html" class="wordmark" title="Back to Wanderlust">Wanderlust</a>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-title">Business Analytics</span>
+          <span class="brand-sub">· aggregated across all tracked users</span>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a href="/journey-dashboard.html">Journey Observatory</a>
+        <span class="meta">Last refresh: <b id="last-refresh">—</b></span>
+        <span class="pill" id="live-pill">live</span>
+      </div>
     </div>
   </header>
 

@@ -4,12 +4,18 @@ import { regions } from '../utils/categories.js';
 // --- State ---
 let allDestinations = [];
 let cardClickHandler = null;
+let resumeBookingHandler = null;
 let tabBarEl = null;
 let gridEl = null;
 let activeTab = 'explore';
 let exploreSet = [];  // random 12, stable per session
 let tripTypePools = {}; // tripType -> precomputed pool of 12 (only tabs that can fill 12)
-let forYouDests = []; // 12 destinations passed from app2.js (already scored + ranked)
+// For You entries: { dest, reason?, isAbandoned?, ctaLabel? }. App2.js
+// passes rich entries so abandoned bookings get pinned to the top with
+// a "Complete Booking" CTA. Bare destination objects are still accepted
+// for backwards compat (normalized in setForYouEntries).
+let forYouEntries = [];
+let hasShownAbandonedCue = false;
 let searchFilter = '';
 
 // Always fill exactly 12 cards per tab (mirrors For You page rule). A tab
@@ -29,11 +35,12 @@ let TABS = ALL_TABS;
 
 // --- Public API ---
 
-export function initTabs(barEl, containerEl, dests, onCardClick) {
+export function initTabs(barEl, containerEl, dests, onCardClick, opts = {}) {
   tabBarEl = barEl;
   gridEl = containerEl;
   allDestinations = dests;
   cardClickHandler = onCardClick;
+  resumeBookingHandler = opts.onResumeBooking || null;
 
   // Non-FY tabs are STATIC — same content in the same order every time.
   // Only the For You ✦ tab personalizes. Sorted alphabetically by name so
@@ -62,9 +69,12 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   renderGrid();
 }
 
-export function showForYouTab(dests) {
-  if (!dests || dests.length === 0) return;
-  forYouDests = dests;
+export function showForYouTab(entries) {
+  if (!entries || entries.length === 0) return;
+
+  // Accept either bare destinations or rich entries. A rich entry is
+  // anything that already has a `.dest`; everything else is wrapped.
+  forYouEntries = entries.map(e => (e && e.dest) ? e : { dest: e });
 
   // Add tab button if not already present
   if (!tabBarEl.querySelector('[data-tab="for-you"]')) {
@@ -82,11 +92,22 @@ export function showForYouTab(dests) {
       tabBarEl.appendChild(btn);
     }
 
-    // Entrance animation
     requestAnimationFrame(() => btn.classList.add('visible'));
   }
 
-  // If user is currently on the For You tab, re-render
+  // Auto-switch to For You the FIRST time we see an abandoned entry —
+  // matches the original recommendation-engine UX where pinning a
+  // resume-booking card was the whole point. Only steal focus once
+  // (hasShownAbandonedCue) and only from Explore, so we don't yank
+  // someone out of a category tab they're browsing.
+  const hasAbandoned = forYouEntries.some(e => e.isAbandoned);
+  if (hasAbandoned && !hasShownAbandonedCue && activeTab === 'explore') {
+    hasShownAbandonedCue = true;
+    switchTab('for-you');
+    return;
+  }
+  if (!hasAbandoned) hasShownAbandonedCue = false;
+
   if (activeTab === 'for-you') renderGrid();
 }
 
@@ -135,12 +156,17 @@ function switchTab(tabId) {
 // --- Grid rendering ---
 
 function getFilteredCards() {
-  let cards;
+  // For You is rendered from entries (pinned abandoned + scored picks)
+  // while every other tab still works in plain destinations. Keeping the
+  // two shapes separate avoids polluting the static tab paths with
+  // booking-flow concerns.
+  if (activeTab === 'for-you') {
+    return matchesSearchEntries(forYouEntries);
+  }
 
+  let cards;
   if (activeTab === 'explore') {
     cards = exploreSet;
-  } else if (activeTab === 'for-you') {
-    cards = forYouDests;
   } else {
     // Trip-type tabs draw from the precomputed PER_TAB_LIMIT pool built in
     // initTabs. Fallback to a live filter only if the pool is missing
@@ -149,26 +175,33 @@ function getFilteredCards() {
       || allDestinations.filter(d => (d.tripTypes || []).includes(activeTab)).slice(0, PER_TAB_LIMIT);
   }
 
-  // Apply search filter
-  if (searchFilter) {
-    cards = cards.filter(dest => {
-      const searchable = [
-        dest.name, dest.country, dest.shortDesc, dest.region,
-        ...dest.tags, ...dest.tripTypes, dest.priceTier
-      ].join(' ').toLowerCase();
-      return searchFilter.split(/\s+/).every(term => searchable.includes(term));
-    });
-  }
-
+  if (searchFilter) cards = cards.filter(matchesSearchDest);
   return cards;
+}
+
+function matchesSearchDest(dest) {
+  if (!searchFilter) return true;
+  const searchable = [
+    dest.name, dest.country, dest.shortDesc, dest.region,
+    ...dest.tags, ...dest.tripTypes, dest.priceTier,
+  ].join(' ').toLowerCase();
+  return searchFilter.split(/\s+/).every(term => searchable.includes(term));
+}
+
+function matchesSearchEntries(entries) {
+  if (!searchFilter) return entries;
+  return entries.filter(e => e.dest && matchesSearchDest(e.dest));
 }
 
 function renderGrid() {
   const cards = getFilteredCards();
-  gridEl.innerHTML = '';
+  gridEl.replaceChildren();
 
   if (cards.length === 0) {
-    gridEl.innerHTML = '<div class="no-results">No destinations match your search.</div>';
+    const empty = document.createElement('div');
+    empty.className = 'no-results';
+    empty.textContent = 'No destinations match your search.';
+    gridEl.appendChild(empty);
     return;
   }
 
@@ -187,51 +220,112 @@ function renderStandardCards(cards) {
   });
 }
 
-function renderForYouCards(cards) {
-  cards.forEach(dest => {
-    const card = createCard(dest);
-    card.addEventListener('click', () => cardClickHandler(dest));
+function renderForYouCards(entries) {
+  entries.forEach(entry => {
+    const card = createCard(entry.dest, entry);
+    card.addEventListener('click', () => cardClickHandler(entry.dest));
     gridEl.appendChild(card);
   });
 }
 
 // --- Card creation (mirrors destination-grid.js) ---
 
-function createCard(dest, reason) {
+// Accepts either createCard(dest) or createCard(dest, { reason, isAbandoned, ctaLabel }).
+// Built with DOM APIs (not innerHTML) so the abandoned-booking reason
+// text and CTA can render trusted dynamic content without XSS surface.
+function createCard(dest, opts = {}) {
+  const { reason, isAbandoned, ctaLabel } = opts;
+  const regionLabel = regions[dest.region]?.label || dest.region;
+
   const card = document.createElement('article');
-  card.className = 'destination-card';
+  card.className = 'destination-card' + (isAbandoned ? ' destination-card-abandoned' : '');
   card.dataset.destinationId = dest.id;
-  // IntentTracker data attributes
   card.dataset.ikId = dest.id;
   card.dataset.ikTags = dest.tags.join(', ');
   card.dataset.ikGroup = dest.region;
   card.dataset.ikName = dest.name;
   card.dataset.ikPrice = dest.priceTier;
 
-  const regionLabel = regions[dest.region]?.label || dest.region;
+  const imgWrap = document.createElement('div');
+  imgWrap.className = 'card-image-wrapper';
+  const img = document.createElement('img');
+  img.className = 'card-image';
+  img.src = dest.image;
+  img.alt = dest.name;
+  img.loading = 'lazy';
+  const price = document.createElement('span');
+  price.className = 'card-image-price';
+  price.textContent = `$${dest.price}`;
+  const overlay = document.createElement('div');
+  overlay.className = 'card-image-overlay';
+  const overlayName = document.createElement('div');
+  overlayName.className = 'card-overlay-name';
+  overlayName.textContent = dest.name;
+  const overlayRegion = document.createElement('div');
+  overlayRegion.className = 'card-overlay-region';
+  overlayRegion.textContent = regionLabel;
+  overlay.append(overlayName, overlayRegion);
+  imgWrap.append(img, price, overlay);
 
-  card.innerHTML = `
-    <div class="card-image-wrapper">
-      <img class="card-image" src="${dest.image}" alt="${dest.name}" loading="lazy">
-      <span class="card-image-price">$${dest.price}</span>
-      <div class="card-image-overlay">
-        <div class="card-overlay-name">${dest.name}</div>
-        <div class="card-overlay-region">${regionLabel}</div>
-      </div>
-    </div>
-    <div class="card-body">
-      <div class="card-meta">
-        <span class="region-tag">${regionLabel}</span>
-        <span class="price-badge ${dest.priceTier}">${dest.priceTier.replace('-', ' ')}</span>
-      </div>
-      ${reason ? `<p class="card-rec-reason">${reason}</p>` : ''}
-      <p class="card-desc">${dest.shortDesc}</p>
-      <div class="card-tags">
-        ${dest.tripTypes.map(t => `<span class="card-tag">${t}</span>`).join('')}
-      </div>
-    </div>
-  `;
+  if (isAbandoned) {
+    const ribbon = document.createElement('span');
+    ribbon.className = 'card-resume-ribbon';
+    ribbon.textContent = 'Resume booking';
+    imgWrap.appendChild(ribbon);
+  }
 
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const meta = document.createElement('div');
+  meta.className = 'card-meta';
+  const regionTag = document.createElement('span');
+  regionTag.className = 'region-tag';
+  regionTag.textContent = regionLabel;
+  const tierBadge = document.createElement('span');
+  tierBadge.className = `price-badge ${dest.priceTier}`;
+  tierBadge.textContent = dest.priceTier.replace('-', ' ');
+  meta.append(regionTag, tierBadge);
+  body.appendChild(meta);
+
+  if (reason) {
+    const reasonEl = document.createElement('p');
+    reasonEl.className = 'card-rec-reason' + (isAbandoned ? ' card-rec-abandoned' : '');
+    reasonEl.textContent = reason;
+    body.appendChild(reasonEl);
+  }
+
+  const desc = document.createElement('p');
+  desc.className = 'card-desc';
+  desc.textContent = dest.shortDesc;
+  body.appendChild(desc);
+
+  const tags = document.createElement('div');
+  tags.className = 'card-tags';
+  dest.tripTypes.forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'card-tag';
+    tag.textContent = t;
+    tags.appendChild(tag);
+  });
+  body.appendChild(tags);
+
+  if (ctaLabel) {
+    // Inline text-link style (vs. a pill button) so the CTA folds into
+    // the card body instead of becoming a chunky footer row. The arrow
+    // is added via CSS ::after to keep the JS markup minimal.
+    const cta = document.createElement('button');
+    cta.type = 'button';
+    cta.className = 'tab-card-cta';
+    cta.textContent = ctaLabel;
+    cta.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resumeBookingHandler?.(dest);
+    });
+    body.appendChild(cta);
+  }
+
+  card.append(imgWrap, body);
   return card;
 }
 
