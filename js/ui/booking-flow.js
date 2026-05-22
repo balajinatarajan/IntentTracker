@@ -247,14 +247,17 @@ function buildRoomStep() {
 
 function buildGuestStep() {
   const wrap = document.createElement('div');
+  // Wrap inputs in a <form> with novalidate so we still get the validity
+  // API (form.checkValidity()) without the browser auto-submitting or
+  // showing its own bubble — we surface errors via the inline banner.
   wrap.innerHTML = `
     <h3 class="booking-step-title">Guest information</h3>
     <p class="booking-step-desc">Who will be checking in?</p>
-    <div class="booking-form-grid booking-form-grid-single">
-      <label class="booking-field"><span>First name</span><input type="text" id="bf-first" value="${draft.guestFirstName || ''}" placeholder="First name" autocomplete="given-name"></label>
-      <label class="booking-field"><span>Last name</span><input type="text" id="bf-last" value="${draft.guestLastName || ''}" placeholder="Last name" autocomplete="family-name"></label>
-      <label class="booking-field booking-field-full"><span>Email</span><input type="email" id="bf-email" value="${draft.guestEmail || ''}" placeholder="you@email.com" autocomplete="email"></label>
-    </div>`;
+    <form class="booking-guest-form booking-form-grid booking-form-grid-single" novalidate>
+      <label class="booking-field"><span>First name</span><input type="text" id="bf-first" value="${draft.guestFirstName || ''}" placeholder="First name" autocomplete="given-name" required></label>
+      <label class="booking-field"><span>Last name</span><input type="text" id="bf-last" value="${draft.guestLastName || ''}" placeholder="Last name" autocomplete="family-name" required></label>
+      <label class="booking-field booking-field-full"><span>Email</span><input type="email" id="bf-email" value="${draft.guestEmail || ''}" placeholder="you@email.com" autocomplete="email" required></label>
+    </form>`;
   return wrap;
 }
 
@@ -312,10 +315,58 @@ function wireStepInputs(stepId, modal) {
     });
   }
   if (stepId === 'guest') {
-    modal.querySelector('#bf-first')?.addEventListener('input', (e) => { draft.guestFirstName = e.target.value; });
-    modal.querySelector('#bf-last')?.addEventListener('input', (e) => { draft.guestLastName = e.target.value; });
-    modal.querySelector('#bf-email')?.addEventListener('input', (e) => { draft.guestEmail = e.target.value; });
+    // While typing, clear the field-level invalid outline so the user gets
+    // immediate feedback that they're addressing the error.
+    const wireGuestField = (id, setter) => {
+      const el = modal.querySelector('#' + id);
+      el?.addEventListener('input', (e) => {
+        setter(e.target.value);
+        e.target.closest('.booking-field')?.classList.remove('invalid');
+      });
+    };
+    wireGuestField('bf-first', v => { draft.guestFirstName = v; });
+    wireGuestField('bf-last',  v => { draft.guestLastName  = v; });
+    wireGuestField('bf-email', v => { draft.guestEmail     = v; });
   }
+}
+
+// Inline, non-blocking step error replaces the previous alert() calls.
+// Renders (or reuses) a small banner above the footer with the message
+// and a subtle shake to draw the eye. Tracks the offending field(s) so
+// we can focus the first invalid input and outline them.
+function showStepError(message, invalidFieldIds = []) {
+  const modal = overlay?.querySelector('.booking-modal');
+  if (!modal) return;
+  const body = modal.querySelector('.booking-body') || modal;
+  let banner = modal.querySelector('.booking-step-error');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.className = 'booking-step-error';
+    banner.setAttribute('role', 'alert');
+    banner.setAttribute('aria-live', 'polite');
+    body.appendChild(banner);
+  }
+  banner.textContent = message;
+  banner.classList.remove('shake');
+  // Force reflow so the animation restarts even if the same message fires twice.
+  void banner.offsetWidth;
+  banner.classList.add('shake');
+
+  modal.querySelectorAll('.booking-field.invalid').forEach(el => el.classList.remove('invalid'));
+  let firstInvalid = null;
+  for (const id of invalidFieldIds) {
+    const field = modal.querySelector('#' + id);
+    if (!field) continue;
+    field.closest('.booking-field')?.classList.add('invalid');
+    if (!firstInvalid) firstInvalid = field;
+  }
+  firstInvalid?.focus();
+}
+
+function clearStepError() {
+  const banner = overlay?.querySelector('.booking-step-error');
+  if (banner) banner.remove();
+  overlay?.querySelectorAll('.booking-field.invalid').forEach(el => el.classList.remove('invalid'));
 }
 
 function handleNext() {
@@ -326,7 +377,11 @@ function handleNext() {
     draft.checkIn = modal.querySelector('#bf-checkin')?.value || draft.checkIn;
     draft.checkOut = modal.querySelector('#bf-checkout')?.value || draft.checkOut;
     draft.guests = parseInt(modal.querySelector('#bf-guests')?.value || draft.guests, 10);
-    if (draft.checkOut <= draft.checkIn) { alert('Check-out must be after check-in.'); return; }
+    if (draft.checkOut <= draft.checkIn) {
+      showStepError('Check-out must be after check-in.', ['bf-checkout']);
+      return;
+    }
+    clearStepError();
     emit('checkout_step', { funnelStep: 'dates', stepIndex: 0 });
     currentStep++;
     renderStep();
@@ -334,7 +389,11 @@ function handleNext() {
   }
 
   if (step.id === 'room') {
-    if (!draft.roomId || !draft.rateId) { alert('Please select a room and rate.'); return; }
+    if (!draft.roomId || !draft.rateId) {
+      showStepError('Pick a room and rate to continue.');
+      return;
+    }
+    clearStepError();
     const cart = store.setCart({ ...draft, funnelStep: 'room', stepIndex: 1 });
     emit('add_to_cart', { funnelStep: 'room', stepIndex: 1, roomId: draft.roomId, rateId: draft.rateId, nightlyRate: draft.nightlyRate });
     callbacks.onCartChange?.(cart);
@@ -348,7 +407,14 @@ function handleNext() {
     draft.guestFirstName = modal.querySelector('#bf-first')?.value?.trim() || '';
     draft.guestLastName = modal.querySelector('#bf-last')?.value?.trim() || '';
     draft.guestEmail = modal.querySelector('#bf-email')?.value?.trim() || '';
-    if (!draft.guestFirstName || !draft.guestLastName || !draft.guestEmail) { alert('Please fill in all guest details.'); return; }
+    // Let HTML5 catch malformed emails too (type="email" + required on each).
+    const form = modal.querySelector('.booking-guest-form');
+    if (form && !form.checkValidity()) {
+      const invalid = [...form.querySelectorAll(':invalid')].map(el => el.id);
+      showStepError('Add your name and a valid email to continue.', invalid);
+      return;
+    }
+    clearStepError();
     store.updateCart({ ...draft, funnelStep: 'guest', stepIndex: 2 });
     emit('checkout_step', { funnelStep: 'guest', stepIndex: 2 });
     currentStep++;

@@ -141,6 +141,64 @@
   border: 1.5px solid var(--color-border);
   font-family: inherit;
   font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.booking-field input:focus,
+.booking-field select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(255, 141, 107, 0.18);
+}
+
+/* Inline validation: the field-level red outline pairs with the
+   step-level error banner below. Both clear as soon as the user
+   starts fixing the input. */
+.booking-field.invalid input,
+.booking-field.invalid select {
+  border-color: #d4361a;
+  box-shadow: 0 0 0 3px rgba(212, 54, 26, 0.12);
+}
+
+.booking-step-error {
+  margin: 1rem 0 0;
+  padding: 0.7rem 0.95rem;
+  border-radius: 8px;
+  background: rgba(212, 54, 26, 0.08);
+  border: 1px solid rgba(212, 54, 26, 0.28);
+  color: #b6321a;
+  font-size: 0.88rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.booking-step-error::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #d4361a;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.booking-step-error.shake {
+  animation: booking-error-shake 0.4s ease;
+}
+
+@keyframes booking-error-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(3px); }
 }
 
 .booking-hold-notice {
