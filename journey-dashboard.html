@@ -181,7 +181,9 @@
     .flow-empty { display: grid; place-items: center; height: 100%; color: var(--muted); }
 
     /* INSIGHTS / EXPERIMENTS */
-    .insight-grid, .experiment-grid { display: grid; gap: 12px; }
+    .insight-grid, .experiment-grid { display: grid; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 6px; }
+    .insight-grid::-webkit-scrollbar, .experiment-grid::-webkit-scrollbar { width: 9px; }
+    .insight-grid::-webkit-scrollbar-thumb, .experiment-grid::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; }
     .insight-card, .experiment-card { position: relative; padding: 16px 18px; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; display: grid; gap: 8px; overflow: hidden; }
     .insight-card::before, .experiment-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--muted); }
     .insight-card.high::before { background: var(--abandonment); }
