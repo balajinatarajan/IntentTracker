@@ -398,9 +398,24 @@
   background: var(--color-accent) !important;
 }
 
+/* The sticky bar sits on a dark background, so we need to override
+   .btn-secondary's white surface — otherwise white text on a white
+   pill renders as an invisible empty button. Use a transparent ghost
+   with a hairline border for the destructive secondary action. */
 .cart-bar-clear {
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  padding: 0.55rem 1.1rem !important;
+  min-height: 38px !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+}
+
+.cart-bar-clear:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .cart-nav-link,
@@ -592,11 +607,23 @@
   gap: 0.4rem;
 }
 
+/* Subordinate to Complete Booking — same shape but lighter weight and
+   muted color so it doesn't compete for attention with the primary CTA. */
 .cart-item-actions .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
+  background: transparent;
+  color: var(--color-text-muted, #6b6b6b);
+  border-color: var(--color-border);
+  font-weight: 500;
+}
+
+.cart-item-actions .btn-secondary:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border-color: #bbb;
 }
 
 /* Abandoned section */
