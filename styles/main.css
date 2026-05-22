@@ -81,16 +81,27 @@ body {
 }
 
 @media (max-width: 768px) {
+  /* Two-row mobile nav:
+       row 1 → [brand] ............. [cart]   (cart pinned right via order)
+       row 2 → [nav links wrapping freely]
+     Achieved by giving nav-links flex-basis: 100% so it wraps to its own
+     row, and bumping the cart's flex order so it appears between brand
+     and nav-links in visual order while the source HTML stays unchanged. */
   .site-nav {
-    padding: 0 1rem;
+    padding: 0.55rem 1rem;
     height: auto;
     flex-wrap: wrap;
-    gap: 0.25rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    gap: 0.5rem 0.75rem;
   }
-  .site-nav .nav-brand { margin-right: 1rem; }
-  .site-nav .nav-links { flex-wrap: wrap; }
+  .site-nav .nav-brand { margin-right: 0; order: 0; }
+  .site-nav .site-nav-cart { order: 1; margin-left: auto; }
+  .site-nav .nav-links {
+    order: 2;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem 0.6rem;
+  }
 }
 
 /* === Hero Section === */
