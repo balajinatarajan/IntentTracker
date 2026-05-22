@@ -55,9 +55,11 @@
 
   <!-- IntentTracker plugin (IIFE build — exposes window.IntentTracker) -->
   <script src="lib/dist/intent-tracker.js?v=9"></script>
-
-  <script type="module" src="js/app2.js?v=5"></script>
+  <!-- Shared profile-state helpers (window.IntentTrackerExt) — drives the
+       click-count ranking inside the tripType tabs. -->
   <script src="js/utils/profile-state.js"></script>
+
+  <script type="module" src="js/app2.js?v=6"></script>
   <script src="js/ui/for-you-chip.js"></script>
 </body>
 </html>

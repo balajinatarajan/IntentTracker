@@ -1,4 +1,4 @@
-import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=3';
+import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=4';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';

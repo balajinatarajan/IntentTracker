@@ -7,11 +7,17 @@ let cardClickHandler = null;
 let tabBarEl = null;
 let gridEl = null;
 let activeTab = 'explore';
-let exploreSet = []; // random subset, stable per session
+let exploreSet = [];  // random 12, stable per session
+let tripTypePools = {}; // tripType -> precomputed pool of 12 (only tabs that can fill 12)
 let forYouRecs = []; // populated when recommendations arrive
 let searchFilter = '';
 
-const TABS = [
+// Always fill exactly 12 cards per tab (mirrors For You page rule). A tab
+// only ships if its candidate pool can fill all PER_TAB_LIMIT slots — a
+// half-empty tab looks worse than no tab.
+const PER_TAB_LIMIT = 12;
+
+const ALL_TABS = [
   { id: 'explore', label: 'Explore' },
   { id: 'adventure', label: 'Adventure' },
   { id: 'romantic', label: 'Romantic' },
@@ -19,6 +25,7 @@ const TABS = [
   { id: 'solo', label: 'Solo' },
   { id: 'culture', label: 'Culture' },
 ];
+let TABS = ALL_TABS;
 
 // --- Public API ---
 
@@ -28,8 +35,26 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   allDestinations = dests;
   cardClickHandler = onCardClick;
 
-  // Generate a random "Explore" set (8 cards, stable for this page load)
-  exploreSet = shuffle([...allDestinations]).slice(0, 8);
+  // Explore: random PER_TAB_LIMIT destinations, stable for this page load.
+  // Non-personalized default — neutral shuffle of the full catalog.
+  exploreSet = shuffle([...allDestinations]).slice(0, PER_TAB_LIMIT);
+
+  // Trip-type tabs: precompute the candidate pool per tripType and drop any
+  // tab that can't fill all PER_TAB_LIMIT slots. Click counts (when the
+  // shared profile-state helper is loaded) bubble repeatedly-clicked items
+  // to the top of their tab — same ranking the For You page uses.
+  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+  tripTypePools = {};
+  TABS = ALL_TABS.filter(tab => {
+    if (tab.id === 'explore') return true;
+    const matches = allDestinations.filter(d => (d.tripTypes || []).includes(tab.id));
+    if (matches.length < PER_TAB_LIMIT) return false;
+    const ranked = matches
+      .map(d => ({ dest: d, clicks: clickCounts[d.id] || 0 }))
+      .sort((a, b) => b.clicks - a.clicks);
+    tripTypePools[tab.id] = ranked.slice(0, PER_TAB_LIMIT).map(r => r.dest);
+    return true;
+  });
 
   renderTabBar();
   renderGrid();
@@ -116,8 +141,11 @@ function getFilteredCards() {
     // For You tab returns full destination objects from recommendations
     cards = forYouRecs.map(r => r.destination).filter(Boolean);
   } else {
-    // Filter by tripType
-    cards = allDestinations.filter(d => d.tripTypes.includes(activeTab));
+    // Trip-type tabs draw from the precomputed PER_TAB_LIMIT pool built in
+    // initTabs. Fallback to a live filter only if the pool is missing
+    // (shouldn't happen — tabs without a full pool aren't rendered).
+    cards = tripTypePools[activeTab]
+      || allDestinations.filter(d => (d.tripTypes || []).includes(activeTab)).slice(0, PER_TAB_LIMIT);
   }
 
   // Apply search filter
