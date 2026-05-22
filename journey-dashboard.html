@@ -1112,6 +1112,7 @@
         payload.appendChild(payloadHead);
         payload.appendChild(renderAiBrief(data));
         const details = document.createElement('details');
+        details.className = 'payload-details';
         details.appendChild(text('summary', '', 'Show technical payload'));
         const pre = text('pre', '', JSON.stringify(data.genai_payload, null, 2));
         details.appendChild(pre);
@@ -1125,20 +1126,31 @@
         lower.appendChild(payload);
         detail.appendChild(lower);
 
-        // Preserve scroll positions during silent live refreshes so the
-        // page doesn\u2019t jump while a user is reading. Snapshot window
-        // scroll AND scroll offsets for every cap\u2019d scroll container
-        // (journey map's horizontal scroll, plus the vertical scrollers
-        // on the insight grid, experiment grid, and session timeline).
-        // Without this the 1s live poll wipes whatever scroll the user
-        // was at and snaps them back to the top of each panel.
+        // Preserve UI state during silent live refreshes so the page
+        // doesn\u2019t jump or collapse while a user is reading. We snapshot:
+        //   - window.scrollY
+        //   - scroll offsets for every cap\u2019d scroll container (journey
+        //     map horizontal, insight/experiment grids, session timeline)
+        //   - open/closed state of every <details> disclosure (so the
+        //     "Show technical payload" panel doesn\u2019t collapse every 1s)
+        // Without this the 1s live poll wipes whatever state the user
+        // had built up and snaps the whole panel back to defaults.
         const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid'];
+        const DETAILS_SELECTORS = ['.payload-details'];
         const prevScrollY = silent ? window.scrollY : null;
         const scrollSnap = silent ? (() => {
           const m = new Map();
           for (const sel of SCROLL_SELECTORS) {
             const el = byId('detail').querySelector(sel);
             if (el && (el.scrollTop || el.scrollLeft)) m.set(sel, { top: el.scrollTop, left: el.scrollLeft });
+          }
+          return m;
+        })() : null;
+        const detailsSnap = silent ? (() => {
+          const m = new Map();
+          for (const sel of DETAILS_SELECTORS) {
+            const el = byId('detail').querySelector(sel);
+            if (el && el.open) m.set(sel, true);
           }
           return m;
         })() : null;
@@ -1150,6 +1162,12 @@
             if (!el) continue;
             if (pos.top) el.scrollTop = pos.top;
             if (pos.left) el.scrollLeft = pos.left;
+          }
+        }
+        if (detailsSnap) {
+          for (const sel of detailsSnap.keys()) {
+            const el = byId('detail').querySelector(sel);
+            if (el) el.open = true;
           }
         }
       } catch (err) {
