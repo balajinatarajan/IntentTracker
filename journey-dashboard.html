@@ -1126,18 +1126,31 @@
         detail.appendChild(lower);
 
         // Preserve scroll positions during silent live refreshes so the
-        // page doesn\u2019t jump while a user is reading. We snapshot both
-        // window scroll AND the inner horizontal scroll of .flow-scroll
-        // (the journey-map container) before swapping the detail tree.
+        // page doesn\u2019t jump while a user is reading. Snapshot window
+        // scroll AND scroll offsets for every cap\u2019d scroll container
+        // (journey map's horizontal scroll, plus the vertical scrollers
+        // on the insight grid, experiment grid, and session timeline).
+        // Without this the 1s live poll wipes whatever scroll the user
+        // was at and snaps them back to the top of each panel.
+        const SCROLL_SELECTORS = ['.flow-scroll', '.sessions-scroll', '.insight-grid', '.experiment-grid'];
         const prevScrollY = silent ? window.scrollY : null;
-        const prevFlowScrollLeft = silent
-          ? byId('detail').querySelector('.flow-scroll')?.scrollLeft ?? null
-          : null;
+        const scrollSnap = silent ? (() => {
+          const m = new Map();
+          for (const sel of SCROLL_SELECTORS) {
+            const el = byId('detail').querySelector(sel);
+            if (el && (el.scrollTop || el.scrollLeft)) m.set(sel, { top: el.scrollTop, left: el.scrollLeft });
+          }
+          return m;
+        })() : null;
         setOnly(byId('detail'), detail);
         if (prevScrollY != null) window.scrollTo(0, prevScrollY);
-        if (prevFlowScrollLeft != null) {
-          const newFlow = byId('detail').querySelector('.flow-scroll');
-          if (newFlow) newFlow.scrollLeft = prevFlowScrollLeft;
+        if (scrollSnap) {
+          for (const [sel, pos] of scrollSnap) {
+            const el = byId('detail').querySelector(sel);
+            if (!el) continue;
+            if (pos.top) el.scrollTop = pos.top;
+            if (pos.left) el.scrollLeft = pos.left;
+          }
         }
       } catch (err) {
         console.error('[journey-dashboard] render failed', err);
