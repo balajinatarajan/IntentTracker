@@ -53,6 +53,10 @@
 
     header { position: sticky; top: 0; z-index: 30; background: rgba(7,9,26,0.78); backdrop-filter: saturate(140%) blur(20px); border-bottom: 1px solid var(--line-soft); }
     .topbar { max-width: 1480px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand-cluster { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .wordmark { display: inline-flex; align-items: center; gap: 8px; color: #ff8d6b; text-decoration: none; font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 17px; letter-spacing: -0.005em; padding-right: 14px; border-right: 1px solid var(--line-soft); transition: opacity 120ms ease; }
+    .wordmark:hover { opacity: 0.78; color: #ff8d6b; }
+    .wordmark::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #ff8d6b; box-shadow: 0 0 0 3px rgba(255, 141, 107, 0.18); }
     .brand { display: flex; align-items: baseline; gap: 12px; }
     .brand-mark { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,214,107,0.12); transform: translateY(2px); }
     .brand-title { font-family: "DM Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
@@ -82,13 +86,27 @@
     .grid, #detail { min-width: 0; display: grid; gap: 20px; }
     .two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 
-    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-dim); font-size: 12px; font-weight: 600; border: 1px solid var(--line-soft); width: fit-content; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink-dim); font-size: 11px; font-weight: 600; border: 1px solid var(--line-soft); width: fit-content; letter-spacing: 0.01em; white-space: nowrap; }
     .chip.accent { background: var(--accent-soft); color: var(--accent); border-color: rgba(255,214,107,0.30); }
     .chip.discovery { color: var(--discovery); border-color: rgba(110,169,255,0.32); background: rgba(110,169,255,0.10); }
     .chip.consideration { color: var(--consideration); border-color: rgba(255,179,90,0.32); background: rgba(255,179,90,0.10); }
     .chip.checkout { color: var(--checkout); border-color: rgba(179,155,255,0.32); background: rgba(179,155,255,0.10); }
     .chip.abandonment { color: var(--abandonment); border-color: rgba(255,122,138,0.34); background: rgba(255,122,138,0.10); }
     .chip.conversion { color: var(--conversion); border-color: rgba(95,216,168,0.34); background: rgba(95,216,168,0.10); }
+
+    /* Persona badges — color-coded per archetype with a small leading dot
+       so the sidebar reads at a glance ("ah, that's a Honeymoon Planner")
+       without having to parse the label text. Unclassified gets a muted
+       gray to visually demote it from the named personas. */
+    .chip.persona { padding: 3px 9px 3px 7px; gap: 5px; max-width: 100%; }
+    .chip.persona::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.85; flex-shrink: 0; }
+    .chip.persona-honeymoon { color: #ff8aaf; background: rgba(255,138,175,0.10); border-color: rgba(255,138,175,0.32); }
+    .chip.persona-budget    { color: #7adcaa; background: rgba(122,220,170,0.10); border-color: rgba(122,220,170,0.32); }
+    .chip.persona-luxury    { color: #ffd66b; background: rgba(255,214,107,0.10); border-color: rgba(255,214,107,0.32); }
+    .chip.persona-family    { color: #8ec0ff; background: rgba(142,192,255,0.10); border-color: rgba(142,192,255,0.34); }
+    .chip.persona-culture   { color: #c8a0ff; background: rgba(200,160,255,0.10); border-color: rgba(200,160,255,0.32); }
+    .chip.persona-unknown   { color: var(--muted); background: rgba(255,255,255,0.03); border-color: var(--line); }
+    .chip.persona-unknown::before { opacity: 0.5; }
 
     /* SIDEBAR */
     .sidebar { align-self: start; position: sticky; top: 84px; }
@@ -327,10 +345,13 @@
 <body>
   <header>
     <div class="topbar">
-      <div class="brand">
-        <span class="brand-mark"></span>
-        <span class="brand-title">Journey Observatory</span>
-        <span class="brand-sub">· stakeholder-ready behavioral diagnosis</span>
+      <div class="brand-cluster">
+        <a href="/index.html" class="wordmark" title="Back to Wanderlust">Wanderlust</a>
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <span class="brand-title">Journey Observatory</span>
+          <span class="brand-sub">· stakeholder-ready behavioral diagnosis</span>
+        </div>
       </div>
       <div class="nav-actions">
         <span id="live-indicator" class="live-indicator" title="Live polling status"><span class="live-dot"></span>Live</span>
@@ -511,6 +532,22 @@
     function renderEmpty(message) { return text('div', 'card empty', message); }
     function chip(value, tone = '') { return text('span', `chip ${tone}`.trim(), value); }
 
+    // Map persona labels (from server/persona.js) to the matching CSS
+    // tone class so each persona reads with its own color + dot. Kept
+    // here as a small lookup so adding a new persona is one line.
+    const PERSONA_TONE = {
+      'Honeymoon Planner':          'persona persona-honeymoon',
+      'Budget Backpacker':          'persona persona-budget',
+      'Luxury Comparison Shopper':  'persona persona-luxury',
+      'Family Vacation Researcher': 'persona persona-family',
+      'Culture Explorer':           'persona persona-culture',
+    };
+    function personaChip(label, suffix = '') {
+      const tone = PERSONA_TONE[label] || 'persona persona-unknown';
+      const base = label || 'Unclassified';
+      return chip(suffix ? `${base} \u00b7 ${suffix}` : base, tone);
+    }
+
     function renderCurrentUserCard(users = []) {
       const card = byId('current-user-card');
       card.replaceChildren();
@@ -563,7 +600,7 @@
         const top = text('div', 'user-row-top');
         top.appendChild(text('span', 'display-name', user.display_name || 'Unnamed'));
         if (user.user_id === currentBrowserUserId) top.appendChild(chip('You', 'conversion'));
-        else top.appendChild(chip(user.persona_label || 'Unclassified', 'accent'));
+        else top.appendChild(personaChip(user.persona_label));
         row.appendChild(top);
         row.appendChild(text('div', 'uid mono', user.user_id));
         row.appendChild(text('div', 'meta', `${fmt(user.signal_count)} signals \u00b7 ${fmt(user.session_count)} sessions`));
@@ -1039,7 +1076,7 @@
         chipRow.style.display = 'flex';
         chipRow.style.gap = '8px';
         chipRow.style.flexWrap = 'wrap';
-        chipRow.appendChild(chip(`${data.persona.label}${data.persona.score ? ` \u00b7 score ${data.persona.score}` : ''}`, 'accent'));
+        chipRow.appendChild(personaChip(data.persona.label, data.persona.score ? `score ${data.persona.score}` : ''));
         if (isYou) chipRow.appendChild(chip('You \u00b7 live session', 'conversion'));
         left.appendChild(chipRow);
         const title = text('h2', 'display');

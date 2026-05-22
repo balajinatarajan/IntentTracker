@@ -69,3 +69,66 @@
   margin-bottom: 0.25rem;
   line-height: 1.4;
 }
+
+/* --- Pinned abandoned-booking card (For You tab) ------------------------
+   Drawn with a thin accent ring + soft inner glow so it reads as a
+   surfaced action, not just another rec. Matches the original design
+   from the recommendation-engine era. */
+.destination-card-abandoned {
+  outline: 1.5px solid var(--color-accent);
+  outline-offset: -1.5px;
+  box-shadow: 0 0 0 4px rgba(255, 141, 107, 0.06);
+}
+
+.card-resume-ribbon {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2;
+  padding: 0.25rem 0.55rem;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.card-rec-abandoned {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Restored CTA on pinned For You cards. Styled as a small accent
+   text-link with a chevron rather than a full pill button so it tucks
+   into the card body cleanly instead of floating on its own row with
+   a chunky footer of whitespace below it. */
+.tab-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.tab-card-cta::after {
+  content: '\2192';
+  font-size: 0.95em;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.tab-card-cta:hover { color: #ff6b47; }
+.tab-card-cta:hover::after { transform: translateX(3px); }
