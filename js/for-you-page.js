@@ -14,6 +14,7 @@
 import { destinations } from './data/destinations.js';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { regions } from './utils/categories.js';
+import { scoreDestinations } from './utils/scoring.js';
 
 const MAX_TAG_TABS = 4;
 const PER_TAB_LIMIT = 12;
@@ -82,24 +83,13 @@ function deriveTabs(tracker, profile) {
   const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
   const weights = profile?.tagWeights || {};
 
-  // Score every destination against the user's tagWeights. Click count is a
-  // small additive boost so repeatedly-clicked items rise but never dominate
-  // a low-affinity tab. Normalized by sqrt(tagCount) to mirror the lib's
-  // RecommendationEngine bias correction.
-  const scored = destinations.map(d => {
-    const tagScore = (d.tags || []).reduce((acc, t) => acc + (weights[t] || 0), 0);
-    const normalized = d.tags && d.tags.length > 0 ? tagScore / Math.sqrt(d.tags.length) : 0;
-    const clickBoost = (clickCounts[d.id] || 0) * 0.5;
-    return { dest: d, score: normalized + clickBoost };
-  });
-
-  const topPicks = scored.slice().sort((a, b) => b.score - a.score).slice(0, PER_TAB_LIMIT);
   // Always include Top Picks — guarantees 12 cards (catalog is 100+).
+  const topPicks = scoreDestinations(destinations, weights, clickCounts, PER_TAB_LIMIT);
   tabs.push({
     id: 'top-picks',
     label: 'Top Picks',
     type: 'top-picks',
-    destinations: topPicks.map(s => s.dest),
+    destinations: topPicks,
   });
 
   const sortedTags = Object.entries(weights)

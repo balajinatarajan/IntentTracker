@@ -1,8 +1,9 @@
-import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=4';
+import { initTabs, showForYouTab, setSearchFilter } from './ui/tabbed-grid.js?v=5';
 import { initModal, openModal } from './ui/detail-modal.js';
 import { initSearchBar } from './ui/search-bar.js';
 import { renderContinueSearch } from './ui/continue-search.js';
 import { destinations } from './data/destinations.js';
+import { scoreDestinations } from './utils/scoring.js';
 
 // --- DOM refs ---
 const tabBarEl = document.getElementById('tab-bar');
@@ -10,19 +11,18 @@ const gridContainer = document.getElementById('destination-grid');
 const searchInput = document.getElementById('search-input');
 const continueSection = document.getElementById('continue-search-section');
 
-// Lookup for mapping plugin recs back to full destination objects
-const destMap = new Map(destinations.map(d => [d.id, d]));
+// Mirrors PER_TAB_LIMIT in tabbed-grid.js — the For You ✦ tab must always
+// fill 12 slots, same rule as every other tab.
+const FOR_YOU_LIMIT = 12;
 
 // --- Init UI ---
 initModal();
 initTabs(tabBarEl, gridContainer, destinations, handleCardClick);
 
-// Card click handler
 function handleCardClick(dest) {
   openModal(dest);
 }
 
-// Search — filters within the active tab
 initSearchBar(searchInput, (query) => {
   setSearchFilter(query);
   if (window.__intentTracker) window.__intentTracker.scan();
@@ -44,26 +44,32 @@ function initTracker() {
     debug: true,
     pageMeta: { name: 'Home', category: 'home', url: '/index.html' },
     emit: '/api/ingest',
-    onRecommendations: (recs) => {
-      // Map plugin recs to full destination objects
-      const mapped = recs.map(r => ({
-        ...r,
-        destinationId: r.itemId,
-        destination: destMap.get(r.itemId) || r.item,
-      }));
-
-      // Inject the "For You" tab with recommendations
-      showForYouTab(mapped);
-
-      // Continue-search section hidden for now
-      // if (tracker) renderContinueSearch(continueSection, tracker.predictNext(3));
+    onRecommendations: () => {
+      // The lib's recs come from its DOM-scanned per-page catalog and are
+      // capped at maxPerGroup:3 — neither compatible with the always-fill-12
+      // rule. Use the callback only as a "profile updated" trigger and
+      // compute our own top 12 from the full destinations.js catalog.
+      refreshForYouTab();
     },
   });
 
   window.__intentTracker = tracker;
 
-  // Continue-search section hidden for now
-  // renderContinueSearch(continueSection, tracker.predictNext(3));
+  // Profile may already have intent data from a prior session — surface the
+  // tab on initial load instead of waiting for the next onRecommendations.
+  refreshForYouTab();
+}
+
+function refreshForYouTab() {
+  const tracker = window.__intentTracker;
+  if (!tracker) return;
+  const profile = tracker.getProfile();
+  const weights = profile?.tagWeights || {};
+  // Cold-start guard: no weights, no For You tab.
+  if (!Object.values(weights).some(w => w > 0)) return;
+  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+  const top = scoreDestinations(destinations, weights, clickCounts, FOR_YOU_LIMIT);
+  showForYouTab(top);
 }
 
 initTracker();

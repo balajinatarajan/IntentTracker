@@ -9,7 +9,7 @@ let gridEl = null;
 let activeTab = 'explore';
 let exploreSet = [];  // random 12, stable per session
 let tripTypePools = {}; // tripType -> precomputed pool of 12 (only tabs that can fill 12)
-let forYouRecs = []; // populated when recommendations arrive
+let forYouDests = []; // 12 destinations passed from app2.js (already scored + ranked)
 let searchFilter = '';
 
 // Always fill exactly 12 cards per tab (mirrors For You page rule). A tab
@@ -60,9 +60,9 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   renderGrid();
 }
 
-export function showForYouTab(recommendations) {
-  if (!recommendations || recommendations.length === 0) return;
-  forYouRecs = recommendations;
+export function showForYouTab(dests) {
+  if (!dests || dests.length === 0) return;
+  forYouDests = dests;
 
   // Add tab button if not already present
   if (!tabBarEl.querySelector('[data-tab="for-you"]')) {
@@ -138,8 +138,7 @@ function getFilteredCards() {
   if (activeTab === 'explore') {
     cards = exploreSet;
   } else if (activeTab === 'for-you') {
-    // For You tab returns full destination objects from recommendations
-    cards = forYouRecs.map(r => r.destination).filter(Boolean);
+    cards = forYouDests;
   } else {
     // Trip-type tabs draw from the precomputed PER_TAB_LIMIT pool built in
     // initTabs. Fallback to a live filter only if the pool is missing
@@ -188,8 +187,7 @@ function renderStandardCards(cards) {
 
 function renderForYouCards(cards) {
   cards.forEach(dest => {
-    const rec = forYouRecs.find(r => r.destination?.id === dest.id);
-    const card = createCard(dest, rec?.reason);
+    const card = createCard(dest);
     card.addEventListener('click', () => cardClickHandler(dest));
     gridEl.appendChild(card);
   });
