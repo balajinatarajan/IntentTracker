@@ -574,7 +574,17 @@ function detectJourneyPatterns(events, sessions, funnel, tagWeights = {}) {
     return followups.every(e => e.type !== 'click' && e.type !== 'view');
   });
 
+  // Cart abandonment is a STATE (they reached checkout and bailed). Price
+  // shock is a CAUSE LABEL we sometimes attach on top. Both should be able
+  // to fire — a price-shocker IS a cart abandoner with a known cause, so
+  // they belong in both rollup buckets.
   if (funnel.abandoned) {
+    patterns.push({
+      id: 'cart_abandonment',
+      severity: 'high',
+      title: 'Checkout abandonment',
+      evidence: `Dropped at ${funnel.furthestStage || 'checkout'}${abandonReason ? ` via ${abandonReason}` : ''}.`,
+    });
     const isPriceShock = /price|rate|expensive|cost/i.test(abandonReason) || (luxuryAffinity > 4 && funnel.furthestStage === 'room');
     if (isPriceShock) {
       patterns.push({
@@ -583,14 +593,19 @@ function detectJourneyPatterns(events, sessions, funnel, tagWeights = {}) {
         title: 'Price shock at room selection',
         evidence: `User reached ${funnel.furthestStage || 'room'} and abandoned${abandonReason ? ` (${abandonReason})` : ''}. Affinity for luxury suggests rate sticker-shock.`,
       });
-    } else {
-      patterns.push({
-        id: 'cart_abandonment',
-        severity: 'high',
-        title: 'Checkout abandonment',
-        evidence: `Dropped at ${funnel.furthestStage || 'checkout'}${abandonReason ? ` via ${abandonReason}` : ''}.`,
-      });
     }
+  }
+  // Comparison loop is the baseline pattern ("clicking around without
+  // converting"). Decision paralysis is the severe form. Both should fire
+  // when the severe version is detected — the rollup tracks severity tiers,
+  // not mutually-exclusive labels.
+  if ((uniqueClicked.size >= 3 || clickedItems.length >= 5) && !funnel.completed) {
+    patterns.push({
+      id: 'comparison_loop',
+      severity: 'medium',
+      title: 'Comparison loop',
+      evidence: `${clickedItems.length} clicks across ${uniqueClicked.size} destinations without conversion.`,
+    });
   }
   if (uniqueClicked.size >= 6 && !funnel.completed && !funnel.abandoned) {
     patterns.push({
@@ -598,13 +613,6 @@ function detectJourneyPatterns(events, sessions, funnel, tagWeights = {}) {
       severity: 'high',
       title: 'Decision paralysis',
       evidence: `${clickedItems.length} clicks across ${uniqueClicked.size} destinations with no booking started — user is stuck comparing.`,
-    });
-  } else if ((uniqueClicked.size >= 3 || clickedItems.length >= 5) && !funnel.completed) {
-    patterns.push({
-      id: 'comparison_loop',
-      severity: 'medium',
-      title: 'Comparison loop',
-      evidence: `${clickedItems.length} clicks across ${uniqueClicked.size} destinations without conversion.`,
     });
   }
   if (uniqueViewed.size >= 5 && longViews.length >= 3 && uniqueClicked.size < 2 && !funnel.completed) {
@@ -615,6 +623,8 @@ function detectJourneyPatterns(events, sessions, funnel, tagWeights = {}) {
       evidence: `Viewed ${uniqueViewed.size} destinations with sustained attention but only ${uniqueClicked.size} click-throughs — user is browsing but not committing.`,
     });
   }
+  // Search dead-end and search refinement aren't mutually exclusive either —
+  // a user who searched 3 times AND had a dead-end belongs in both rollups.
   if (deadEnds.length >= 1 && uniqueClicked.size === 0) {
     patterns.push({
       id: 'search_deadend',
@@ -622,7 +632,8 @@ function detectJourneyPatterns(events, sessions, funnel, tagWeights = {}) {
       title: 'Search dead-end',
       evidence: `${deadEnds.length} search${deadEnds.length === 1 ? '' : 'es'} returned no engagement — likely zero-result or off-target matches.`,
     });
-  } else if (searchQueries.length >= 3) {
+  }
+  if (searchQueries.length >= 3) {
     patterns.push({
       id: 'search_refinement',
       severity: 'medium',

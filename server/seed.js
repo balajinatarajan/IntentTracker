@@ -167,10 +167,22 @@ async function seedJourneyArchetype(kind, index) {
   let sessions = [];
 
   if (kind === 'abandoner') {
+    // Real abandoners usually browse a few options before committing to one
+    // and bailing at checkout. Adding those pre-checkout clicks means Alex
+    // counts toward `comparison_loop` AND `cart_abandonment` — a realistic
+    // multi-friction profile, not a single-pattern caricature.
     sessions = [{
       sessionId: `session-${start}`,
       pageUrl: '/index.html',
-      signals: checkoutSignals({ start, itemId: 'phuket', outcome: 'abandoned', abandonStep: 'guest' }),
+      signals: [
+        { type: 'page_view', timestamp: at(start, 1), itemId: 'Home' },
+        { type: 'view', timestamp: at(start, 8), itemId: 'bali', dwellMs: 2400 },
+        { type: 'click', timestamp: at(start, 16), itemId: 'bali' },
+        { type: 'view', timestamp: at(start, 32), itemId: 'danang', dwellMs: 1900 },
+        { type: 'click', timestamp: at(start, 42), itemId: 'danang' },
+        { type: 'view', timestamp: at(start, 58), itemId: 'phuket', dwellMs: 2100 },
+        ...checkoutSignals({ start: at(start, 70), itemId: 'phuket', outcome: 'abandoned', abandonStep: 'guest' }),
+      ],
     }];
   } else if (kind === 'comparer') {
     const items = ['prague', 'marrakech', 'swiss-alps', 'santorini', 'kyoto'];
@@ -222,20 +234,27 @@ async function seedJourneyArchetype(kind, index) {
       },
     ];
   } else if (kind === 'price_shocker') {
-    // Luxury intent, opens booking, sees rate, bounces fast at the room step
-    // with a price-flavored reason code so the detector picks up price_shock.
+    // Luxury intent, comparison-shops a few options first, then opens booking,
+    // sees the rate, and bounces fast at the room step. The pre-shopping
+    // clicks make Sam count as `comparison_loop` AND `cart_abandonment` AND
+    // `price_shock` — multi-friction profile reflecting how price shock
+    // actually manifests.
     sessions = [{
       sessionId: `session-${start}`,
       pageUrl: '/index.html',
       signals: [
         { type: 'page_view', timestamp: at(start, 1), itemId: 'Home' },
         { type: 'tab_view', timestamp: at(start, 5), itemId: 'tab-romantic' },
-        { type: 'view', timestamp: at(start, 14), itemId: 'maldives', dwellMs: 4200 },
-        { type: 'click', timestamp: at(start, 22), itemId: 'maldives' },
-        { type: 'booking_started', timestamp: at(start, 36), destinationId: 'maldives', funnelStep: 'dates', stepIndex: 0 },
-        { type: 'checkout_step', timestamp: at(start, 48), destinationId: 'maldives', funnelStep: 'dates', stepIndex: 0 },
-        { type: 'checkout_step', timestamp: at(start, 72), destinationId: 'maldives', funnelStep: 'room', stepIndex: 1 },
-        { type: 'checkout_abandoned', timestamp: at(start, 92), destinationId: 'maldives', funnelStep: 'room', stepIndex: 1, reason: 'price_too_high' },
+        { type: 'view', timestamp: at(start, 10), itemId: 'santorini', dwellMs: 3100 },
+        { type: 'click', timestamp: at(start, 18), itemId: 'santorini' },
+        { type: 'view', timestamp: at(start, 28), itemId: 'maui', dwellMs: 3400 },
+        { type: 'click', timestamp: at(start, 36), itemId: 'maui' },
+        { type: 'view', timestamp: at(start, 48), itemId: 'maldives', dwellMs: 4200 },
+        { type: 'click', timestamp: at(start, 58), itemId: 'maldives' },
+        { type: 'booking_started', timestamp: at(start, 72), destinationId: 'maldives', funnelStep: 'dates', stepIndex: 0 },
+        { type: 'checkout_step', timestamp: at(start, 84), destinationId: 'maldives', funnelStep: 'dates', stepIndex: 0 },
+        { type: 'checkout_step', timestamp: at(start, 108), destinationId: 'maldives', funnelStep: 'room', stepIndex: 1 },
+        { type: 'checkout_abandoned', timestamp: at(start, 128), destinationId: 'maldives', funnelStep: 'room', stepIndex: 1, reason: 'price_too_high' },
       ],
     }];
   } else if (kind === 'decision_paralysis') {
