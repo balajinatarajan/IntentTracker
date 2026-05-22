@@ -144,39 +144,44 @@
 
     // "Live Journey" navbar chip — close the loop from product to analytics:
     // click takes you to the Journey Observatory pre-filtered to your live
-    // session. Sits next to the For You chip; gold to match dashboard accent.
+    // session. Lives inside the cart wrap on the far right so it sits
+    // adjacent to the cart icon, and uses a subtle outlined treatment
+    // (vs the gradient For You chip) so it reads as utility, not promo.
     (function mountJourneyChip() {
-      const navLinks = document.querySelector('.site-nav .nav-links');
-      if (!navLinks || navLinks.querySelector('.journey-nav-link')) return;
+      const cartWrap = document.querySelector('.site-nav .site-nav-cart');
+      const siteNav = document.querySelector('.site-nav');
+      const host = cartWrap || siteNav;
+      if (!host || document.querySelector('.journey-nav-link')) return;
       const style = document.createElement('style');
       style.textContent = [
-        // Selectors are scoped under .site-nav .nav-links so they out-specify
-        // the existing `.site-nav .nav-links a:hover` rule (which would
-        // otherwise blast the gold gradient with a transparent-white hover
-        // background and make the chip turn dark/unreadable).
-        '.site-nav .nav-links a.journey-nav-link {',
+        // Group the chip and cart icon together on the far right with
+        // a small gap so they read as one nav cluster.
+        '.site-nav-cart { display: inline-flex; align-items: center; gap: 0.6rem; }',
+        // Subtle outlined pill — utility, not promo. Pulse dot still
+        // communicates "live."
+        '.site-nav a.journey-nav-link {',
         '  display: inline-flex; align-items: center; gap: 0.4rem;',
-        '  padding: 0.4rem 0.9rem; margin-left: 0.25rem; border-radius: 999px;',
-        '  background: linear-gradient(135deg, #ffd66b, #f0b929);',
-        '  color: #1a1300; font-family: "DM Sans", sans-serif;',
-        '  font-weight: 600; font-size: 0.9rem; text-decoration: none;',
-        '  box-shadow: 0 2px 8px rgba(255,214,107,0.35);',
-        '  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;',
+        '  padding: 0.3rem 0.7rem; border-radius: 999px;',
+        '  background: rgba(255,214,107,0.06);',
+        '  border: 1px solid rgba(255,214,107,0.32);',
+        '  color: #ffd66b; font-family: "DM Sans", sans-serif;',
+        '  font-weight: 500; font-size: 0.78rem; text-decoration: none;',
+        '  white-space: nowrap;',
+        '  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;',
         '}',
-        '.site-nav .nav-links a.journey-nav-link:hover {',
-        '  color: #1a1300;',
-        '  background: linear-gradient(135deg, #ffe28a, #f5c43e);',
-        '  transform: translateY(-1px);',
-        '  box-shadow: 0 4px 12px rgba(255,214,107,0.55);',
+        '.site-nav a.journey-nav-link:hover {',
+        '  background: rgba(255,214,107,0.14);',
+        '  border-color: rgba(255,214,107,0.55);',
+        '  color: #ffe28a;',
         '}',
         '.journey-nav-link .live-dot {',
-        '  width: 7px; height: 7px; border-radius: 50%;',
-        '  background: #d4361a;',
-        '  animation: journey-live-pulse 1.4s ease-in-out infinite;',
+        '  width: 6px; height: 6px; border-radius: 50%;',
+        '  background: #ff6b47;',
+        '  animation: journey-live-pulse 1.6s ease-in-out infinite;',
         '}',
         '@keyframes journey-live-pulse {',
-        '  0%, 100% { box-shadow: 0 0 0 0 rgba(212,54,26,0.55); }',
-        '  50%      { box-shadow: 0 0 0 5px rgba(212,54,26,0); }',
+        '  0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,71,0.55); }',
+        '  50%      { box-shadow: 0 0 0 4px rgba(255,107,71,0); }',
         '}',
       ].join('\n');
       document.head.appendChild(style);
@@ -189,7 +194,11 @@
       dot.setAttribute('aria-hidden', 'true');
       chip.appendChild(dot);
       chip.appendChild(document.createTextNode('Live Journey'));
-      navLinks.appendChild(chip);
+      // Insert as the FIRST child of the cart wrap so the chip sits to the
+      // left of the cart icon. If we couldn't find the cart wrap for some
+      // reason, fall back to appending to the nav directly.
+      if (cartWrap) cartWrap.insertBefore(chip, cartWrap.firstChild);
+      else host.appendChild(chip);
     })();
 
     // Event-delegated "Book This Trip" handler on the existing detail modal.

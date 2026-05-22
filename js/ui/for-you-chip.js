@@ -24,7 +24,7 @@
     const style = document.createElement('style');
     style.id = 'for-you-chip-styles';
     style.textContent = `
-      .for-you-nav-link {
+      .site-nav .nav-links a.for-you-nav-link {
         display: none;
         align-items: center;
         gap: 0.35rem;
@@ -32,21 +32,23 @@
         margin-left: 0.25rem;
         border-radius: 999px;
         background: linear-gradient(135deg, #ff8d6b, #ff6b9a);
-        color: #fff !important;
+        color: #fff;
         font-family: 'DM Sans', sans-serif;
         font-weight: 500;
         text-decoration: none;
         box-shadow: 0 2px 8px rgba(255, 141, 107, 0.3);
-        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, background 0.2s ease;
         opacity: 0;
       }
-      .for-you-nav-link.visible {
+      .site-nav .nav-links a.for-you-nav-link.visible {
         display: inline-flex;
         opacity: 1;
       }
-      .for-you-nav-link:hover {
+      .site-nav .nav-links a.for-you-nav-link:hover {
+        color: #fff;
+        background: linear-gradient(135deg, #ff9d7d, #ff7baa);
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(255, 141, 107, 0.4);
+        box-shadow: 0 4px 12px rgba(255, 141, 107, 0.45);
       }
     `;
     document.head.appendChild(style);
