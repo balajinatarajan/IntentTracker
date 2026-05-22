@@ -308,6 +308,7 @@
     .payload-response pre { border-color: rgba(122, 220, 170, 0.22); }
     .payload-copy { margin-left: auto; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 999px; background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
     .payload-copy:hover { background: var(--bg-elev); color: var(--ink); border-color: var(--line-soft); }
+    .ai-handoff-note { margin: -6px 0 14px; font-size: 12px; line-height: 1.55; color: var(--muted); font-style: italic; }
 
     .empty { padding: 80px 20px; color: var(--muted); text-align: center; }
     .section-title { margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
@@ -1118,6 +1119,15 @@
         payloadHead.style.marginBottom = '12px';
         payloadHead.appendChild(sectionTitle('AI handoff'));
         payload.appendChild(payloadHead);
+
+        // Honest single-line architectural disclaimer — the dashboard
+        // already labels the response panel "Simulated AI response" but
+        // a casual reader can miss that. This line spells out, once, in
+        // plain language, that today the response is mocked and the
+        // contract is built so dropping in a real LLM call is trivial.
+        const aiNote = text('p', 'ai-handoff-note', 'Currently mocked deterministically. POST the request payload to any LLM (GPT, Claude, etc.) and the simulated response is what you\u2019d parse back \u2014 same shape, same fields.');
+        payload.appendChild(aiNote);
+
         payload.appendChild(renderAiBrief(data));
 
         // Show BOTH sides of the AI conversation so judges see the full
