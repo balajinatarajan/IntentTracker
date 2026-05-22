@@ -9,7 +9,7 @@ let gridEl = null;
 let activeTab = 'explore';
 let exploreSet = [];  // random 12, stable per session
 let tripTypePools = {}; // tripType -> precomputed pool of 12 (only tabs that can fill 12)
-let forYouRecs = []; // populated when recommendations arrive
+let forYouDests = []; // 12 destinations passed from app2.js (already scored + ranked)
 let searchFilter = '';
 
 // Always fill exactly 12 cards per tab (mirrors For You page rule). A tab
@@ -35,24 +35,26 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   allDestinations = dests;
   cardClickHandler = onCardClick;
 
-  // Explore: random PER_TAB_LIMIT destinations, stable for this page load.
-  // Non-personalized default — neutral shuffle of the full catalog.
-  exploreSet = shuffle([...allDestinations]).slice(0, PER_TAB_LIMIT);
+  // Non-FY tabs are STATIC — same content in the same order every time.
+  // Only the For You ✦ tab personalizes. Sorted alphabetically by name so
+  // the ordering is deterministic, varied, and independent of catalog
+  // source order (which would otherwise bias the first 12 to one region).
+  const byName = (a, b) => a.name.localeCompare(b.name);
+
+  // Explore: first 12 destinations alphabetically across the whole catalog.
+  exploreSet = [...allDestinations].sort(byName).slice(0, PER_TAB_LIMIT);
 
   // Trip-type tabs: precompute the candidate pool per tripType and drop any
-  // tab that can't fill all PER_TAB_LIMIT slots. Click counts (when the
-  // shared profile-state helper is loaded) bubble repeatedly-clicked items
-  // to the top of their tab — same ranking the For You page uses.
-  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+  // tab that can't fill all PER_TAB_LIMIT slots. No personalization — same
+  // alphabetical sort as Explore.
   tripTypePools = {};
   TABS = ALL_TABS.filter(tab => {
     if (tab.id === 'explore') return true;
-    const matches = allDestinations.filter(d => (d.tripTypes || []).includes(tab.id));
+    const matches = allDestinations
+      .filter(d => (d.tripTypes || []).includes(tab.id))
+      .sort(byName);
     if (matches.length < PER_TAB_LIMIT) return false;
-    const ranked = matches
-      .map(d => ({ dest: d, clicks: clickCounts[d.id] || 0 }))
-      .sort((a, b) => b.clicks - a.clicks);
-    tripTypePools[tab.id] = ranked.slice(0, PER_TAB_LIMIT).map(r => r.dest);
+    tripTypePools[tab.id] = matches.slice(0, PER_TAB_LIMIT);
     return true;
   });
 
@@ -60,9 +62,9 @@ export function initTabs(barEl, containerEl, dests, onCardClick) {
   renderGrid();
 }
 
-export function showForYouTab(recommendations) {
-  if (!recommendations || recommendations.length === 0) return;
-  forYouRecs = recommendations;
+export function showForYouTab(dests) {
+  if (!dests || dests.length === 0) return;
+  forYouDests = dests;
 
   // Add tab button if not already present
   if (!tabBarEl.querySelector('[data-tab="for-you"]')) {
@@ -138,8 +140,7 @@ function getFilteredCards() {
   if (activeTab === 'explore') {
     cards = exploreSet;
   } else if (activeTab === 'for-you') {
-    // For You tab returns full destination objects from recommendations
-    cards = forYouRecs.map(r => r.destination).filter(Boolean);
+    cards = forYouDests;
   } else {
     // Trip-type tabs draw from the precomputed PER_TAB_LIMIT pool built in
     // initTabs. Fallback to a live filter only if the pool is missing
@@ -188,8 +189,7 @@ function renderStandardCards(cards) {
 
 function renderForYouCards(cards) {
   cards.forEach(dest => {
-    const rec = forYouRecs.find(r => r.destination?.id === dest.id);
-    const card = createCard(dest, rec?.reason);
+    const card = createCard(dest);
     card.addEventListener('click', () => cardClickHandler(dest));
     gridEl.appendChild(card);
   });
@@ -235,12 +235,3 @@ function createCard(dest, reason) {
   return card;
 }
 
-// --- Utils ---
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
