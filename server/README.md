@@ -15,9 +15,25 @@ npm start             # listens on :8090
 Then open:
 - **http://localhost:8090/** — the Wanderlust demo (index/hotels/vacations/etc.)
 - **http://localhost:8090/dashboard.html** — the business analytics view
+- **http://localhost:8090/journey-dashboard.html** — the per-user Journey Observatory (hackathon demo)
 
 The server also serves the static repo root, so demo pages and the dashboard
 share the same origin as `/api/*` (no CORS).
+
+## Seeding demo data
+
+For the hackathon demo we ship 9 hand-crafted user archetypes — each one
+exercises a different friction point (cart abandonment, sticker shock,
+decision paralysis, search dead-end, comparison fatigue, etc.) so the
+Journey Observatory has interesting, distinct stories to tell.
+
+```sh
+node server/reset-db.js   # wipe leftover data from prior runs
+node server/seed.js       # create the 9 curated archetypes
+```
+
+Want extra noise to stress-test aggregates? `EXTRAS=20 node server/seed.js`
+layers 20 random filler users on top of the archetype gallery.
 
 ## How emission works
 
@@ -50,7 +66,8 @@ SQLite file at `server/data/analytics.db` (WAL mode). Three tables:
 - `profile_tag_weights(user_id, tag, weight)` — flattened from profile snapshots
   for fast `GROUP BY tag` rollups.
 
-To wipe and start over: `rm -rf server/data/`.
+To wipe and start over: `node server/reset-db.js` (preserves the file,
+clears all rows) or `rm -rf server/data/` (nukes the file entirely).
 
 ## Rebuilding the tracker
 

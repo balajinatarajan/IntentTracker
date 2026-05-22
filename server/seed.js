@@ -3,7 +3,11 @@
 // the browser uses. Run with: node server/seed.js  (server must be running)
 
 const BASE = process.env.BASE || 'http://localhost:8090';
-const USER_COUNT = parseInt(process.env.USERS || '25', 10);
+// By default we seed ONLY the 9 curated archetypes — keeps the Journey
+// Observatory sidebar tight and every user there has a deliberate
+// storytelling purpose. Set EXTRAS=N to layer on N random filler users
+// (useful for stress-testing aggregate analytics, but noise for the demo).
+const EXTRAS = parseInt(process.env.EXTRAS || '0', 10);
 const HOURS_BACK = parseInt(process.env.HOURS || '24', 10);
 
 // Real tags from js/data/destinations.js (skewed weights make the bar chart
@@ -377,36 +381,35 @@ async function seedUser(i) {
     profile: { userId, sessions: [], tagWeights },
   });
 
-  console.log(`[${i + 1}/${USER_COUNT}] ${userId}: ${sessions} sessions, ${totalSignals} signals, ${Object.keys(tagWeights).length} tags`);
+  console.log(`[extra ${i + 1}/${EXTRAS}] ${userId}: ${sessions} sessions, ${totalSignals} signals, ${Object.keys(tagWeights).length} tags`);
 }
 
 async function main() {
-  console.log(`Seeding ${USER_COUNT} users over the last ${HOURS_BACK}h against ${BASE} ...`);
-  // Health check first
+  const archetypes = [
+    'abandoner', 'comparer', 'bouncer', 'converter', 'returner',
+    'price_shocker', 'decision_paralysis', 'search_deadend', 'comparison_fatigue',
+  ];
+  console.log(`Seeding ${archetypes.length} curated archetypes${EXTRAS ? ` + ${EXTRAS} random filler users` : ''} against ${BASE} ...`);
+
   const h = await fetch(BASE + '/api/health').then(r => r.json()).catch(() => null);
   if (!h || h.status !== 'ok') {
     console.error(`Server not reachable at ${BASE}. Start it with: cd server && npm start`);
     process.exit(1);
   }
 
-  const archetypes = [
-    'abandoner', 'comparer', 'bouncer', 'converter', 'returner',
-    'price_shocker', 'decision_paralysis', 'search_deadend', 'comparison_fatigue',
-  ];
   for (let i = 0; i < archetypes.length; i++) {
     try { await seedJourneyArchetype(archetypes[i], i); }
     catch (err) { console.error('  journey seed error:', err.message); }
   }
 
-  const randomUsers = Math.max(0, USER_COUNT - archetypes.length);
-  for (let i = 0; i < randomUsers; i++) {
+  for (let i = 0; i < EXTRAS; i++) {
     try { await seedUser(i); }
     catch (err) { console.error('  seed error:', err.message); }
   }
 
   const summary = await fetch(BASE + '/api/analytics/summary').then(r => r.json());
   console.log('\nDone. Summary:', summary);
-  console.log(`Open ${BASE}/dashboard.html`);
+  console.log(`Open ${BASE}/journey-dashboard.html  (gallery of ${archetypes.length} archetypes)`);
 }
 
 main();

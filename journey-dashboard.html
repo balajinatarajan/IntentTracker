@@ -6,7 +6,7 @@
   <title>IntentTracker · Journey Observatory</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #07091a;
@@ -36,7 +36,7 @@
     }
 
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: "Instrument Sans", -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
     body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
       background:
         radial-gradient(900px 460px at 12% -6%, rgba(110,169,255,0.10), transparent 60%),
@@ -47,15 +47,15 @@
     a { color: var(--accent); text-decoration: none; font-weight: 600; }
     a:hover { color: #fff; }
 
-    .display { font-family: "Instrument Serif", "Iowan Old Style", Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+    .display { font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.02em; }
     .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
-    .eyebrow { font-family: "Instrument Sans", sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); font-weight: 600; }
+    .eyebrow { font-family: "DM Sans", sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); font-weight: 600; }
 
     header { position: sticky; top: 0; z-index: 30; background: rgba(7,9,26,0.78); backdrop-filter: saturate(140%) blur(20px); border-bottom: 1px solid var(--line-soft); }
     .topbar { max-width: 1480px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
     .brand { display: flex; align-items: baseline; gap: 12px; }
     .brand-mark { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(255,214,107,0.12); transform: translateY(2px); }
-    .brand-title { font-family: "Instrument Serif", serif; font-size: 20px; letter-spacing: -0.01em; }
+    .brand-title { font-family: "DM Sans", sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
     .brand-sub { color: var(--muted); font-size: 12px; }
     .nav-actions { display: flex; align-items: center; gap: 14px; }
 
@@ -124,7 +124,7 @@
     .stat { position: relative; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 14px 16px; overflow: hidden; }
     .stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: 0.5; }
     .stat span { display: block; color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 4px; font-weight: 600; }
-    .stat b { display: block; font-weight: 400; font-family: "Instrument Serif", serif; font-size: 26px; line-height: 1.05; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+    .stat b { display: block; font-weight: 700; font-family: "DM Sans", sans-serif; font-size: 22px; line-height: 1.15; letter-spacing: -0.02em; overflow-wrap: anywhere; }
 
     /* STAGE OVERVIEW */
     .journey-overview { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
@@ -199,17 +199,17 @@
 
     .story-card { background: linear-gradient(150deg, rgba(255,214,107,0.07), rgba(110,169,255,0.04)); border: 1px solid rgba(255,214,107,0.20); border-radius: 18px; padding: 18px 20px; display: grid; gap: 10px; }
     .story-card .eyebrow { color: var(--accent); }
-    .story-card p { margin: 0; font-family: "Instrument Serif", serif; font-size: 22px; line-height: 1.32; letter-spacing: -0.01em; color: var(--ink); }
+    .story-card p { margin: 0; font-family: "DM Sans", sans-serif; font-weight: 500; font-size: 18px; line-height: 1.45; letter-spacing: -0.01em; color: var(--ink); }
     .story-card p .accent { color: var(--accent); }
 
-    .display-name { font-family: "Instrument Serif", serif; letter-spacing: -0.01em; color: var(--ink); }
-    .user-row .display-name { font-size: 15px; line-height: 1.1; font-weight: 400; }
-    .current-user-card .display-name { font-size: 22px; line-height: 1.1; }
+    .display-name { font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+    .user-row .display-name { font-size: 14px; line-height: 1.2; font-weight: 600; }
+    .current-user-card .display-name { font-size: 20px; line-height: 1.2; }
 
     /* AGGREGATE FRICTION STRIP */
     .friction-strip { display: grid; gap: 14px; padding: 18px 20px; }
     .friction-strip-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-    .friction-strip-head h3 { margin: 0; font-family: "Instrument Serif", serif; font-size: 22px; letter-spacing: -0.01em; font-weight: 400; color: var(--ink); }
+    .friction-strip-head h3 { margin: 0; font-family: "DM Sans", sans-serif; font-size: 18px; letter-spacing: -0.01em; font-weight: 700; color: var(--ink); }
     .friction-strip-head .meta { color: var(--muted); font-size: 12.5px; }
     .friction-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
     .friction-tile { position: relative; padding: 12px 14px; background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 13px; overflow: hidden; }
@@ -219,7 +219,7 @@
     .friction-tile.discovery::before { background: var(--discovery); }
     .friction-tile.checkout::before { background: var(--checkout); }
     .friction-tile.conversion::before { background: var(--conversion); }
-    .friction-tile .count { font-family: "Instrument Serif", serif; font-size: 28px; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+    .friction-tile .count { font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 24px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); }
     .friction-tile .count .pct { color: var(--muted); font-size: 13px; font-family: "JetBrains Mono", monospace; margin-left: 6px; }
     .friction-tile .label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-top: 6px; }
 
@@ -230,18 +230,21 @@
     .rec-card .thumb { width: 100%; aspect-ratio: 16/10; background: var(--surface-2); overflow: hidden; }
     .rec-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .rec-card .body { padding: 11px 13px 13px; display: grid; gap: 6px; }
-    .rec-card .name { color: var(--ink); font-size: 13.5px; font-weight: 600; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .rec-card .name { color: var(--ink); font-size: 13.5px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .rec-card .why { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
-    .rec-card .why em { color: var(--accent); font-style: normal; font-weight: 600; }
-    .rec-card .price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
-    .rec-card .tier { color: var(--ink-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
-    .rec-card .score { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 11px; }
+    .rec-card .why em { color: var(--accent); font-style: normal; font-weight: 700; }
+    .rec-card .match-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+    .rec-card .match-tag { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(255,214,107,0.28); text-transform: lowercase; letter-spacing: 0.02em; font-weight: 600; }
+    .rec-card .tier { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin-top: 2px; }
     .rec-empty { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
-    .insight-card h3, .experiment-card h3 { margin: 0; font-size: 16px; font-family: "Instrument Serif", serif; font-weight: 400; letter-spacing: -0.01em; color: var(--ink); }
+    .insight-card h3, .experiment-card h3 { margin: 0; font-size: 15px; font-family: "DM Sans", sans-serif; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
     .insight-card p, .experiment-card p { margin: 0; color: var(--ink-dim); font-size: 13px; }
     .experiment-card .meta-line { color: var(--muted); font-size: 12px; }
 
     /* SESSIONS */
+    .sessions-scroll { max-height: 520px; overflow-y: auto; padding-right: 6px; }
+    .sessions-scroll::-webkit-scrollbar { width: 9px; }
+    .sessions-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; }
     .session { background: var(--bg-elev); border: 1px solid var(--line-soft); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
     .session-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 12px; align-items: baseline; }
     .session-head .uid { font-size: 12px; color: var(--ink-dim); }
@@ -800,6 +803,10 @@
         }
         const body = text('div', 'body');
         body.appendChild(text('div', 'name', rec.name || rec.id));
+
+        // The "why" line tells the stakeholder *what about this user*
+        // makes this destination relevant. Highlight the user's own top
+        // tags so different archetypes produce visibly different reasons.
         const matchedHighlights = (rec.matchedTags || [])
           .filter(t => topUserTags.includes(t))
           .slice(0, 2);
@@ -817,10 +824,19 @@
           why.textContent = 'Recommended based on overall profile';
         }
         body.appendChild(why);
-        const priceRow = text('div', 'price-row');
-        if (rec.priceTier) priceRow.appendChild(text('span', 'tier', labelFormatter.phrase(rec.priceTier)));
-        if (rec.score != null) priceRow.appendChild(text('span', 'score', `score ${Number(rec.score).toFixed(2)}`));
-        body.appendChild(priceRow);
+
+        // Show ALL matched tags as little pills so the visual identity of
+        // each card differs from user to user (luxury cards vs adventure
+        // cards vs european-city cards look obviously different at a glance).
+        if ((rec.matchedTags || []).length) {
+          const pills = text('div', 'match-tags');
+          for (const t of rec.matchedTags.slice(0, 4)) {
+            pills.appendChild(text('span', 'match-tag', labelFormatter.tag(t).toLowerCase()));
+          }
+          body.appendChild(pills);
+        }
+
+        if (rec.priceTier) body.appendChild(text('div', 'tier', labelFormatter.phrase(rec.priceTier)));
         card.appendChild(body);
         wrap.appendChild(card);
       }
@@ -862,7 +878,7 @@
     }
 
     function renderSessions(sessions) {
-      const wrap = text('div');
+      const wrap = text('div', 'sessions-scroll');
       for (const session of sessions) {
         const card = text('div', 'session');
         const head = text('div', 'session-head');
