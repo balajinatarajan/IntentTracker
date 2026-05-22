@@ -150,18 +150,24 @@
       if (!navLinks || navLinks.querySelector('.journey-nav-link')) return;
       const style = document.createElement('style');
       style.textContent = [
-        '.journey-nav-link {',
+        // Selectors are scoped under .site-nav .nav-links so they out-specify
+        // the existing `.site-nav .nav-links a:hover` rule (which would
+        // otherwise blast the gold gradient with a transparent-white hover
+        // background and make the chip turn dark/unreadable).
+        '.site-nav .nav-links a.journey-nav-link {',
         '  display: inline-flex; align-items: center; gap: 0.4rem;',
         '  padding: 0.4rem 0.9rem; margin-left: 0.25rem; border-radius: 999px;',
         '  background: linear-gradient(135deg, #ffd66b, #f0b929);',
-        '  color: #1a1300 !important; font-family: "DM Sans", sans-serif;',
+        '  color: #1a1300; font-family: "DM Sans", sans-serif;',
         '  font-weight: 600; font-size: 0.9rem; text-decoration: none;',
         '  box-shadow: 0 2px 8px rgba(255,214,107,0.35);',
-        '  transition: transform 0.2s ease, box-shadow 0.2s ease;',
+        '  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;',
         '}',
-        '.journey-nav-link:hover {',
+        '.site-nav .nav-links a.journey-nav-link:hover {',
+        '  color: #1a1300;',
+        '  background: linear-gradient(135deg, #ffe28a, #f5c43e);',
         '  transform: translateY(-1px);',
-        '  box-shadow: 0 4px 12px rgba(255,214,107,0.5);',
+        '  box-shadow: 0 4px 12px rgba(255,214,107,0.55);',
         '}',
         '.journey-nav-link .live-dot {',
         '  width: 7px; height: 7px; border-radius: 50%;',
