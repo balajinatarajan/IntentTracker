@@ -63,14 +63,20 @@ function bootstrap(tracker) {
 
 function deriveTabs(tracker, profile) {
   const tabs = [];
+  const clickCounts = window.IntentTrackerExt?.getItemClickCounts?.() || {};
+  const byClicksDesc = (a, b) => (clickCounts[b.id] || 0) - (clickCounts[a.id] || 0);
 
-  const recs = tracker.recommend(PER_TAB_LIMIT);
+  // Top Picks: pull a wider candidate pool from the rec engine so that
+  // repeatedly-clicked items have a chance to surface, then re-sort by
+  // click count (stable sort preserves rec order as the tiebreaker).
+  const recs = tracker.recommend(PER_TAB_LIMIT * 4);
   if (recs.length > 0) {
+    recs.sort((a, b) => (clickCounts[b.itemId] || 0) - (clickCounts[a.itemId] || 0));
     tabs.push({
       id: 'top-picks',
       label: 'Top Picks',
       type: 'recommendations',
-      recs,
+      recs: recs.slice(0, PER_TAB_LIMIT),
     });
   }
 
@@ -81,7 +87,10 @@ function deriveTabs(tracker, profile) {
     .map(([tag]) => tag);
 
   for (const tag of sortedTags) {
-    const matches = destinations.filter(d => d.tags && d.tags.includes(tag));
+    const matches = destinations
+      .filter(d => d.tags && d.tags.includes(tag))
+      .slice()
+      .sort(byClicksDesc);
     if (matches.length === 0) continue;
     tabs.push({
       id: `tag-${tag}`,
@@ -108,7 +117,7 @@ function renderIntentStrip(profile) {
     intentStripEl.textContent = '';
     return;
   }
-  intentStripEl.innerHTML = `<span class="intent-strip-label">We see you exploring:</span> ${top.map(t => `<span class="intent-pill">${t}</span>`).join('')}`;
+  intentStripEl.innerHTML = `<span class="intent-strip-label">Most explored tags:</span> ${top.map(t => `<span class="intent-pill">${t}</span>`).join('')}`;
 }
 
 function renderTabs(tracker, tabs) {
@@ -149,7 +158,7 @@ function renderGrid(tab) {
     });
   } else {
     tab.destinations.forEach(dest => {
-      gridEl.appendChild(createCard(dest, `Tagged "${tab.tag}"`));
+      gridEl.appendChild(createCard(dest, ''));
     });
   }
 
