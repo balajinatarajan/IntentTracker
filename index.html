@@ -78,7 +78,7 @@
   <div id="booking-overlay"></div>
 
   <!-- IntentTracker plugin (IIFE build — exposes window.IntentTracker) -->
-  <script src="lib/dist/intent-tracker.js?v=9"></script>
+  <script src="lib/dist/intent-tracker.js?v=10"></script>
   <!-- Shared profile-state helpers (window.IntentTrackerExt) — drives the
        click-count ranking inside the tripType tabs. -->
   <script src="js/utils/profile-state.js"></script>
@@ -113,6 +113,12 @@
     }
 
     function emitBookingEvent(event) {
+      // Surface booking signals in the SignalTracker debug panel alongside
+      // hover/click/tab events. The plugin's emitter handles the server
+      // round-trip for its own signals; booking events keep their own
+      // sendBeacon path below so they survive a tab close on abandon.
+      window.__intentTracker?.trackCustom?.(event);
+
       const body = JSON.stringify({
         userId: getUserId(),
         sessionId: getSessionId(),
